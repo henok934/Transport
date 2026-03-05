@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <style>
+        :root {
+            --brand-navy: #001f3f;
+            --brand-gold: #ffcc00;
+            --danger: #ef4444;
+            --glass-light: rgba(255, 255, 255, 0.15);
+        }
+
+        /* --- NAVBAR BASE --- */
+        .navbar-main {
+            background: var(--brand-navy) !important;
+            border-bottom: 2px solid var(--brand-gold);
+            padding: 8px 15px;
+        }
+
+        .nav-logo { 
+            height: 45px; 
+            width: 45px; 
+            border-radius: 50%; 
+            border: 2px solid var(--brand-gold); 
+            background: white; 
+            object-fit: cover;
+        }
+
+        .brand-text-lg { color: white; font-weight: 800; font-size: 0.95rem; line-height: 1.1; }
+        .brand-text-sm { color: var(--brand-gold); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+
+        /* --- SELECT DROPDOWNS --- */
+        .intl-select {
+            background: var(--glass-light);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 10px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .intl-select:hover { background: rgba(255,255,255,0.25); }
+        .intl-select option { background: var(--brand-navy); color: white; }
+
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background: var(--brand-navy);
+                padding: 15px;
+                margin-top: 10px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            
+            .d-flex.align-items-center {
+                flex-direction: column; /* Stacks items vertically on mobile */
+                align-items: stretch !important;
+            }
+
+            .intl-select, .btn-sm {
+                margin-left: 0 !important;
+                margin-bottom: 10px;
+                width: 100%; /* Full width buttons/selects on mobile */
+                text-align: center;
+            }
+
+            .brand-text-lg { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-main">
+        <div class="container-fluid">
+            <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
+                <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="nav-logo" alt="Logo">
+                <div class="ml-2 ml-md-3">
+                    <span class="brand-text-lg">TRANSIT SYSTEM</span><br>
+                    <span class="brand-text-sm">{{ name }} Share Company</span>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="mainMenu">
+                <div class="d-flex align-items-center">
+                    
+                    <a href="{% url 'home' %}" class="btn btn-sm text-white font-weight-bold" style="font-size: 11px; border: 1px solid var(--brand-gold);">HOME</a>
+                    
+                    <select onchange="location.href = this.value;" class="intl-select">
+                        <option value="#" disabled selected>📁 REGISTRATION</option>
+                        <option value="{% url 'businsert' %}">Register Bus</option>
+                    </select>
+
+                    <select onchange="location.href = this.value;" class="intl-select">
+                        <option value="#" disabled selected>⚙️ OPERATIONS</option>
+                        <option value="{% url 'myroute' %}">Active Routes</option>
+                        <option value="{% url 'mybus' %}">View Fleet</option>
+                    </select>
+
+                    <select onchange="location.href = this.value;" class="intl-select" style="border-color: var(--danger);">
+                        <option value="#" disabled selected>🛠️ MANAGEMENT</option>
+                        <option value="{% url 'updatebus' %}">Edit Details</option>
+                        <option value="{% url 'busdelete' %}">Remove Bus</option>
+                    </select>
+                    
+                    <a href="{% url 'logout' %}" class="btn btn-sm btn-danger ml-lg-3 font-weight-bold" style="font-size: 11px;">LOGOUT</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+<section class="filter-utility-bar">
+        <div class="container d-flex justify-content-center align-items-center">
+            <form action="{% url 'specific' %}" method="post" class="form-inline">
+                {% csrf_token %}
+                <span class="mr-3 font-weight-bold text-muted small">RANGE:</span>
+                <input type="date" name="from" class="date-input-mini mr-2" required>
+                <input type="date" name="to" class="date-input-mini mr-3" required>
+                <button type="submit" class="btn btn-sm btn-dark font-weight-bold px-3" style="font-size: 10px;">REFRESH</button>
+            </form>
+        </div>
+    </section>
+</header>
+<main class="main-viewport" style="display: flex; justify-content: center; padding: 20px;">
+    <div class="centered-container" style="width: fit-content; max-width: 95%;">
+        <div class="table-intl-container" style="display: block; overflow-x: auto; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+            
+            <table class="table table-hover table-intl" style="width: auto; margin-bottom: 0; white-space: nowrap;">
+                <thead style="background: #f8fafc;">
+                    <tr>
+                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">#</th>
+                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">Phone</th>
+                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">PLATE</th>
+                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">ROUTE</th>
+                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">PASSENGER NAME</th>
+                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">SEAT</th>
+                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">PRICE</th>
+                       
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in route %}
+                    <tr style="background: white;">
+                        <td class="w-shrink count-cell text-center" style="font-weight: bold; color: #1a2a6c; padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ forloop.counter }}</td>
+                        <td class="w-shrink text-muted font-weight-bold" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">#{{ ticket.phone }}</td>
+                        <td class="w-shrink" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">
+                            <span class="plate-cell" style="background: #1e293b; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 11px;">{{ ticket.plate_no }}</span>
+                        </td>
+                        <td class="w-shrink font-weight-bold text-secondary" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ ticket.depcity }} to {{ ticket.descity }}</td>
+                        <td class="w-shrink name-cell" style="font-weight: 800; color: #001f3f; text-transform: uppercase; padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ ticket.firstname }} {{ ticket.lastname }}</td>
+                        <td class="w-shrink text-center font-weight-bold" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ ticket.no_seat }}</td>
+                        <td class="w-shrink font-weight-bold text-success" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; color: #10b981;">{{ ticket.price }} ETB</td>
+                        <td class="w-shrink text-center" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">
+                            <button onclick="window.print()" class="btn btn-sm p-0 text-primary">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center py-5 text-muted">Manifest empty for selected range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!--
+<main class="main-viewport">
+    <div class="centered-container">
+        <div class="table-intl-container">
+            <table class="table table-hover table-intl">
+                <thead>
+                    <tr>
+                        <th class="w-shrink">#</th>
+                        <th class="w-shrink">Phone</th>
+                        <th class="w-shrink">PLATE</th>
+                        <th class="w-shrink">ROUTE</th>
+                        <th class="w-shrink">PASSENGER NAME</th>
+                        <th class="w-shrink">SEAT</th>
+                        <th class="w-shrink">PRICE</th>
+                        <th class="w-shrink">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in route %}
+                    <tr>
+                        <td class="w-shrink count-cell text-center">{{ forloop.counter }}</td>
+
+                        <td class="w-shrink text-muted font-weight-bold">#{{ ticket.phone }}</td>
+                        <td class="w-shrink"><span class="plate-cell">{{ ticket.plate_no }}</span></td>
+                        <td class="w-shrink font-weight-bold text-secondary">{{ ticket.depcity }} to {{ ticket.descity }}</td>
+                        <td class="w-shrink name-cell">{{ ticket.firstname }} {{ ticket.lastname }}</td>
+                        <td class="w-shrink text-center font-weight-bold">{{ ticket.no_seat }}</td>
+                        <td class="w-shrink font-weight-bold text-success">{{ ticket.price }} ETB</td>
+                        <td class="w-shrink text-center">
+                            <button onclick="window.print()" class="btn btn-sm p-0 text-primary">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+
+  <tr><td colspan="8" class="text-center py-5 text-muted">Manifest empty for selected range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+-->
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
+</html>

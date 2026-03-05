@@ -1,0 +1,518 @@
+
+
+<!--
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <title>My Boarding Passes | Toward Country Global</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --brand-navy: #00264d;
+            --brand-gold: #ffcc00;
+            --brand-blue: #003DA5;
+            --bg-body: #f1f5f9;
+            --muted: #64748b;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-body); margin: 0; }
+
+        /* --- NAVBAR STYLES --- */
+        .navbar-main {
+            background: white; padding: 12px 0; border-bottom: 5px solid var(--brand-gold);
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .brand-logo { height: 60px !important; border-radius: 10px; border: 3px solid var(--brand-navy); }
+        .brand-text { font-weight: 800; color: var(--brand-navy); font-size: 24px; text-transform: uppercase; }
+        .nav-link { color: var(--brand-navy) !important; font-weight: 700; text-transform: uppercase; font-size: 13px; }
+        .btn-book-nav { background: var(--brand-gold); color: var(--brand-navy) !important; border-radius: 10px; font-weight: 800; }
+
+        /* --- TICKET CARD DESIGN --- */
+        .ticket-card {
+            background: #fff; border-radius: 24px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06); max-width: 850px;
+            margin: 30px auto; border: 1px solid #e2e8f0;
+            /* Critical for multiple tickets: */
+            page-break-after: always; 
+        }
+        .ticket-header { background: var(--brand-navy); color: #fff; padding: 25px 35px; display: flex; justify-content: space-between; align-items: center; }
+        .badge-level { background: var(--brand-gold); color: var(--brand-navy); padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        
+        .ticket-content { display: flex; flex-wrap: wrap; padding: 35px; }
+        .main-info { flex: 2; border-right: 1px solid #f1f5f9; padding-right: 30px; }
+        .qr-area { flex: 1; text-align: center; padding-left: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Passenger Details | Toward Country Luxury Travel</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="../static/styles/bootstrap4/bootstrap.min.css">
+
+    <style>
+        :root {
+            --brand-navy: #00264d;
+            --brand-gold: #ffcc00;
+            --brand-dark: #0f172a;
+            --primary: #0052cc;
+            --booked: #dfe1e6;
+            --selected: #36b37e;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; margin: 0; }
+
+        /* --- ATTRACTIVE LOGO & NAV --- */
+        .navbar-main {
+            background: #ffffff; padding: 10px 0; border-bottom: 5px solid var(--brand-gold);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
+        }
+        .brand-logo-box {
+            background: white; padding: 4px; border-radius: 10px; border: 2.5px solid var(--brand-navy);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand-logo { height: 50px !important; width: auto; border-radius: 5px; }
+        .brand-text-main { font-weight: 800; color: var(--brand-navy); font-size: 22px; text-transform: uppercase; line-height: 1; margin-left: 10px; }
+.brand-tag { color: var(--brand-gold); font-weight: 800; font-size: 9px; letter-spacing: 1.2px; display: block; margin-left: 10px; }
+
+        .nav-link-custom {
+            color: var(--brand-navy) !important; font-weight: 700; font-size: 13px; text-transform: uppercase;
+            padding: 10px 15px !important; transition: 0.3s;
+        }
+        .nav-link-custom:hover { color: var(--primary) !important; }
+        .login-pill { background: var(--brand-navy); color: white !important; border-radius: 8px; padding: 8px 20px !important; }
+
+        /* --- TRIP SUMMARY --- */
+        .trip-summary { background: var(--brand-navy); color: white; padding: 18px; border-radius: 12px; margin-bottom: 25px; }
+
+        /* --- FORM --- */
+        .passenger-card { background: #fff; border-radius: 15px; padding: 25px; margin-bottom: 20px; border: 1px solid #e2e8f0; position: relative; }
+        .form-control-intl { height: 48px; border-radius: 10px; font-weight: 600; border: 2px solid #e2e8f0; background: #f8fafc; }
+        .cap-input { text-transform: capitalize; }
+        .remove-x { position: absolute; top: 15px; right: 20px; color: #ef4444; cursor: pointer; border: none; background: none; font-size: 20px; }
+
+        /* --- SCROLLABLE SEAT MODAL --- */
+        .seat-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
+        .modal-content-custom { 
+            background: white; margin: 3vh auto; padding: 20px; width: 95%; max-width: 440px;
+            border-radius: 20px; max-height: 94vh; display: flex; flex-direction: column;
+        }
+        .seat-scroll-area { overflow-y: auto; flex-grow: 1; padding: 10px 5px; }
+        .seat-grid { display: grid; grid-template-columns: repeat(3, 1fr) 15px repeat(2, 1fr); gap: 7px; }
+        .seat-rect {
+            height: 42px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; font-weight: 800;
+        }
+
+.seat-rect i { font-size: 14px; color: #94a3b8; }
+        .seat-rect.selected { background: var(--selected); color: white; border-color: var(--selected); }
+        .seat-rect.booked { background: #f1f5f9; cursor: not-allowed; opacity: 0.5; border: none; color: #ef4444; }
+
+        .footer-dark { background: var(--brand-navy); color: white; padding: 40px 0; text-align: center; }
+
+	:root {
+            --brand-navy: #00264d;
+            --brand-gold: #ffcc00;
+            --brand-blue: #003DA5;
+            --bg-body: #f1f5f9;
+            --muted: #64748b;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-body); margin: 0; }
+
+        /* --- NAVBAR STYLES --- */
+        .navbar-main {
+            background: white; padding: 12px 0; border-bottom: 5px solid var(--brand-gold);
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .brand-logo { height: 60px !important; border-radius: 10px; border: 3px solid var(--brand-navy); }
+        .brand-text { font-weight: 800; color: var(--brand-navy); font-size: 24px; text-transform: uppercase; }
+        .nav-link { color: var(--brand-navy) !important; font-weight: 700; text-transform: uppercase; font-size: 13px; }
+        .btn-book-nav { background: var(--brand-gold); color: var(--brand-navy) !important; border-radius: 10px; font-weight: 800; }
+
+        /* --- TICKET CARD DESIGN --- */
+        .ticket-card {
+            background: #fff; border-radius: 24px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06); max-width: 850px;
+            margin: 30px auto; border: 1px solid #e2e8f0;
+            /* Critical for multiple tickets: */
+            page-break-after: always;
+        }
+.ticket-header { background: var(--brand-navy); color: #fff; padding: 25px 35px; display: flex; justify-content: space-between; align-items: center; }
+        .badge-level { background: var(--brand-gold); color: var(--brand-navy); padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+
+        .ticket-content { display: flex; flex-wrap: wrap; padding: 35px; }
+        .main-info { flex: 2; border-right: 1px solid #f1f5f9; padding-right: 30px; }
+        .qr-area { flex: 1; text-align: center; padding-left: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        .data-label { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+        .data-value { font-size: 16px; font-weight: 700; color: var(--brand-navy); margin-bottom: 12px; }
+        .full-name-display { font-size: 22px; font-weight: 800; color: var(--brand-navy); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; display: block; }
+        .highlight-box { background: #f8fafc; border-radius: 16px; padding: 15px; display: flex; justify-content: space-around; margin-top: 15px; border: 1px solid #edf2f7; }
+
+        /* --- FLOATING PRINT BUTTON --- */
+        .print-btn-container {
+            text-align: center; padding: 25px; position: sticky; top: 85px; z-index: 999;
+        }
+        .btn-print-action {
+            background: var(--brand-navy); color: white; border: none; font-weight: 800;
+            padding: 15px 40px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,38,77,0.3);
+            transition: 0.3s;
+        }
+        .btn-print-action:hover { transform: translateY(-3px); background: var(--brand-blue); color: white; text-decoration: none; }
+
+        /* --- PRINT MEDIA RULES --- */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .ticket-card { box-shadow: none; border: 1px solid #000; margin: 0; }
+        }
+	 @media (max-width: 768px) {
+            .main-info { border-right: none; padding-right: 0; padding-bottom: 25px; border-bottom: 1px solid #f1f5f9; }
+            .qr-area { padding-left: 0; padding-top: 25px; }
+        }
+
+
+    </style>
+    <style>
+        /* Toast Container */
+        .intl-error-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            border-left: 5px solid #e74c3c;
+            z-index: 9999; /* Higher z-index to stay on top */
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Content Layout */
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toast-icon {
+            color: #e74c3c;
+            font-size: 24px;
+        }
+
+.toast-message {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            color: #333;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .toast-desc {
+            color: #666;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: auto;
+            padding: 0;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+ .toast-close:hover { color: #333; }
+
+        /* Progress Bar Animation */
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: #eee;
+            border-bottom-right-radius: 8px;
+            overflow: hidden;
+        }
+
+        .toast-progress::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #e74c3c;
+            animation: progress 5s linear forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+.header-mini {
+    background: #00264d;
+    color: white;
+    padding: 12px 0; /* Very thin header */
+    border-bottom: 3px solid #ffcc00;
+}
+
+.live-indicator {
+    height: 8px;
+    width: 8px;
+    background: #00ff88; /* Green for active */
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 8px #00ff88;
+}
+
+.mini-label {
+    letter-spacing: 1px;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.mini-amount {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.mini-amount .curr {
+    font-size: 12px;
+    color: #ffcc00;
+    vertical-align: middle;
+}
+ </style>
+</head>
+<body> 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+<script>
+function closeError() {
+    const errorToast = document.getElementById('djangoError');
+    if (errorToast) {
+        // Smooth fade out
+        errorToast.style.opacity = '0';
+        errorToast.style.transform = 'translateX(20px)';
+        errorToast.style.transition = '0.3s all ease';
+        
+        // Remove from layout after animation
+        setTimeout(() => {
+            errorToast.style.display = 'none';
+            // Optional: errorToast.remove(); 
+        }, 300);
+    }
+}
+
+// Auto-close logic
+document.addEventListener('DOMContentLoaded', function() {
+    const toast = document.getElementById('djangoError');
+    if (toast) {
+        // Automatically close after 5 seconds
+        setTimeout(closeError, 5000);
+    }
+});
+</script>
+
+{% if error %}
+<div class="intl-error-toast show" id="djangoError">
+    <div class="toast-content">
+        <div class="toast-icon"><i class="fas fa-circle-exclamation"></i></div>
+        <div class="toast-message">
+            <span class="toast-title">System Message</span>
+            <span class="toast-desc">{{ error }}</span>
+        </div>
+        <button class="toast-close" onclick="closeError()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="toast-progress"></div>
+</div>
+{% endif %}
+
+<nav class="navbar-main navbar navbar-expand-lg">
+    <div class="container">
+        <a href="{% url 'home' %}" class="d-flex align-items-center" style="text-decoration:none">
+            <div class="brand-logo-box">
+                <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Logo">
+            </div>
+            <div>
+                <span class="brand-text-main">Toward Country</span>
+                <span class="brand-tag">TRANSPORT TECHNOLOGY</span>
+            </div>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar">
+            <span class="navbar-toggler-icon"><i class="fas fa-bars" style="color:var(--brand-navy)"></i></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav ml-auto align-items-center">
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="{% url 'booker' %}">Book</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="{% url 'about' %}">About Us</a></li>
+                <li class="nav-item ml-lg-3"><a class="nav-link nav-link-custom login-pill" href="{% url 'login' %}">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+
+
+
+
+
+
+
+
+<div class="print-btn-container no-print">
+    <button onclick="window.print()" class="btn-print-action">
+        <i class="fas fa-print mr-2"></i> PRINT ALL TICKETS
+    </button>
+    <button onclick="downloadAllPDF()" class="btn-print-action ml-2" style="background: #15803d;">
+        <i class="fas fa-file-pdf mr-2"></i> SAVE AS PDF
+    </button>
+</div>
+
+<div class="container pb-5">
+    <div id="print-area">
+        {% for ticket in tickets %}
+        <div class="ticket-card">
+            <div class="ticket-header">
+                <div>
+                    <h1 class="m-0" style="font-size: 20px; font-weight: 800;">Toward Country Transport</h1>
+                    <span class="badge-level">LEVEL: {{ level|default:"Standard" }}</span>
+                </div>
+                <div class="text-right">
+                    <p class="data-label m-0" style="color: var(--brand-gold);">BOOKING REF / PNR</p>
+                    <h2 class="m-0" style="font-size: 24px; font-weight: 900; color: var(--brand-gold);">{{ ticket.pnr }}</h2>
+                </div>
+            </div>
+
+            <div class="ticket-content">
+                <div class="main-info">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex: 1;">
+                            <p class="data-label">Passenger Name</p>
+                            <span class="full-name-display">{{ ticket.firstname }} {{ ticket.lastname }}</span>
+                        </div>
+                        <div class="text-right ml-3">
+                            <p class="data-label">Gender</p>
+                            <p class="data-value" style="font-size: 20px; color: var(--brand-blue);">{{ ticket.gender|upper }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="data-label">From (መነሻ)</p>
+                            <p class="data-value">{{ ticket.depcity }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="data-label">To (መድረሻ)</p>
+                            <p class="data-value">{{ ticket.descity }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <p class="data-label">Plate No</p>
+                            <p class="data-value">{{ ticket.plate_no }}</p>
+                        </div>
+                        <div class="col-4">
+                            <p class="data-label">Side No</p>
+                            <p class="data-value">{{ ticket.side_no }}</p>
+                        </div>
+                        <div class="col-4">
+                            <p class="data-label">Date</p>
+                            <p class="data-value text-danger">{{ ticket.date }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 pt-3" style="border-top: 1px solid #f1f5f9;">
+                        <div class="row">
+                            <div class="col-7">
+                                <p class="data-label">Email Address</p>
+                                <p class="data-value" style="font-size: 12px;">{{ ticket.email|default:"Not Provided" }}</p>
+                            </div>
+                            <div class="col-5">
+                                <p class="data-label">Agent</p>
+                                <p class="data-value" style="font-size: 12px;">{% if fname %}{{ fname }} {{ lname }}{% else %}Online{% endif %}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="text-center">
+                            <p class="data-label">Seat No</p>
+                            <p class="m-0" style="font-size: 26px; font-weight: 900; color: var(--brand-blue);">{{ ticket.no_seat }}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="data-label">Total Fare</p>
+                            <p class="m-0" style="font-size: 22px; font-weight: 800; color: #15803d;">{{ ticket.price }} ETB</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="qr-area">
+                    <img src="{{ ticket.qr_code }}" alt="QR" style="width: 170px; height: 170px; border: 8px solid #f8fafc; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <div class="mt-4">
+                        <p class="data-label">Ticket ID</p>
+                        <code style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; color: var(--brand-navy);">{{ ticket.ticket_id }}</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function downloadAllPDF() {
+        const element = document.getElementById('print-area');
+        const opt = {
+            margin: 0.3,
+            filename: 'Toward Country_Tickets_All.pdf',
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { scale: 3, useCORS: true },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+
+<div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
+</html>

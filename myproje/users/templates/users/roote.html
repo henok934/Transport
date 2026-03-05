@@ -1,0 +1,257 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Toward Country | Select Your Route</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/bootstrap4/bootstrap.min.css' %}">
+
+    <style>
+        :root {
+            --brand-navy: #00264d;
+            --brand-gold: #ffcc00;
+            --brand-dark: #0f172a;
+            --ethiopian-red: #d4111e;
+            --bg-soft: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-soft); 
+            color: #1e293b; 
+            margin: 0;
+        }
+
+        /* --- NAVIGATION (Exactly like index.html) --- */
+        .top-bar {
+            background: var(--brand-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+        .top-bar a { color: var(--brand-gold); font-weight: 700; text-decoration: none; }
+
+        .navbar-main {
+            background: #ffffff;
+            padding: 10px 0;
+            border-bottom: 5px solid var(--brand-gold);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .brand-area { display: flex; align-items: center; text-decoration: none !important; }
+        .brand-logo { 
+            height: 70px !important; width: auto; border-radius: 10px; 
+            margin-right: 15px; border: 3px solid var(--brand-navy);
+            transition: 0.3s ease;
+        }
+        .brand-text { font-weight: 800; color: var(--brand-navy); font-size: 26px; text-transform: uppercase; line-height: 0.8; }
+        .brand-tagline { color: var(--brand-gold); font-weight: 800; font-size: 10px; letter-spacing: 1px; display: block; }
+        
+        .nav-link { color: var(--brand-navy) !important; font-weight: 700; text-transform: uppercase; font-size: 13px; }
+        .nav-link:hover { color: var(--ethiopian-red) !important; }
+
+        /* --- HERO SLIDER (Matching index.html style) --- */
+        .hero-banner {
+            height: 35vh;
+            background: linear-gradient(rgba(0,38,77,0.8), rgba(0,0,0,0.7)), url('{% static "images/home_slider.jpg" %}');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            color: white; text-align: center;
+        }
+
+        /* --- PROGRESS TRACKER --- */
+        .step-container {
+            display: flex; justify-content: center; margin-top: -30px; margin-bottom: 40px; gap: 10px;
+        }
+        .step {
+            background: white; padding: 12px 20px; border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); font-weight: 800;
+            font-size: 11px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;
+        }
+        .step.active { background: var(--brand-gold); color: var(--brand-navy); border: 2px solid var(--brand-navy); }
+        .step.pending { background: #e2e8f0; color: #94a3b8; }
+
+        /* --- ROUTE LISTING CARDS --- */
+        .listing-wrapper { max-width: 1100px; margin: 0 auto; padding: 0 15px; }
+        .booking-card {
+            background: white; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+        }
+        
+        .table-intl { width: 100%; border-collapse: collapse; }
+        .table-intl thead { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+        .table-intl th { padding: 20px; text-transform: uppercase; font-size: 11px; color: #64748b; }
+        .table-intl td { padding: 25px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+        .city-box { font-size: 18px; font-weight: 800; color: var(--brand-navy); }
+        .level-badge { 
+            background: #ecfdf5; color: #059669; padding: 6px 12px; 
+            border-radius: 6px; font-size: 12px; font-weight: 700; 
+        }
+        .price-tag { color: var(--ethiopian-red); font-weight: 800; font-size: 22px; }
+
+        .btn-select {
+            background: var(--brand-navy); color: white; border: none;
+            padding: 12px; border-radius: 8px; font-weight: 700;
+            transition: 0.3s; width: 100%; text-transform: uppercase;
+        }
+        .btn-select:hover { background: var(--ethiopian-red); transform: translateY(-2px); }
+        .btn-disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+
+        /* --- RESPONSIVENESS --- */
+        @media (max-width: 991px) {
+            .navbar-collapse { background: white; padding: 20px; margin-top: 10px; border-radius: 10px; }
+            .step-container { flex-direction: column; align-items: center; }
+            .table-intl thead { display: none; }
+            .table-intl td { display: block; text-align: center; padding: 15px; border: none; }
+            .booking-card { margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="container d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-bus mr-2"></i> Ethiopian National Transport Standards</span>
+        <a href="{% url 'login' %}"><i class="fas fa-lock mr-1"></i> STAFF LOGIN</a>
+    </div>
+</div>
+
+<nav class="navbar navbar-expand-lg navbar-light navbar-main">
+    <div class="container">
+        <a href="{% url 'home' %}" class="brand-area">
+            <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="brand-logo">
+            <div>
+                <span class="brand-text">Toward Country</span>
+                <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
+            </div>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navPortal">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navPortal">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'get_ticket' %}">My Ticket</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'comment' %}">Feedback</a></li>
+                <li class="nav-item dropdown" style="list-style: none; margin: 0 10px;">
+                    <a class="nav-link dropdown-toggle" href="#" id="langDrop" data-toggle="dropdown" style="display: flex; align-items: center; color: #333; font-weight: 600; text-decoration: none; padding: 8px 12px;">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; overflow: hidden; display: flex; flex-direction: column; margin-right: 10px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="flex: 1; background-color: #009739;"></div>
+                            <div style="flex: 1; background-color: #FEDD00; display: flex; align-items: center; justify-content: center; position: relative;">
+                                <div style="width: 6px; height: 6px; background-color: #0039A6; border-radius: 50%;"></div>
+                            </div>
+                            <div style="flex: 1; background-color: #EF3340;"></div>
+                        </div>
+                        Language
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow-lg" style="border: none; border-radius: 12px; padding: 12px; min-width: 210px; margin-top: 10px; background-color: #ffffff;">
+                        <button class="dropdown-item" onclick="changeLanguage('en')" style="display: flex; justify-content: space-between; align-items: center; border-radius: 8px; padding: 10px 15px; border: none; background: transparent; width: 100%; text-align: left; cursor: pointer;"><span>English</span><small style="color: #b2bec3;">EN</small></button>
+                        <button class="dropdown-item" onclick="changeLanguage('am')" style="display: flex; justify-content: space-between; align-items: center; border-radius: 8px; padding: 10px 15px; border: none; background: #f8f9fa; width: 100%; text-align: left; cursor: pointer;"><span>አማርኛ</span><small style="color: #009739;">AM</small></button>
+                        <button class="dropdown-item" onclick="changeLanguage('om')" style="display: flex; justify-content: space-between; align-items: center; border-radius: 8px; padding: 10px 15px; border: none; background: transparent; width: 100%; text-align: left; cursor: pointer;"><span>Afaan Oromoo</span><small style="color: #b2bec3;">OR</small></button>
+                        <button class="dropdown-item" onclick="changeLanguage('ti')" style="display: flex; justify-content: space-between; align-items: center; border-radius: 8px; padding: 10px 15px; border: none; background: transparent; width: 100%; text-align: left; cursor: pointer;"><span>ትግርኛ</span><small style="color: #b2bec3;">TI</small></button>
+                    </div>
+                </li>
+                <li class="nav-item ml-lg-3">
+                    <a href="{% url 'book' %}" class="btn" style="background:var(--brand-gold); color:var(--brand-navy); font-weight:800; border-radius:8px; padding: 8px 20px;">BOOK NOW</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="hero-banner">
+    <h1 style="font-weight: 800; font-size: 2.5rem;">Available Departures</h1>
+    <p style="font-weight: 600; opacity: 0.9;">Found Routes for: {{ date }}</p>
+</section>
+
+<div class="listing-wrapper">
+    <div class="step-container">
+        <div class="step active"><i class="fas fa-bus"></i> 1. Select Bus</div>
+        <div class="step pending"><i class="fas fa-couch"></i> 2. Choose Seat</div>
+        <div class="step pending"><i class="fas fa-credit-card"></i> 3. Payment</div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger shadow-sm mb-4" style="border-radius: 12px; border: none; font-weight: 700;">
+        <i class="fas fa-exclamation-circle mr-2"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="booking-card">
+        <table class="table-intl">
+            <thead>
+                <tr>
+                    <th>Route Details</th>
+                    <th>Service Class</th>
+                    <th>Departure Date</th>
+                    <th>Ticket Price</th>
+                    <th>Seats</th>
+                    <th style="width: 150px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in routes %}
+                <tr>
+                    <td>
+                        <div class="city-box">
+                            {{ item.route.depcity }} 
+                            <i class="fas fa-arrow-right mx-2 text-muted" style="font-size: 14px;"></i> 
+                            {{ item.route.descity }}
+                        </div>
+                        <small class="text-muted"><i class="fas fa-id-card mr-1"></i> Plate: {{ item.route.plate_no }}</small>
+                    </td>
+                    <td><span class="level-badge">{{ item.levels }}</span></td>
+                    <td><div style="font-weight: 600;">{{ item.route.date }}</div></td>
+                    <td><div class="price-tag">{{ item.route.price }} ETB</div></td>
+                    <td>
+                        <div style="color: #f59e0b; font-weight: 700;">
+                            <i class="fas fa-users mr-1"></i> {{ item.remaining_seats }} Left
+                        </div>
+                    </td>
+                    <td>
+                        <form action="{% url 'Select' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="depcity" value="{{ item.route.depcity }}">
+                            <input type="hidden" name="descity" value="{{ item.route.descity }}">
+                            <input type="hidden" name="price" value="{{ item.route.price }}">
+                            <input type="hidden" name="date" value="{{ item.route.date }}">
+			    <input type="hidden" name="plate_no" value="{{ item.route.plate_no }}">
+                            
+                            <button type="submit" class="btn-select {% if not item.route.is_active %}btn-disabled{% endif %}"
+                                    {% if not item.route.is_active %}disabled{% endif %}>
+                                {% if item.route.is_active %}Select{% else %}Sold Out{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer style="background: var(--brand-navy); color: white; padding: 60px 0 30px; margin-top: 80px; text-align: center;">
+    <div class="container">
+        <h3 style="font-weight: 800; margin-bottom: 20px;">Toward Country Transport Tech</h3>
+        <p style="opacity: 0.6;">© 2026 Toward Country • Modernizing Ethiopian Travel</p>
+        <div class="mt-4">
+            <i class="fab fa-facebook mx-3"></i><i class="fab fa-telegram mx-3"></i><i class="fab fa-instagram mx-3"></i>
+        </div>
+    </div>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
+</html>
