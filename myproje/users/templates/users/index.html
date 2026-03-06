@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Toward country | Ethiopia's Digital Transport Network</title>
+    <title>Wedehager | Ethiopia's Digital Transport Network</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -120,6 +120,11 @@
         /* Hide Google Translate attribution */
         .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
         body { top: 0px !important; }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -133,9 +138,9 @@
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="brand-area">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Toward country Logo">
+            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Wedehager Logo">
             <div>
-                <span class="brand-text">Toward country</span>
+                <span class="brand-text">Wedehager</span>
                 <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
             </div>
         </a>
@@ -242,8 +247,8 @@
 
 <footer class="footer-main">
     <div class="container">
-        <h3 class="mb-4" style="font-weight: 800;">Toward country Transport Tech</h3>
-        <p class="opacity-50">© 2026 Toward country • National Travel Solutions</p>
+        <h3 class="mb-4" style="font-weight: 800;">Wedehager Transport Tech</h3>
+        <p class="opacity-50">© 2026 Wedehager • National Travel Solutions</p>
         <div class="mt-4">
             <i class="fab fa-facebook mx-2"></i><i class="fab fa-telegram mx-2"></i><i class="fab fa-instagram mx-2"></i>
         </div>

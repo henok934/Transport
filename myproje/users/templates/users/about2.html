@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>About Us | Toward Country - Ethiopia's Digital Travel Pioneer</title>
+    <title>About Us | Wedehager - Ethiopia's Digital Travel Pioneer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -94,6 +94,11 @@
             .brand-text { font-size: 20px; }
             .navbar-collapse { background: white; padding: 20px; border-radius: 10px; margin-top: 10px; }
         }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -108,9 +113,9 @@
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="brand-area">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Toward Country Logo">
+            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Wedehager Logo">
             <div>
-                <span class="brand-text">Toward Country</span>
+                <span class="brand-text">Wedehager</span>
                 <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
             </div>
         </a>
@@ -244,8 +249,8 @@
 
 <footer class="footer-main" style="background: var(--brand-navy); color: white; padding: 60px 0 30px; margin-top: 80px; text-align: center;">
     <div class="container">
-        <h3 class="mb-4" style="font-weight: 800;">Toward Country Transport Tech</h3>
-        <p style="opacity: 0.5;">© 2026 Toward Country • Shaping the Future of Ethiopian Mobility</p>
+        <h3 class="mb-4" style="font-weight: 800;">Wedehager Transport Tech</h3>
+        <p style="opacity: 0.5;">© 2026 Wedehager • Shaping the Future of Ethiopian Mobility</p>
         <div class="mt-4">
             <i class="fab fa-facebook mx-3"></i><i class="fab fa-telegram mx-3"></i><i class="fab fa-instagram mx-3"></i>
         </div>

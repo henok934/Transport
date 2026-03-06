@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Agent Dashboard | Toward Country Global</title>
+    <title>Agent Dashboard | Wedehager Global</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
@@ -144,6 +144,11 @@
     to { width: 0%; }
 }
 
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -192,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
             <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="45" class="mr-2 rounded shadow-sm">
-            <span style="font-weight:800; color:var(--primary); font-size: 22px;">Toward Country</span>
+            <span style="font-weight:800; color:var(--primary); font-size: 22px;">Wedehager</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#globalNav">
@@ -323,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <footer class="bg-white border-top py-4 mt-5 text-center">
     <div class="container">
         <p class="font-weight-bold mb-1" style="color: var(--primary);">24/7 Global Support: +251  975 143 134</p>
-        <p class="small text-muted mb-0">© 2026 Toward Country Transport Technology. All Rights Reserved.</p>
+        <p class="small text-muted mb-0">© 2026 Wedehager Transport Technology. All Rights Reserved.</p>
     </div>
 </footer>
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Awash Bank | Toward Country Payment</title>
+    <title>Awash Bank | Wedehager Payment</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -34,6 +34,11 @@
         .btn-awash:hover { background: #002d7a; transform: translateY(-2px); }
 
         .footer-main { background: var(--brand-navy); color: white; padding: 40px 0; text-align: center; }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -49,7 +54,7 @@
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
             <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Logo">
-            <div><span class="brand-text">Toward Country</span><span class="brand-tagline">TRANSPORT TECHNOLOGY</span></div>
+            <div><span class="brand-text">Wedehager</span><span class="brand-tagline">TRANSPORT TECHNOLOGY</span></div>
         </a>
         
         <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#mainMenu">
@@ -114,8 +119,8 @@
 
 <footer class="footer-main">
     <div class="container">
-        <h4 style="font-weight: 800;">Toward Country Transport Tech</h4>
-        <p class="small opacity-50 mb-0">© 2026 Toward Country • National Solutions</p>
+        <h4 style="font-weight: 800;">Wedehager Transport Tech</h4>
+        <p class="small opacity-50 mb-0">© 2026 Wedehager • National Solutions</p>
         <p class="small mt-2">Support: 0975143134</p>
     </div>
 </footer>

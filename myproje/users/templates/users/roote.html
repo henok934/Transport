@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Toward Country | Select Your Route</title>
+    <title>Wedehager | Select Your Route</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -112,6 +112,11 @@
             .table-intl td { display: block; text-align: center; padding: 15px; border: none; }
             .booking-card { margin-bottom: 20px; }
         }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -128,7 +133,7 @@
         <a href="{% url 'home' %}" class="brand-area">
             <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="brand-logo">
             <div>
-                <span class="brand-text">Toward Country</span>
+                <span class="brand-text">Wedehager</span>
                 <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
             </div>
         </a>
@@ -242,8 +247,8 @@
 
 <footer style="background: var(--brand-navy); color: white; padding: 60px 0 30px; margin-top: 80px; text-align: center;">
     <div class="container">
-        <h3 style="font-weight: 800; margin-bottom: 20px;">Toward Country Transport Tech</h3>
-        <p style="opacity: 0.6;">© 2026 Toward Country • Modernizing Ethiopian Travel</p>
+        <h3 style="font-weight: 800; margin-bottom: 20px;">Wedehager Transport Tech</h3>
+        <p style="opacity: 0.6;">© 2026 Wedehager • Modernizing Ethiopian Travel</p>
         <div class="mt-4">
             <i class="fab fa-facebook mx-3"></i><i class="fab fa-telegram mx-3"></i><i class="fab fa-instagram mx-3"></i>
         </div>

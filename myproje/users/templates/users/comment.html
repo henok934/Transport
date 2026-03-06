@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Feedback | Toward Country Transport Technology</title>
+    <title>Feedback | Wedehager Transport Technology</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -50,6 +50,11 @@
 
         /* --- FOOTER --- */
         .footer-main { background: var(--brand-navy); color: white; padding: 60px 0 40px; text-align: center; }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -65,9 +70,9 @@
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
             <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo">
-            <div><span class="brand-text">Toward Country</span><span class="brand-tagline">TRANSPORT TECHNOLOGY</span></div>
+	    <div><span class="brand-text">Wedehager</span>
+		    <span class="brand-tagline">TRANSPORT TECHNOLOGY</span></div>
         </a>
-
         <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#mainMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -154,8 +159,8 @@
 
 <footer class="footer-main">
     <div class="container">
-        <h3 class="mb-4" style="font-weight: 800;">Toward Country Transport Tech</h3>
-        <p class="opacity-50">© 2026 Toward Country • Feedback System</p>
+        <h3 class="mb-4" style="font-weight: 800;">Wedehager Transport Tech</h3>
+        <p class="opacity-50">© 2026 Wedehager • Feedback System</p>
         <div class="mt-4">
             <i class="fab fa-facebook mx-3"></i>
             <i class="fab fa-telegram mx-3"></i>

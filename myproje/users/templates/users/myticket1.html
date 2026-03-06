@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="en">
 <head>
-    <title>Boarding Pass | Toward Country Global</title>
+    <title>Boarding Pass | Wedehager Global</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -88,6 +88,11 @@
             .ticket-card { box-shadow: none !important; border: 2px solid #000 !important; width: 100% !important; page-break-after: always; }
             .ticket-header { background: #00264d !important; -webkit-print-color-adjust: exact; }
         }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 
@@ -100,7 +105,7 @@
                 <span class="mx-3 opacity-50">|</span>
                 <i class="fas fa-mobile-alt mr-2 text-warning"></i> +251 975 143 134
             </div>
-            <div class="small text-uppercase">Toward Country Global Transport System</div>
+            <div class="small text-uppercase">Wedehager Global Transport System</div>
         </div>
     </div>
 
@@ -110,7 +115,7 @@
                 <div class="brand-logo-box">
                     <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="brand-logo" alt="Logo">
                 </div>
-                <span class="brand-text-main">Toward Country</span>
+                <span class="brand-text-main">Wedehager</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar">

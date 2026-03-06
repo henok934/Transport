@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="en">
 <head>
-    <title>Manage Ticket | Toward Country Transport Technology</title>
+    <title>Manage Ticket | Wedehager Transport Technology</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -102,6 +102,11 @@
             .ticket-right { flex: 1; background: white !important; }
             .ticket-left::before, .ticket-left::after { display: none; }
         }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -110,7 +115,7 @@
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
             <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo">
-            <span class="brand-text">Toward Country</span>
+            <span class="brand-text">Wedehager</span>
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav">
             <span class="navbar-toggler-icon"></span>
@@ -233,7 +238,7 @@
             <i class="fas fa-print mr-2"></i> Print / Save PDF
         </button>
 
-        <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text=My Toward Country Ticket to {{ ticket.descity }}" 
+        <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text=My Wedehager Ticket to {{ ticket.descity }}" 
            class="btn-share bg-telegram text-decoration-none" target="_blank">
             <i class="fab fa-telegram-plane mr-2"></i> Share Telegram
         </a>
@@ -246,14 +251,14 @@
 
 <footer style="background:var(--brand-navy); color:white; padding:40px 0; text-align:center; margin-top:60px;">
     <div class="container">
-        <p class="small opacity-50 mb-0">© 2026 Toward Country Transport Technology. Ethiopia's Digital Travel Standard.</p>
+        <p class="small opacity-50 mb-0">© 2026 Wedehager Transport Technology. Ethiopia's Digital Travel Standard.</p>
     </div>
 </footer>
 
 <script>
     // Robust WhatsApp Sharing
     function shareOnWhatsApp() {
-        const text = encodeURIComponent("My Toward Country E-Ticket: " + window.location.href);
+        const text = encodeURIComponent("My Wedehager E-Ticket: " + window.location.href);
         window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
     }
 

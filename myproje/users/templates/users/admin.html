@@ -280,6 +280,11 @@ document.addEventListener("DOMContentLoaded", function() {
 <style>
     #gender-input {
         width: 260px; /* Adjust the width value as per your requirement   id="password-input"  */    }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
 </style>
 <div style="display: flex; align-items: center; margin-left: 280px;">
     <span style="margin-right: 10px;">Gender:</span>

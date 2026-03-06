@@ -5,7 +5,7 @@
 {% load static %}
 <html lang="en">
 <head>
-    <title>My Boarding Passes | Toward Country Global</title>
+    <title>My Boarding Passes | Wedehager Global</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
@@ -56,7 +56,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Passenger Details | Toward Country Luxury Travel</title>
+    <title>Passenger Details | Wedehager Luxury Travel</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -187,6 +187,11 @@
         }
 
 
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
     <style>
         /* Toast Container */
@@ -315,6 +320,11 @@
     color: #ffcc00;
     vertical-align: middle;
 }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
  </style>
 </head>
 <body> 
@@ -370,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Logo">
             </div>
             <div>
-                <span class="brand-text-main">Toward Country</span>
+                <span class="brand-text-main">Wedehager</span>
                 <span class="brand-tag">TRANSPORT TECHNOLOGY</span>
             </div>
         </a>
@@ -414,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="ticket-card">
             <div class="ticket-header">
                 <div>
-                    <h1 class="m-0" style="font-size: 20px; font-weight: 800;">Toward Country Transport</h1>
+                    <h1 class="m-0" style="font-size: 20px; font-weight: 800;">Wedehager Transport</h1>
                     <span class="badge-level">LEVEL: {{ level|default:"Standard" }}</span>
                 </div>
                 <div class="text-right">
@@ -505,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const element = document.getElementById('print-area');
         const opt = {
             margin: 0.3,
-            filename: 'Toward Country_Tickets_All.pdf',
+            filename: 'Wedehager_Tickets_All.pdf',
             image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { scale: 3, useCORS: true },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }

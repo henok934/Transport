@@ -134,6 +134,11 @@
             .search-outer-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
             .table-intl { width: 100%; } /* Revert to full width on mobile for readability */
         }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -246,7 +251,7 @@
         </table>
     </div>
 
-    <p class="mt-4 text-muted" style="font-size: 10px;">© 2026 Toward Country Transport Technology</p>
+    <p class="mt-4 text-muted" style="font-size: 10px;">© 2026 Wedehager Transport Technology</p>
 </main>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

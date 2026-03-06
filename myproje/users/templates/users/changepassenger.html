@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="en">
 <head>
-    <title>Update Passenger | Toward Country Digital Network</title>
+    <title>Update Passenger | Wedehager Digital Network</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -69,6 +69,11 @@
 
         /* --- FOOTER --- */
         .footer-simple { text-align: center; padding: 40px 0; color: #94a3b8; font-size: 13px; }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -77,7 +82,7 @@
     <div class="container d-flex justify-content-between">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
             <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="40" class="mr-2 rounded">
-            <span class="brand-text">Toward Country</span>
+            <span class="brand-text">Wedehager</span>
         </a>
         <div class="nav-links">
             <a href="{% url 'get_ticket' %}" class="btn btn-outline-primary btn-sm font-weight-bold">Back to Ticket</a>
@@ -136,7 +141,7 @@
     </div>
 
     <div class="footer-simple">
-        © 2026 Toward Country Transport Technology Hub • Ethiopian Digital Standard
+        © 2026 Wedehager Transport Technology Hub • Ethiopian Digital Standard
     </div>
 </div>
 

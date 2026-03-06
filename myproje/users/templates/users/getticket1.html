@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Toward Country | Retrieve Your Ticket</title>
+    <title>Wedehager | Retrieve Your Ticket</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -87,6 +87,11 @@
         /* --- FOOTER --- */
         .footer-main { background: var(--brand-navy); color: white; padding: 60px 0; margin-top: 80px; }
         .footer-logo { height: 60px; border-radius: 8px; border: 2px solid white; margin-bottom: 20px; }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -94,9 +99,9 @@
 <nav class="main-navigation">
     <div class="container d-flex align-items-center justify-content-between">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo-img" alt="Toward Country Logo">
+            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo-img" alt="Wedehager Logo">
             <div class="ml-3">
-                <span style="font-weight: 800; font-size: 24px; color: var(--brand-navy); display: block; line-height: 1;">Toward Country</span>
+                <span style="font-weight: 800; font-size: 24px; color: var(--brand-navy); display: block; line-height: 1;">Wedehager</span>
                 <span style="font-size: 9px; color: var(--brand-gold); letter-spacing: 2px; font-weight: 800;">TRANSPORT TECHNOLOGY</span>
             </div>
         </a>
@@ -195,7 +200,7 @@
 <footer class="footer-main">
     <div class="container text-center">
         <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="footer-logo" alt="Logo">
-        <h4 style="font-weight: 800;">Toward Country Transport Technology</h4>
+        <h4 style="font-weight: 800;">Wedehager Transport Technology</h4>
         <p class="opacity-75 mb-4">"Connecting Ethiopia with Reliability and Technology"</p>
         
         <div class="row justify-content-center mb-4">
@@ -210,7 +215,7 @@
         </div>
 
         <div class="pt-4 border-top opacity-50 small">
-            © 2026 Toward Country Transport Technology. All Rights Reserved.
+            © 2026 Wedehager Transport Technology. All Rights Reserved.
         </div>
     </div>
 </footer>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Toward Country | Terminate Agent</title>
+    <title>Wedehager | Terminate Agent</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -37,6 +37,11 @@
         .btn-delete-circle:hover { background: var(--danger); color: white; transform: rotate(15deg); }
 
         .footer-main { background: var(--brand-navy); color: rgba(255,255,255,0.7); padding: 40px 0; margin-top: 80px; border-top: 5px solid var(--brand-gold); text-align: center; }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -52,7 +57,7 @@
     <div class="container">
         <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center text-decoration-none">
             <img src="../static/images/photo_2026-01-31_09-14-55.jpg" width="50" height="50" class="rounded mr-2 border">
-            <div><span class="brand-text">Toward Country</span><span class="brand-tagline">TRANSPORT TECHNOLOGY</span></div>
+            <div><span class="brand-text">Wedehager</span><span class="brand-tagline">TRANSPORT TECHNOLOGY</span></div>
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu"><span class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="mainMenu">
@@ -147,7 +152,7 @@
 </div>
 
 <footer class="footer-main">
-    <div class="container"><p class="small mb-0">&copy; 2026 Toward Country Transport Technology. Global System Configuration Standard.</p></div>
+    <div class="container"><p class="small mb-0">&copy; 2026 Wedehager Transport Technology. Global System Configuration Standard.</p></div>
 </footer>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

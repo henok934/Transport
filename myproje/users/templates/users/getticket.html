@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Toward Country | Retrieve Your Ticket</title>
+    <title>Wedehager | Retrieve Your Ticket</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -81,6 +81,11 @@
         }
 
         .footer-main { background: var(--brand-navy); color: white; padding: 40px 0; margin-top: auto; }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -101,8 +106,18 @@
     <div class="container">
         <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
             <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo mr-3">
-            <span class="brand-text">Toward Country</span>
+	    <div>
+<span class="brand-text">Wedehager</span></br>
+<span class="brand-subtext">TRANSPORT TECHNOLOGY</span>
+	    </div>
         </a>
+	<style>
+  .brand-subtext {
+    color: yellow;
+    font-size: 0.8rem; /* This minimizes the size */
+    text-transform: uppercase;
+  }
+</style>
         <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -232,7 +247,7 @@
 
 <footer class="footer-main text-center">
     <div class="container">
-        <p class="small opacity-50 m-0">© 2026 Toward Country Transport Technology. All Rights Reserved.</p>
+        <p class="small opacity-50 m-0">© 2026 Wedehager Transport Technology. All Rights Reserved.</p>
     </div>
 </footer>
 

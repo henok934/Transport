@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Safaricom Payment | Toward Country</title>
+    <title>Safaricom Payment | Wedehager</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -64,6 +64,11 @@
             .brand-logo { height: 50px !important; }
             .brand-text { font-size: 20px; }
         }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -78,9 +83,9 @@
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="brand-area">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Toward Country Logo">
+            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Wedehager Logo">
             <div>
-                <span class="brand-text">Toward Country</span>
+                <span class="brand-text">Wedehager</span>
                 <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
             </div>
         </a>
@@ -151,8 +156,8 @@
 
 <footer class="footer-main">
     <div class="container">
-        <h5 class="font-weight-bold mb-3">Toward Country Transport Tech</h5>
-        <p class="mb-0">© 2026 Toward Country • National Travel Solutions</p>
+        <h5 class="font-weight-bold mb-3">Wedehager Transport Tech</h5>
+        <p class="mb-0">© 2026 Wedehager • National Travel Solutions</p>
     </div>
 </footer>
 

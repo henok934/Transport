@@ -113,6 +113,11 @@
             .update-input-field { width: 100% !important; }
         }
         @media (min-width: 577px) { .m-label { display: none; } }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -123,7 +128,7 @@
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
                 <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="nav-logo">
                 <div class="ml-3">
-                    <span class="brand-name-main">Toward Country</span><br>
+                    <span class="brand-name-main">Wedehager</span><br>
                     <span class="brand-subtext">{{ name }} Share Company FLEET</span>
                 </div>
             </a>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Manage Ticket | Toward Country Transport</title>
+    <title>Manage Ticket | Wedehager Transport</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -67,6 +67,11 @@
             .main-info { border-right: none; padding-right: 0; padding-bottom: 25px; border-bottom: 1px solid #f1f5f9; }
             .qr-area { padding-left: 0; padding-top: 25px; }
         }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -74,8 +79,8 @@
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="brand-logo" alt="Toward Country Logo">
-            <span class="brand-text">Toward Country</span>
+            <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="brand-logo" alt="Wedehager Logo">
+            <span class="brand-text">Wedehager</span>
         </a>
         <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#mainNav">
             <span class="navbar-toggler-icon"></span>
@@ -275,7 +280,7 @@
 </div>
 
 <footer style="background:var(--brand-navy); color:white; padding:30px 0; text-align:center;">
-    <p class="small opacity-50 mb-0">© 2026 Toward Country Transport Technology. Ethiopia's Digital Standard.</p>
+    <p class="small opacity-50 mb-0">© 2026 Wedehager Transport Technology. Ethiopia's Digital Standard.</p>
 </footer>
 
 <div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
