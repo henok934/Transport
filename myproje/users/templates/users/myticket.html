@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-
+<!--
 <div class="print-btn-container no-print">
     <button onclick="window.print()" class="btn-print-action">
         <i class="fas fa-print mr-2"></i> PRINT ALL TICKETS
@@ -417,6 +417,71 @@ document.addEventListener('DOMContentLoaded', function() {
         <i class="fas fa-file-pdf mr-2"></i> SAVE AS PDF
     </button>
 </div>
+-->
+<div class="text-center no-print mb-4">
+    <button onclick="downloadAllPDF(event)" class="btn btn-warning btn-lg font-weight-bold mr-2">
+        <i class="fas fa-download"></i> Download PDF
+    </button>
+    <button onclick="window.print()" class="btn btn-outline-dark btn-lg font-weight-bold">
+        <i class="fas fa-print"></i> Print Tickets
+    </button>
+</div>
+<script>
+function downloadAllPDF(event) {
+    const element = document.getElementById('print-area');
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+
+    // Show loading state (Mobile users need to know it's working)
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    btn.disabled = true;
+
+    const opt = {
+        margin: [0.3, 0.3],
+        filename: 'Wedehager_Tickets.pdf',
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: {
+            scale: 2,               // Scale 2 prevents mobile crashes
+            useCORS: true,          // MUST be true for Render hosting
+            letterRendering: true,
+            windowWidth: 1200,      // FORCES Desktop layout even on tiny phones
+            scrollX: 0,
+            scrollY: 0
+        },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Use the bundle to generate and save
+    html2pdf().set(opt).from(element).save().then(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }).catch(err => {
+        console.error(err);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert("Mobile error: Please try using Chrome or take a screenshot.");
+    });
+}
+</script>
+
+<style>
+@media print {
+    /* Hide everything except the ticket during print */
+    .navbar-main, .btn, footer, .no-print { display: none !important; }
+    body { background: white !important; padding: 0 !important; margin: 0 !important; }
+    #print-area { width: 100% !important; box-shadow: none !important; }
+    .ticket-card {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #eee !important;
+    }
+}
+
+/* Fix for mobile PDF rendering */
+.html2canvas-container { width: 1200px !important; height: auto !important; }
+</style>
+
 
 <div class="container pb-5">
     <div id="print-area">
@@ -510,6 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+<!--
 <script>
     function downloadAllPDF() {
         const element = document.getElementById('print-area');
@@ -523,6 +589,65 @@ document.addEventListener('DOMContentLoaded', function() {
         html2pdf().set(opt).from(element).save();
     }
 </script>
+-->
+<!--
+<style>
+@media print {
+    #print-area {
+        width: 100% !important;
+        background: white !important;
+    }
+    .ticket-card {
+        page-break-inside: avoid !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #ddd !important;
+    }
+}
+
+/* Fix for html2pdf to see content properly on small screens */
+.html2canvas-container {
+    width: 1200px !important;
+    height: auto !important;
+}
+</style>
+-->
+<!--
+<script>
+function downloadAllPDF() {
+    const element = document.getElementById('print-area');
+    
+    // Create an overlay to show the user it is working (Mobile can be slow)
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "Generating PDF... Please wait";
+    btn.disabled = true;
+
+    const opt = {
+        margin: [0.3, 0.3],
+        filename: 'Wedehager_Tickets.pdf',
+        image: { type: 'jpeg', quality: 0.95 }, // JPEG is much lighter for mobile memory
+        html2canvas: { 
+            scale: 2,           // Reduced from 3 to 2 (3 crashes mobile RAM)
+            useCORS: true,      // Essential for images hosted on Render
+            logging: false,
+            letterRendering: true,
+            windowWidth: 1200   // Forces the script to see the "Large Device" version even on mobile
+        },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }).catch(err => {
+        console.error(err);
+        alert("Mobile Download Failed. Try taking a screenshot or use a desktop.");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+</script>
+-->
 
 <div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
 </html>

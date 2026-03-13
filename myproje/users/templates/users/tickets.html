@@ -170,6 +170,10 @@
 </head>
 <body>
 
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
@@ -385,6 +389,30 @@
 </footer>
 
 <script>
+function downloadPDF() {
+    const element = document.getElementById('ticket-container'); // or 'print-area'
+    const opt = {
+        margin: [0.2, 0.2], // Smaller margins for mobile
+        filename: 'Wedehager_Ticket.pdf',
+        image: { type: 'jpeg', quality: 0.95 }, // JPEG is lighter than PNG for mobile
+        html2canvas: {
+            scale: 2, // Reduced from 3 to 2 to prevent mobile crashes
+            useCORS: true,
+            letterRendering: true,
+            scrollX: 0,
+            scrollY: 0
+        },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Suggestion: Add a small delay to ensure images are loaded
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+
+<!--
+<script>
     function downloadPDF() {
         const element = document.getElementById('ticket-container');
         const opt = {
@@ -397,6 +425,7 @@
         html2pdf().set(opt).from(element).save();
     }
 </script>
+-->
 
 <div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
 </html>

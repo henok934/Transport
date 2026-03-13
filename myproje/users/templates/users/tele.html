@@ -41,7 +41,7 @@
     </style>
 </head>
 <body>
-
+<!--
 <nav class="navbar-main navbar navbar-expand-lg">
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center" style="text-decoration:none">
@@ -57,6 +57,37 @@
                 <li><a class="nav-link nav-link-intl" href="{% url 'get_ticket' %}">My Ticket</a></li>
                 <li><a class="nav-link nav-link-intl" href="{% url 'comment' %}">Feedback</a></li>
                 <li class="ml-3"><a class="nav-link nav-link-intl btn-login-intl" href="{% url 'login' %}">Login</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+-->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<nav class="navbar-main navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <a href="{% url 'home' %}" class="d-flex align-items-center" style="text-decoration:none">
+            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="50" style="border: 2px solid var(--brand-navy); border-radius: 8px;">
+            <div class="ml-2 text-left">
+                <div style="font-weight:800; color:var(--brand-navy); font-size:20px; line-height:1;">WEDEHAGER</div>
+                <div style="font-weight:800; color:var(--brand-gold); font-size:9px; letter-spacing:1.2px;">TRANSPORT TECHNOLOGY</div>
+            </div>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#wedehagerNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="wedehagerNavbar">
+            <ul class="navbar-nav ml-auto align-items-center">
+                <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'book' %}">Book</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'get_ticket' %}">My Ticket</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'about' %}">About us</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'comment' %}">Feedback</a></li>
+                <li class="nav-item ml-lg-3"><a class="nav-link nav-link-intl btn-login-intl" href="{% url 'login' %}">Login</a></li>
             </ul>
         </div>
     </div>
