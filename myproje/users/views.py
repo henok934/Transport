@@ -13,13 +13,23 @@ from rest_framework import generics, status
 from django.contrib.auth import authenticate, login as auth_login
 from django.shortcuts import render
 from .models import Buschange, City  # Ensure you import your models
+from drf_spectacular.utils import extend_schema
+from .serializers import UserProfileSerializer, TicketSerializer
+# top of users/views.py
+from .serializers import (
+    UserProfileSerializer,
+    TicketSerializer
+)
 def custom_csrf_failure_view(request, reason=""):
     return render(request, 'users/csrf_failure.html', {'reason': reason})
 
 from rest_framework.views import APIView
 from django.shortcuts import render, redirect
 from .models import CustomUser, Buschange # Import your custom user and stats models
+from drf_spectacular.utils import extend_schema
+from .serializers import UserProfileSerializer # Add this import
 class ProfileView(APIView):
+    @extend_schema(responses=UserProfileSerializer)
     def get(self, request):
         # 1. Retrieve the user ID from the session
         user_id = request.session.get('user_id')
@@ -933,7 +943,14 @@ from rest_framework import status
 from django.shortcuts import render
 from .models import Ticket, City, Bus
 from .serializers import TSerializer
+from drf_spectacular.utils import extend_schema
+from .serializers import UserProfileSerializer, TicketSerializer # Add TicketSerializer here
 class GetTicketViews(APIView):
+    serializer_class = TicketSerializer  # Add this
+    #@extend_schema(responses=TicketSerializer(many=True))
+    #@extend_schema(responses=TicketSerializer(many=True))
+    #@extend_schema(responses=TicketSerializer(many=True))
+    @extend_schema(responses=TicketSerializer(many=True))
     def get(self, request):
         des = City.objects.all()
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
@@ -1047,7 +1064,8 @@ class LoginView(APIView):
         elif role == 'sc':
             return self.handle_sc_login(username, password, buschanges_count, request)
 
-        return Response({'error': 'Invalid role specified'}, status=status.HTTP_400_BAD_REQUEST)
+        #return Response({'error': 'Invalid role specified'}, status=status.HTTP_400_BAD_REQUEST)
+        return self.handle_login_error(buschanges_count, request, 'Invalid role specified')
 
     def handle_worker_login(self, username, password, buschanges_count, request):
         try:
@@ -1162,7 +1180,11 @@ from .models import Worker, Ticket, City, Buschange, Route, Bus
 class Books(APIView):
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
     throttle_classes = []
-
+    serializer_class = TicketSerializer  # Add this
+    #@extend_schema(responses=BookSerializer(many=True))
+    #@extend_schema(responses=TicketSerializer(many=True))
+    @extend_schema(responses=TicketSerializer(many=True))
+    @extend_schema(responses=TicketSerializer(many=True))
     def get_user_from_session(self, request):
         user_id = request.session.get('worker_id')
         return Worker.objects.filter(id=user_id).first() if user_id else None
@@ -1286,7 +1308,7 @@ class Books(APIView):
         })
 
 
-
+"""
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -1395,7 +1417,7 @@ class SelView(APIView):
                 'all_seats': all_seats
             })
         return Response(response_data, status=status.HTTP_200_OK)
-
+"""
 
 
 from rest_framework.views import APIView
@@ -1405,6 +1427,10 @@ from django.shortcuts import render
 from .models import Buschange, Route, Bus, Ticket
 from .serializers import RouteSerializer, BusSerializer
 class SelView(APIView):
+    #@extend_schema(responses=TicketSerializer(many=True))
+    #@extend_schema(responses=TicketSerializer(many=True))
+    serializer_class = TicketSerializer  # Add this
+    @extend_schema(responses=TicketSerializer(many=True))
     def get(self, request):
         buschanges = Buschange.objects.all()
         buschanges_count = buschanges.count()
@@ -1655,6 +1681,7 @@ class SeeView(APIView):
 from django.shortcuts import redirect
 from rest_framework.views import APIView
 class LogoutView(APIView):
+    @extend_schema(responses={204: None}, description="Logs out the user and clears session")
     def get(self, request):
         # This removes the 'sc_id' and 'name' from the database and browser
         request.session.flush() 
@@ -4216,7 +4243,8 @@ from .models import Route, City, Buschange
 from .serializers import RoutSerializer
 @extend_schema(tags=['Ticket Management'])
 class DeleteTicketViews(APIView):
-    
+    serializer_class = TicketSerializer  # Add this
+    @extend_schema(responses={204: None}, description="Delete a single ticket")
     def get(self, request):
         # 1. SECURITY GATE
         user_id = request.session.get('user_id')
@@ -4240,7 +4268,7 @@ class DeleteTicketViews(APIView):
             })
         
         return Response({'cities': [city.depcity for city in des]}, status=status.HTTP_200_OK)
-
+    @extend_schema(responses={204: None})
     def post(self, request):
         # 3. POST SECURITY GATE
         user_id = request.session.get('user_id')
@@ -4306,7 +4334,13 @@ from .serializers import TickSerializer, RoutSerializer
 @extend_schema(tags=['Ticket Management'])
 class DeleteTickets(APIView):
     renderer_classes = [JSONRenderer, TemplateHTMLRenderer]
+    serializer_class = TicketSerializer 
 
+    @extend_schema(
+        operation_id="delete_tickets_form_lookup", # UNIQUE ID
+        responses={200: TicketSerializer(many=True)}, 
+        description="Finds tickets to display in the deletion form."
+    )
     def post(self, request):
         # 1. SECURITY GATE
         user_id = request.session.get('user_id')
@@ -4378,6 +4412,15 @@ from rest_framework.views import APIView
 from django.shortcuts import render
 from .models import Ticket, Buschange # Import Buschange for notifications
 class DeleteTicketsView(APIView):
+    """
+    Handles the actual DELETION logic (Backend API).
+    """
+    @extend_schema(
+        operation_id="delete_tickets_action_api", # UNIQUE ID
+        request=None,
+        responses={204: None},
+        description="Processes the database deletion of a specific ticket."
+    )
     def post(self, request):
         # 1. SECURITY GATE
         user_id = request.session.get('user_id')

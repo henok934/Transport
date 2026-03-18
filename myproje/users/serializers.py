@@ -14,6 +14,39 @@ class BSerializer(serializers.ModelSerializer):
         model = Bus
         fields = '__all__'  # Adjust fields as necessary
 
+"""
+from rest_framework import serializers
+class UserProfileSerializer(serializers.Serializer):
+    # User Profile Fields
+    username = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.EmailField()
+    phone = serializers.CharField()
+    
+    # System Statistics Field
+    buschanges_count = serializers.IntegerField(
+        help_text="Total number of bus changes recorded in the system"
+    )
+    class Meta:
+        # If you want to link it to the model for more automatic field generation:
+        # model = CustomUser
+        # fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'buschanges_count']
+        pass
+"""
+
+
+
+from rest_framework import serializers
+class UserProfileSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.EmailField()
+    phone = serializers.CharField()
+    buschanges_count = serializers.IntegerField()
+
+
 
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,6 +60,7 @@ class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
         fields = '__all__'
+
 
 """
 class BusSerializer(serializers.ModelSerializer):

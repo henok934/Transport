@@ -67,9 +67,28 @@ urlpatterns = [
     #path('api/workerdelete/', WorkerDeleteViews.as_view(), name='api-workerdelete'),  # Route for the JSON API
     #path('delete_tickets/', DeleteTickets.as_view(), name='delete_tickets'),  # Serve form.html
 
-    path('delete_tickets/', DeleteTickets.as_view(), name='delete_ticketss'),  # Serve form.html
     
-    path('delete-tickets/', DeleteTicketsView.as_view(), name='delete_tickets'),
+
+
+    #path('delete_tickets/', DeleteTickets.as_view(), name='delete_ticketss'),  # Serve form.html
+    
+    
+    #path('delete-tickets/', DeleteTicketsView.as_view(), name='delete_tickets'),
+
+
+    path('delete_tickets/', DeleteTickets.as_view(), name='delete_tickets_web_search'),
+
+    # 2. The Execution/Action View
+    path('delete-tickets/', DeleteTicketsView.as_view(), name='delete_tickets_api_execution'),
+
+    # urls.py
+
+    # 1. Name this specifically for the form
+    #path('delete_tickets/', DeleteTickets.as_view(), name='delete_tickets_html_form'), 
+
+    # 2. Name this specifically for the API
+    #path('delete-tickets/', DeleteTicketsView.as_view(), name='delete_tickets_api_action'),
+
 
     #path('api', Routes.as_view(), name='api'),
     path('citydelete/', CityDeleteViews.as_view(), name='citydelete'), 
@@ -148,7 +167,12 @@ urlpatterns = [
     path('select-bus/', SelectBusView.as_view(), name='select_bus'),
     #path('check-delete-ticket/', CheckDeleteTicketView.as_view(), name='check_delete_ticket'),
     #path('check-route/', RouteCheckView.as_view(), name='check_route'),
+    
+
+
     path('delete-ticket/', DeleteTicketViews.as_view(), name='delete_ticket'),
+    
+
     #path('city/', CityView.as_view(), name='city'),
     path('sc/', ScInsertViews.as_view(), name='sc'),    
 

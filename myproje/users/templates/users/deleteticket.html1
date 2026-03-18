@@ -179,7 +179,7 @@
                     {% for rout in route %}
                     <tr>
                         <td class="font-weight-bold text-muted">{{ forloop.counter }}</td>
-                        <form action="{% url 'delete_tickets_api_execution' %}" method="POST" onsubmit="return confirm('PERMANENT ACTION: Void this ticket?');">
+                        <form action="{% url 'delete_tickets' %}" method="POST" onsubmit="return confirm('PERMANENT ACTION: Void this ticket?');">
                             {% csrf_token %}
                             <td><input type="text" name="firstname" class="table-input" value="{{ rout.firstname|slice:15 }}" readonly></td>
                             <td><input type="text" name="lastname" class="table-input" value="{{ rout.lastname|slice:10 }}" readonly></td>

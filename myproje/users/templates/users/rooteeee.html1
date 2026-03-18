@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>{{ route.plate_no }}</td>
                         <td>{{ route.date }}</td>
                         <td style="text-align: center;">
-                            <form action="{% url 'delete_tickets_web_search' %}" method="POST" style="margin: 0;">
+                            <form action="{% url 'delete_ticketss' %}" method="POST" style="margin: 0;">
                                 {% csrf_token %}
                                 <input type="hidden" name="depcity" value="{{ route.depcity }}">
                                 <input type="hidden" name="descity" value="{{ route.descity }}">
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>{{ route.descity }}</td>
                         <td>{{ route.plate_no }}</td>
 			<td>{{ route.date }}</td><td style="text-align: center;">
-				<form action="{% url 'delete_tickets_web_search' %}" method="POST">
+				<form action="{% url 'delete_ticketss' %}" method="POST">
                                 {% csrf_token %}
                                 <input type="hidden" name="depcity" value="{{ route.depcity }}">
                                 <input type="hidden" name="descity" value="{{ route.descity }}">
