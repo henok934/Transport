@@ -232,23 +232,22 @@
 
             <form action="{% url 'businsert' %}" method="post" id="bus_reg_form">
                 {% csrf_token %}
-                    <input type="hidden" class="form-control form-control-intl bg-light" value="{{ name }}" readonly>
-
+                <input type="hidden" class="form-control form-control-intl bg-light" value="{{ name }}" readonly>
                 <div class="row">
                     <div class="col-6 form-group mb-3">
-                        <label class="form-label-custom">First Name</label>
+                        <label class="form-label-custom">First Name <span class="text-danger">*</span> <span class="text-danger">*</span></label>
                         <input type="text" class="form-control form-control-intl" name="firstname" placeholder="eg. Abebe" required 
                                oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase() + this.value.slice(1).toLowerCase();">
                     </div>
                     <div class="col-6 form-group mb-3">
-                        <label class="form-label-custom">Father Name</label>
+                        <label class="form-label-custom">Father Name <span class="text-danger">*</span> <span class="text-danger">*</span></label>
                         <input type="text" class="form-control form-control-intl" name="lastname" placeholder="eg. Bikela" required
                                oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase() + this.value.slice(1).toLowerCase();">
                     </div>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label class="form-label-custom">Contact Number</label>
+                    <label class="form-label-custom">Contact Number <span class="text-danger">*</span> <span class="text-danger">*</span></label>
                     <div class="input-group">
                         <input type="text" class="form-control form-control-intl" name="phone" placeholder="eg. 0912345678" maxlength="10" required 
                                oninput="this.value = this.value.replace(/[^0-9]/g, '');">
@@ -257,7 +256,7 @@
 
                 <div class="row">
                     <div class="col-5 form-group mb-3">
-                        <label class="form-label-custom">Plate No</label>
+                        <label class="form-label-custom">Plate No <span class="text-danger">*</span> <span class="text-danger">*</span></label>
 		<!--
 		<input type="text" class="form-control form-control-intl" name="plate_no" placeholder="A12345" required 
                                oninput="handlePlateInput(this);" style="text-transform: uppercase;">
@@ -285,7 +284,6 @@
            oninput="handlePlateInput(this);" 
            style="text-transform: uppercase;">
 </div>
-
 <style>
     /* This container holds the input and the permanent ET */
     .plate-input-wrapper {
@@ -366,15 +364,29 @@ function handlePlateInputWithPrefix(input) {
 
 		    </div>
 		    <div class="col-4 form-group mb-3">
-                        <label class="form-label-custom">Side No</label>
+                        <label class="form-label-custom">Side No <span class="text-danger">*</span> <span class="text-danger">*</span></label>
                         <input type="text" id="sideno" name="sideno" class="form-control form-control-intl" placeholder="####" required
                                oninput="this.value = this.value.replace(/[^0-9]/g, ''); validateSideInput();">
                     </div>
+		    <!--
                     <div class="col-3 form-group mb-3">
-                        <label class="form-label-custom">Seats</label>
+                        <label class="form-label-custom">Seats <span class="text-danger">*</span> <span class="text-danger">*</span></label>
                         <input type="text" class="form-control form-control-intl" name="no_seats" placeholder="00" maxlength="2" required 
                                oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     </div>
+		    -->
+		    <div class="col-3 form-group mb-3">
+    <label class="form-label-custom">
+        Seats <span class="text-danger" aria-hidden="true">*</span>
+    </label>
+    <input type="text"
+           class="form-control form-control-intl"
+           name="no_seats"
+           placeholder="00"
+           maxlength="2"
+           required
+           oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+</div>
                 </div>
                 <div id="side-error" class="text-danger font-weight-bold mb-3" style="display:none; font-size: 10px; margin-top:-10px;"></div>
                 <button type="submit" class="btn-register-intl shadow-sm mt-2">
@@ -384,7 +396,6 @@ function handlePlateInputWithPrefix(input) {
         </div>
     </div>
 </div>
-
 <footer class="py-4 text-center text-muted border-top bg-white">
     <div class="container">
         <p class="mb-0" style="font-size: 11px; font-weight: 600;">© 2026 WEDEHAGER TRANSPORT TECHNOLOGY | ENTERPRISE SYSTEM v4.2</p>

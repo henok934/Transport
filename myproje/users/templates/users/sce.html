@@ -166,6 +166,7 @@
                     <tr>
                         <th>No.</th>
                         <th>Sc Name</th>
+			 <th>Level</th>
                         <th>First Name</th>
                         <th>Father Name</th>
                         <th>Gender</th>
@@ -178,6 +179,7 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td><span class="badge badge-light p-2 border">{{ user.name }}</span></td>
+			<td>{{ user.level }}</td>
                         <td>{{ user.firstname }}</td>
                         <td>{{ user.lastname }}</td>
                         <td>{{ user.gender }}</td>

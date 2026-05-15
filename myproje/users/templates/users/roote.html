@@ -192,12 +192,14 @@
     </div>
     {% endif %}
 
+
+    <!--
     <div class="booking-card">
         <table class="table-intl">
             <thead>
                 <tr>
                     <th>Route Details</th>
-                    <th>Service Class</th>
+                    <th>Bus Level</th>
                     <th>Departure Date</th>
                     <th>Ticket Price</th>
                     <th>Seats</th>
@@ -243,6 +245,65 @@
             </tbody>
         </table>
     </div>
+    -->
+<div class="booking-card">
+    <table class="table-intl">
+        <thead>
+            <tr>
+                <th style="width: 50px;">No.</th>
+                <th>Route Details</th>
+                <th>Bus Level</th>
+                <th>Departure Date</th>
+                <th>Ticket Price</th>
+                <th>Seats</th>
+                <th style="width: 150px;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in routes %}
+            <tr>
+                <td style="font-weight: bold; color: #6b7280;">
+                    {{ forloop.counter }}.
+                </td>
+                
+                <td>
+                    <div class="city-box">
+                        {{ item.route.depcity }}
+                        <i class="fas fa-arrow-right mx-2 text-muted" style="font-size: 14px;"></i>
+                        {{ item.route.descity }}
+                    </div>
+                    <small class="text-muted"><i class="fas fa-id-card mr-1"></i> Plate: {{ item.route.plate_no }}</small>
+                </td>
+                <td><span class="level-badge">{{ item.levels }}</span></td>
+                <td><div style="font-weight: 600;">{{ item.route.date }}</div></td>
+                <td><div class="price-tag">{{ item.route.price }} ETB</div></td>
+                <td>
+                    <div style="color: #f59e0b; font-weight: 700;">
+                        <i class="fas fa-users mr-1"></i> {{ item.remaining_seats }} Left
+                    </div>
+                </td>
+                <td>
+                    <form action="{% url 'Select' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="depcity" value="{{ item.route.depcity }}">
+                        <input type="hidden" name="descity" value="{{ item.route.descity }}">
+                        <input type="hidden" name="price" value="{{ item.route.price }}">
+                        <input type="hidden" name="date" value="{{ item.route.date }}">
+                        <input type="hidden" name="plate_no" value="{{ item.route.plate_no }}">
+
+                        <button type="submit" class="btn-select {% if not item.route.is_active %}btn-disabled{% endif %}"
+                                {% if not item.route.is_active %}disabled{% endif %}>
+                            {% if item.route.is_active %}Select{% else %}Sold Out{% endif %}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
 </div>
 
 <footer style="background: var(--brand-navy); color: white; padding: 60px 0 30px; margin-top: 80px; text-align: center;">

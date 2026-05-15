@@ -99,6 +99,25 @@ class FeedbackSerializer(serializers.ModelSerializer):
 """
 
 from rest_framework import serializers
+class CancelTicketRefundSerializer(serializers.Serializer):
+    # Identifying the specific ticket
+    firstname = serializers.CharField()
+    lastname = serializers.CharField()
+    date = serializers.CharField()
+    plate_no = serializers.CharField()
+    side_no = serializers.CharField()
+
+    # Refund destination details
+    refund_method = serializers.ChoiceField(
+        choices=['telebirr', 'cbe', 'boa', 'safaricom', 'awash'],
+        help_text="The provider receiving the refund"
+    )
+    refund_account = serializers.CharField(help_text="Bank account or phone number")
+
+
+
+
+from rest_framework import serializers
 from .models import Feedback
 
 class FeedbackSerializer(serializers.ModelSerializer):
@@ -153,8 +172,10 @@ class BooksSearchRequestSerializer(serializers.Serializer):
 
 
 
-from rest_framework import serializers
 
+
+
+from rest_framework import serializers
 class ChangePassengerRequestSerializer(serializers.Serializer):
     # Current Data (Identifying the ticket)
     firstname = serializers.CharField(help_text="Current First Name on ticket")
@@ -167,6 +188,7 @@ class ChangePassengerRequestSerializer(serializers.Serializer):
     new_firstname = serializers.CharField(help_text="New First Name")
     new_lastname = serializers.CharField(help_text="New Last Name")
     new_phone = serializers.CharField(help_text="New Phone Number")
+    new_gender = serializers.CharField(help_text="New gender")
 
 
 from rest_framework import serializers
@@ -923,8 +945,8 @@ class BusSerializer(serializers.ModelSerializer):
         return bus
 """
 
-from rest_framework import serializers
 
+from rest_framework import serializers
 class SelectRequestSerializer(serializers.Serializer):
     plate_no = serializers.CharField(help_text="Plate number of the bus")
     depcity = serializers.CharField(help_text="Departure City")

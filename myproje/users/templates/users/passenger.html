@@ -116,15 +116,18 @@
     </div>
 </nav>
 
-<div class="container py-4">
-    
+<div class="container py-4"> 
     <div id="ticket-container">
         {% if ticket %}
         <div class="ticket-card">
             <div class="ticket-header">
                 <div>
-                    <h1 class="m-0" style="font-size: 20px; font-weight: 800;">To Country Transport</h1>
+                    <h1 class="m-0" style="font-size: 20px; font-weight: 800;">Wedehager Transport</h1>
                     <span class="badge-level">LEVEL: {{ level|default:"Standard" }}</span>
+                </div>
+		 <div>
+                    <h1 class="m-0" style="font-size: 20px; font-weight: 800;">Operator Name</h1>
+                    <span class="badge-level">{{ name }}</span>
                 </div>
                 <div class="text-right">
                     <p class="data-label m-0" style="color: var(--brand-gold);">BOOKING REF / PNR</p>
@@ -194,10 +197,28 @@
                             <p class="data-label">Seat No</p>
                             <p class="m-0" style="font-size: 26px; font-weight: 900; color: var(--brand-blue);">{{ ticket.no_seat }}</p>
                         </div>
+			<!--
                         <div class="text-center">
                             <p class="data-label">Total Fare</p>
                             <p class="m-0" style="font-size: 22px; font-weight: 800; color: #15803d;">{{ ticket.price }} ETB</p>
-                        </div>
+			</div>-->
+			<div class="text-center" style="padding: 10px; background-color: #f9fafb; border-radius: 12px;">
+    {% load currency_filters %}
+
+    <p class="data-label" style="font-size: 11px; color: #6b7280; margin-bottom: 2px; font-weight: 600;">TOTAL FARE</p>
+
+    <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px;">
+        <!-- Large Bold Price -->
+        <p class="m-0" style="font-size: 32px; font-weight: 800; color: #15803d; line-height: 1;">
+            {{ ticket.price }}
+        </p>
+
+        <!-- Word representation in one line using () -->
+        <p class="m-0" style="font-size: 11px; font-weight: 700; color: #374151;">
+           ({{ ticket.price|price_to_words_intl }})
+        </p>
+    </div>
+</div>
                     </div>
                 </div>
 
@@ -211,8 +232,9 @@
             </div>
         </div>
 
+	<!--
         <div class="update-panel">
-            <h5 class="font-weight-bold mb-4" style="color: var(--brand-navy);"><i class="fas fa-user-edit mr-2"></i> Update Passenger Details</h5>
+            <h5 class="font-weight-bold mb-4" style="color: var(--brand-navy);"><i class="fas fa-user-edit mr-2"></i>Transfer to Another Person</h5>
             <form action="{% url 'passenger' %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="depcity" value="{{ ticket.depcity }}">
@@ -224,7 +246,7 @@
 
                 <div class="row">
 		<div class="col-md-6 mb-3">
-    <label class="data-label">New First Name</label>
+    <label class="data-label">First Name</label>
     <input type="text"
            name="new_firstname"
            class="form-control form-control-custom"
@@ -232,9 +254,8 @@
            oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"
            required>
 </div>
-
 <div class="col-md-6 mb-3">
-    <label class="data-label">New Last Name</label>
+    <label class="data-label">Last Name</label>
     <input type="text"
            name="new_lastname"
            class="form-control form-control-custom"
@@ -242,43 +263,109 @@
            oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"
            required>
 </div>
-		<!--
-                <div class="col-md-6 mb-3">
-    <label class="data-label">New First Name</label>
-    <input type="text" 
-           name="new_firstname" 
-           class="form-control form-control-custom" 
-           style="text-transform: uppercase;" 
-           placeholder="{{ ticket.firstname }}" 
-           oninput="this.value = this.value.toUpperCase()"
-           required>
-</div>
 
-<div class="col-md-6 mb-3">
-    <label class="data-label">New Last Name</label>
-    <input type="text" 
-           name="new_lastname" 
-           class="form-control form-control-custom" 
-           style="text-transform: uppercase;" 
-           placeholder="{{ ticket.lastname }}" 
-           oninput="this.value = this.value.toUpperCase()"
-           required>
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="data-label">Gender</label>
+        <select name="new_gender" class="form-control form-control-intl" required>
+            <option value="" disabled selected>Select</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="data-label">Phone Number</label>
+        <input type="tel"
+               name="new_phone"
+               class="form-control form-control-custom"
+               placeholder="{{ ticket.phone }}"
+               maxlength="10"
+               required>
+    </div>
 </div>
--->
-                    <div class="col-md-12 mb-4">
-                        <label class="data-label">Update Phone Number</label>
-                        <input type="tel" name="new_phone" class="form-control form-control-custom" placeholder="{{ ticket.phone }}" maxlength="10" required>
-                    </div>
                     <div class="col-12">
                         <button type="submit" class="btn-update-submit">UPDATE INFORMATION</button>
                     </div>
                 </div>
             </form>
         </div>
+	-->
+<div class="update-panel">
+    <h5 class="font-weight-bold mb-4" style="color: var(--brand-navy);">
+        <i class="fas fa-user-edit mr-2"></i>Transfer to Another Person
+    </h5>
+    
+    <form action="{% url 'passenger' %}" method="post">
+        {% csrf_token %}
+        <!-- Hidden inputs for ticket identification -->
+        <input type="hidden" name="depcity" value="{{ ticket.depcity }}">
+        <input type="hidden" name="descity" value="{{ ticket.descity }}">
+        <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+        <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+        <input type="hidden" name="date" value="{{ ticket.date }}">
+        <input type="hidden" name="phone" value="{{ ticket.phone }}">
+
+        <div class="row">
+            <!-- First Name -->
+            <div class="col-md-6 mb-3">
+                <label for="new_firstname" class="data-label">First Name</label>
+                <input type="text"
+                       id="new_firstname"
+                       name="new_firstname"
+                       class="form-control form-control-custom"
+                       placeholder="{{ ticket.firstname }}"
+                       oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"
+                       required>
+            </div>
+
+            <!-- Last Name -->
+            <div class="col-md-6 mb-3">
+                <label for="new_lastname" class="data-label">Last Name</label>
+                <input type="text"
+                       id="new_lastname"
+                       name="new_lastname"
+                       class="form-control form-control-custom"
+                       placeholder="{{ ticket.lastname }}"
+                       oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)"
+                       required>
+            </div>
+
+            <!-- Gender -->
+            <div class="col-md-6 mb-3">
+                <label for="new_gender" class="data-label">Gender</label>
+                <select id="new_gender" name="new_gender" class="form-control form-control-intl" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="col-md-6 mb-3">
+                <label for="new_phone" class="data-label">Phone Number</label>
+                <input type="tel"
+                       id="new_phone"
+                       name="new_phone"
+                       class="form-control form-control-custom"
+                       placeholder="{{ ticket.phone }}"
+                       maxlength="10"
+                       required>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="col-12 mt-2">
+                <button type="submit" class="btn-update-submit w-100">UPDATE INFORMATION</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+
         {% endif %}
     </div>
 </div>
-
 <footer style="background:var(--brand-navy); color:white; padding:30px 0; text-align:center;">
     <p class="small opacity-50 mb-0">© 2026 Wedehager Transport Technology. Ethiopia's Digital Standard.</p>
 </footer>
