@@ -5,128 +5,22 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 2. SECURITY SETTINGS
-#SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
-#SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'az@$%k)mtyoc&z3b)k6-(wz8#mj^zh8qw1ze1#v3yzdu+s%+=a')
-#SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'xqbig(d-mturhw+6%4)c)z_5#a9)q+80=93v0kw@btlx6xo+*b')
-#SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'xqbig(d-mturhw+6%4)c)z_5#a9)q+80=93v0kw@btlx6xo+*b')
-#DEBUG = False
-#ALLOWED_HOSTS = ['*']!0k5t=fq08)bk%skc=sg*+#1isv_hzsu$t!(i_fb9@3^d+f3=v
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
+DEBUG = True
+#ALLOWED_HOSTS = ['*']
 
-
-#ALLOWED_HOSTS = ['transportationtechnonogy.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-dev-key-replace-this-on-render-dashboard')
-
-# Automatically sets DEBUG to False if on Render, True if local
-DEBUG = os.environ.get('RENDER', 'False') == 'False'
-
-ALLOWED_HOSTS = ['transportationtechnonogy.onrender.com', 'localhost', '127.0.0.1']
-
-# Check if we are running on Render to enable production security
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-# 3. PRODUCTION SECURITY SWITCH
-if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_AGE = 3600
-    CSRF_COOKIE_SECURE = True
-    # Fixes W008: Redirect all HTTP to HTTPS
-    SECURE_SSL_REDIRECT = True
-    
-    # Fixes W004: Enable HSTS (1 Year)
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    
-    # Fixes W012 & W016: Secure Cookies
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_AGE = 3600
-    CSRF_COOKIE_SECURE = True
-    
-    # Trust Render's Load Balancer for HTTPS
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-else:
-    # LOCAL DEVELOPMENT SETTINGS
-    SECURE_SSL_REDIRECT = False
-    SECURE_HSTS_SECONDS = 0
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-
-
 # Security Headers for Production/Audit
-"""
 SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_AGE = 3600
 CSRF_COOKIE_SECURE = True
-"""
-
-
-"""
-PRODUCTION_MODE = False 
-
-if PRODUCTION_MODE:
-    DEBUG = False
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_AGE = 3600
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-else:
-    DEBUG = False
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-    # Crucial: Disable HSTS locally so the browser stops forcing HTTPS
-SECURE_HSTS_SECONDS = 0
-"""
-# settings.py
-
-
-"""
-# Set this to False for working on your computer
-PRODUCTION_MODE = False 
-
-if PRODUCTION_MODE:
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-    # ... other production settings
-else:
-    # RECOVERY SETTINGS
-    DEBUG = False
-SECURE_SSL_REDIRECT = False
-SECURE_HSTS_SECONDS = 0  # Tells browser NOT to cache security
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-
-"""
-
-
-
-
-"""
-# Only enable these if we are NOT running on our local machine
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_AGE = 3600
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 3600
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-
-# Local development settings
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-"""
 
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [
@@ -142,32 +36,11 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
     'axes',
-
+    
     # Your Apps
     'users',
 ]
 
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware', # 1. Session must be here
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware', # 2. Auth must be AFTER session
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'axes.middleware.AxesMiddleware',
-]
-
-# Set the Login URL to match your main login route name
-LOGIN_URL = 'login'
-
-
-
-
-"""
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', # For static files on Render
@@ -180,7 +53,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
 ]
-"""
 
 ROOT_URLCONF = 'myproje.urls'
 
@@ -308,27 +180,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# settings.py
-
-# ... other settings ...
-"""
-REST_FRAMEWORK = {
-    # This line is REQUIRED for the docs to load
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-
-    # 1. Add Authentication Classes
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-
-    # 2. Add Permission Classes to lock down all views by default
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-}
-"""
-#LOGIN_URL = '/'  # This tells Django where to send people who aren't logged in
 
 
 """
@@ -376,7 +227,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 
 SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_AGE = 3600
 CSRF_COOKIE_SECURE = True
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -384,7 +234,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -468,7 +318,6 @@ TEMPLATES = [
 ]
 
 SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
-SESSION_COOKIE_AGE = 3600
 CSRF_COOKIE_SECURE = True  # CSRF cookie is only sent over HTTPS
 SECURE_BROWSER_XSS_FILTER = True  # Enable browser's XSS filtering
 SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent content type sniffing
@@ -494,7 +343,6 @@ DATABASES = {
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_AGE = 3600
 CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
 
