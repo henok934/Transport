@@ -893,7 +893,6 @@ class Changepassenger(APIView):
 
 
 
-
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -912,6 +911,7 @@ class CancelTicketView(APIView):
         lastname = request.data.get('lastname')
         plate_no = request.data.get('plate_no')
         side_no = request.data.get('side_no')
+        price = request.data.get('price')
         
         # Find the specific ticket to delete
         ticket_to_delete = Ticket.objects.filter(
@@ -929,6 +929,290 @@ class CancelTicketView(APIView):
         return render(request, 'users/index.html', {
             'error': 'Ticket not found or already cancelled.'
         })
+
+
+
+
+
+
+"""
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render
+from .models import Ticket  # Ensure Ticket model is imported
+class CancelTicketView(APIView):
+    def post(self, request):
+        # 1. Retrieve data from HTML form submission
+        method = request.data.get('refund_method')
+        account_number = request.data.get('refund_account')
+
+        # Hidden ticket identifiers passed by frontend
+        firstname = request.data.get('firstname')
+        lastname = request.data.get('lastname')
+        plate_no = request.data.get('plate_no')
+        side_no = request.data.get('side_no')
+
+        try:
+            price_raw = request.data.get('price', '0')
+            price = float(price_raw)
+        except (ValueError, TypeError):
+            price = 0.0
+
+        # 2. Find the specific ticket to delete
+        ticket_to_delete = Ticket.objects.filter(
+            firstname=firstname,
+            lastname=lastname,
+            plate_no=plate_no,
+            side_no=side_no
+        ).first()
+
+        if not ticket_to_delete:
+            return self.render_response(request, 'users/index.html', {'error': 'Ticket not found or already cancelled.'}, status.HTTP_400_BAD_REQUEST)
+
+        # 3. Dynamic Merchant Master Configuration based on selected gateway
+        if method == 'telebirr':
+            merchant_master_account = "0975143134"
+        elif method == 'cbe':
+            merchant_master_account = "1000327248549"
+        elif method == 'boa':
+            merchant_master_account = "48710778"
+        else:
+            return self.render_response(request, 'users/index.html', {'error': 'Unsupported payment method selected.'}, status.HTTP_400_BAD_REQUEST)
+
+        # 4. Process Refund Balances
+        # Get current pool balance from the API wrapper
+        merchant_balance = self.get_gateway_balance(merchant_master_account)
+        customer_balance = self.get_gateway_balance(account_number)
+
+        if merchant_balance is None:
+            return self.render_response(request, 'users/index.html', {'error': f"Failed to connect to {method.upper()} gateway balance checking."}, status.HTTP_502_BAD_GATEWAY)
+
+        # Verify system account can back the refund action
+        if merchant_balance < price:
+            return self.render_response(request, 'users/index.html', {'error': 'System balance processing limit reached. Contact customer care.'}, status.HTTP_400_BAD_REQUEST)
+
+        # 5. Core Ledger Calculations
+        new_merchant_balance = merchant_balance - price
+        new_customer_balance = (customer_balance or 0.0) + price
+
+        # 6. Execute Simulated Core Network Transactions
+        transaction_response = self.execute_gateway_transaction(account_number, price)
+
+        if transaction_response.get('success'):
+            # Update balances within API gateways
+            update_merchant = self.update_gateway_balance(merchant_master_account, new_merchant_balance)
+            update_customer = self.update_gateway_balance(account_number, new_customer_balance)
+
+            if update_merchant.get('success') and update_customer.get('success'):
+                # Core deletion after confirmed money movement safety block
+                ticket_to_delete.delete()
+
+                context = {
+                    'success': f'Refund of {price} ETB processed back to account {account_number} and ticket cancelled successfully.',
+                    'transaction_id': transaction_response.get('transaction_id')
+                }
+                return self.render_response(request, 'users/index.html', context, status.HTTP_200_OK)
+            else:
+                return self.render_response(request, 'users/index.html', {'error': 'Failed to adjust system settlement balances.'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return self.render_response(request, 'users/index.html', {'error': f'{method.upper()} transaction network reversal failed.'}, status.HTTP_502_BAD_GATEWAY)
+
+    # Helper function to serve HTML forms or JSON gracefully based on client request headers
+    def render_response(self, request, template_name, context, status_code):
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, template_name, context)
+        return Response(context, status=status_code)
+
+    # Mock gateway integrations unified to point towards your telebirr API specs mapping
+    def get_gateway_balance(self, account_number):
+        try:
+            url = "https://www.ethiotelecom.et/telebirr/balance"
+            payload = {'account': account_number, 'phone': account_number} # satisfies both parameter schemes
+            headers = {'Authorization': 'Bearer YOUR_API_KEY', 'Content-Type': 'application/json'}
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
+            return float(response.json().get('balance', 0)) if response.status_code == 200 else None
+        except Exception:
+            return None
+
+    def execute_gateway_transaction(self, target_account, amount):
+        try:
+            url = "https://www.ethiotelecom.et/telebirr/transaction"
+            payload = {'account': target_account, 'phone': target_account, 'amount': amount, 'description': 'Ticket Cancellation Reversal'}
+            headers = {'Authorization': 'Bearer YOUR_API_KEY', 'Content-Type': 'application/json'}
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
+            return response.json() if response.status_code == 200 else {'success': False}
+        except Exception:
+            return {'success': False}
+
+    def update_gateway_balance(self, account_number, amount):
+        try:
+            url = "https://www.ethiotelecom.et/telebirr/add_balance"
+            payload = {'account': account_number, 'phone': account_number, 'amount': amount}
+            headers = {'Authorization': 'Bearer YOUR_API_KEY', 'Content-Type': 'application/json'}
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
+            return response.json() if response.status_code == 200 else {'success': False}
+        except Exception:
+            return {'success': False}
+"""
+
+
+
+
+"""
+import requests
+from django.db import transaction
+from django.shortcuts import render
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Ticket  # Ensure Ticket model is imported
+class CancelTicketView(APIView):
+    def post(self, request):
+        # 1. Retrieve data from HTML form submission
+        method = request.data.get('refund_method')
+        account_number = request.data.get('refund_account')
+
+        # Hidden ticket identifiers passed by frontend
+        firstname = request.data.get('firstname')
+        lastname = request.data.get('lastname')
+        plate_no = request.data.get('plate_no')
+        side_no = request.data.get('side_no')
+
+        try:
+            price_raw = request.data.get('price', '0')
+            price = float(price_raw)
+        except (ValueError, TypeError):
+            price = 0.0
+
+        # 2. Find the specific ticket to process
+        ticket_to_delete = Ticket.objects.filter(
+            firstname=firstname,
+            lastname=lastname,
+            plate_no=plate_no,
+            side_no=side_no
+        ).first()
+
+        if not ticket_to_delete:
+            return self.render_response(
+                request,
+                'users/index.html',
+                {'error': 'ትኬቱ አልተገኘም ወይም አስቀድሞ ተሰርዟል። (Ticket not found or already cancelled.)'},
+                status.HTTP_400_BAD_REQUEST
+            )
+
+        # 3. Dynamic Merchant Master Configuration based on selected gateway
+        if method == 'telebirr':
+            merchant_master_account = "0975143134"
+        elif method == 'cbe':
+            merchant_master_account = "1000327248549"
+        elif method == 'boa':
+            merchant_master_account = "48710778"
+        else:
+            return self.render_response(
+                request,
+                'users/index.html',
+                {'error': 'ያልተደገፈ የክፍያ መንገድ። (Unsupported payment method.)'},
+                status.HTTP_400_BAD_REQUEST
+            )
+
+        # 4. Fetch live gateway balances
+        merchant_balance = self.get_gateway_balance(merchant_master_account)
+        customer_balance = self.get_gateway_balance(account_number)
+
+        if merchant_balance is None:
+            return self.render_response(
+                request,
+                'users/index.html',
+                {'error': 'ከባንክ መገናኛ መስመር ጋር መገናኘት አልተቻለም። (Failed to connect to payment gateway.)'},
+                status.HTTP_502_BAD_GATEWAY
+            )
+
+        if merchant_balance < price:
+            return self.render_response(
+                request,
+                'users/index.html',
+                {'error': 'የሲስተም ሂሳብ ገደብ ላይ ደርሷል። እባክዎ ድጋፍ ሰጪዎችን ያግኙ። (System balance processing limit reached.)'},
+                status.HTTP_400_BAD_REQUEST
+            )
+
+        # 5. Core Ledger Calculations
+        new_merchant_balance = merchant_balance - price
+        new_customer_balance = (customer_balance or 0.0) + price
+
+        # 6. Execute the balance movement using an atomic database lock
+        try:
+            with transaction.atomic():
+                # Call external gateway API to move the funds
+                transaction_response = self.execute_gateway_transaction(account_number, price)
+
+                if transaction_response.get('success'):
+                    # Synchronize updated balances back to respective systems
+                    update_merchant = self.update_gateway_balance(merchant_master_account, new_merchant_balance)
+                    update_customer = self.update_gateway_balance(account_number, new_customer_balance)
+
+                    if update_merchant.get('success') and update_customer.get('success'):
+
+                        # --- CRITICAL FIX: DELETE TICKET SECURELY ---
+                        ticket_to_delete.delete()
+
+                        context = {
+                            'success': f'የትኬት መሰረዙ ተሳክቷል! {price} ብር ወደ መለያ ቁጥር {account_number} ተመልሷል።',
+                            'transaction_id': transaction_response.get('transaction_id')
+                        }
+                        return self.render_response(request, 'users/index.html', context, status.HTTP_200_OK)
+                    else:
+                        raise Exception("Failed to adjust system settlement balances.")
+                else:
+                    raise Exception("Gateway transaction network reversal rejected.")
+
+        except Exception as e:
+            # If anything fails inside the block, database operations roll back safely
+            return self.render_response(
+                request,
+                'users/index.html',
+                {'error': f'ስህተት፡ {str(e)}'},
+                status.HTTP_502_BAD_GATEWAY
+            )
+
+    def render_response(self, request, template_name, context, status_code):
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, template_name, context)
+        return Response(context, status=status_code)
+
+    # Gateway API Integrations pointing to your endpoints
+    def get_gateway_balance(self, account_number):
+        try:
+            url = "https://www.ethiotelecom.et/telebirr/balance"
+            payload = {'account': account_number, 'phone': account_number}
+            headers = {'Authorization': 'Bearer YOUR_API_KEY', 'Content-Type': 'application/json'}
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
+            return float(response.json().get('balance', 0)) if response.status_code == 200 else None
+        except Exception:
+            return None
+
+    def execute_gateway_transaction(self, target_account, amount):
+        try:
+            url = "https://www.ethiotelecom.et/telebirr/transaction"
+            payload = {'account': target_account, 'phone': target_account, 'amount': amount, 'description': 'Ticket Cancellation Reversal'}
+            headers = {'Authorization': 'Bearer YOUR_API_KEY', 'Content-Type': 'application/json'}
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
+            return response.json() if response.status_code == 200 else {'success': False}
+        except Exception:
+            return {'success': False}
+
+    def update_gateway_balance(self, account_number, amount):
+        try:
+            url = "https://www.ethiotelecom.et/telebirr/add_balance"
+            payload = {'account': account_number, 'phone': account_number, 'amount': amount}
+            headers = {'Authorization': 'Bearer YOUR_API_KEY', 'Content-Type': 'application/json'}
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
+            return response.json() if response.status_code == 200 else {'success': False}
+        except Exception:
+            return {'success': False}
+"""
+
 
 
 from rest_framework.views import APIView

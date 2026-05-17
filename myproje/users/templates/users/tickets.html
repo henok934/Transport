@@ -397,6 +397,7 @@
             <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
             <input type="hidden" name="depcity" value="{{ ticket.depcity }}">
             <input type="hidden" name="descity" value="{{ ticket.descity }}">
+	    <input type="hidden" name="price" value="{{ ticket.price }}">
             <input type="hidden" name="date" value="{{ ticket.date }}">
             
             <button type="submit" class="btn btn-primary btn-sm font-weight-bold ml-md-auto">Transfer Ticket</button>
@@ -496,6 +497,8 @@
         </form>
     </div>
 -->
+
+
 <div class="action-card border-left-danger shadow-sm p-4 bg-white rounded-lg">
     <div class="d-flex align-items-center mb-3">
         <div class="icon-circle bg-light text-danger" style="width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
@@ -504,7 +507,131 @@
         <h6 class="font-weight-bold text-danger m-0 ml-3">Refund & Cancel Trip</h6>
     </div>
 
+<div id="initialCancelContainer" class="text-center my-3">
+    <button type="button" class="btn btn-warning btn-block font-weight-bold py-3 shadow-sm" onclick="showBankSelection()">
+        CANCEL TICKET
+    </button>
+</div>
 
+<form action="{% url 'cancel_ticket' %}" method="post" id="cancelForm" class="d-none">
+    {% csrf_token %}
+
+    <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+    <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+    <input type="hidden" name="date" value="{{ ticket.date }}">
+    <input type="hidden" name="plate_no" value="{{ ticket.plate_no }}">
+    <input type="hidden" name="side_no" value="{{ ticket.side_no }}">
+    <input type="hidden" name="price" value="{{ ticket.price }}">
+
+    <p class="small text-muted mb-3">Total Refund: <strong class="text-danger">{{ ticket.price }} ETB</strong></p>
+
+    <div class="bank-grid mb-4">
+        <label class="bank-option" onclick="selectBank(this, 'telebirr')">
+            <input type="radio" name="refund_method" value="telebirr" required style="display:none;">
+            <img src="{% static 'images/Tele.png' %}" alt="Telebirr">
+            <span>Telebirr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'cbe')">
+            <input type="radio" name="refund_method" value="cbe" style="display:none;">
+            <img src="{% static 'images/cbe.png' %}" alt="CBE">
+            <span>CBE Birr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'boa')">
+            <input type="radio" name="refund_method" value="boa" style="display:none;">
+            <img src="{% static 'images/BOA.png' %}" alt="Abyssinia">
+            <span>Abyssinia</span>
+        </label>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="small font-weight-bold text-navy">Account / Phone Number</label>
+        <input type="text" id="refund_account" name="refund_account" 
+               class="form-control form-control-custom" 
+               placeholder="Select a bank above" required autocomplete="off"
+               inputmode="numeric"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        <small id="helper_text" class="text-muted d-block mt-1" style="font-size: 11px;"></small>
+    </div>
+
+    <button type="submit" class="btn btn-danger btn-block font-weight-bold py-3" 
+            onclick="return validateRefundForm()">
+        CONFIRM CANCELLATION
+    </button>
+</form>
+
+<script>
+// Global tracking configuration variables for clean submission validation
+let activeMinLength = 0;
+let activeMaxLength = 0;
+let expectedPrefix = "";
+
+// Step 1 UI Trigger: Reveal form wrapper
+function showBankSelection() {
+    document.getElementById('initialCancelContainer').classList.add('d-none');
+    document.getElementById('cancelForm').classList.remove('d-none');
+}
+
+// Step 2 UI Trigger: Manage parameters when selecting banks
+function selectBank(element, method) {
+    // 1. Highlight selected option border/styling
+    document.querySelectorAll('.bank-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+    element.querySelector('input[type="radio"]').checked = true;
+
+    const input = document.getElementById('refund_account');
+    const helper = document.getElementById('helper_text');
+    
+    // Clear old text values on switch and reset text style status
+    input.value = ""; 
+    helper.className = "text-muted d-block mt-1";
+
+    // 2. Set provider routing constraints dynamically
+    if (method === 'telebirr') {
+        activeMinLength = 10;
+        activeMaxLength = 10;
+        expectedPrefix = "09";
+        input.placeholder = "e.g., 0912345678";
+        helper.innerText = "Enter 10 digits starting with 09";
+    } else if (method === 'cbe') {
+        activeMinLength = 13;
+        activeMaxLength = 13;
+        expectedPrefix = "1000";
+        input.placeholder = "e.g., 1000123456789";
+        helper.innerText = "Enter 13 digits starting with 1000";
+    } else if (method === 'boa') {
+        activeMinLength = 8;
+        activeMaxLength = 8;
+        expectedPrefix = "48";
+        input.placeholder = "e.g., 48123456";
+        helper.innerText = "Enter 8 digits starting with 48";
+    }
+    
+    // Assign maximum attribute structure dynamically and shift focus
+    input.maxLength = activeMaxLength;
+    input.focus();
+}
+
+// Step 3 Guard: Intercept submission events if inputs fail strict requirements
+function validateRefundForm() {
+    const radioSelected = document.querySelector('input[name="refund_method"]:checked');
+    const input = document.getElementById('refund_account');
+    const helper = document.getElementById('helper_text');
+    // Make sure a banking option is explicitly flagged active
+    if (!radioSelected) {
+        alert("Please select a bank option first.");
+        return false;
+    }
+    const val = input.value;
+    // Structural length and routing prefix verification matchers
+    if (val.length !== activeMaxLength || !val.startsWith(expectedPrefix)) {
+        helper.className = "text-danger d-block mt-1 font-weight-bold";
+        helper.innerText = `Invalid formatting. Must be exactly ${activeMaxLength} digits starting with "${expectedPrefix}".`;
+        input.focus();
+        return false;
+    }
+    return true; // Continues clean post transmission execution to Django views
+}
+</script>
 
 
     <!--
@@ -554,9 +681,10 @@
     -->
 
 
+
+<!--
  <form action="{% url 'cancel_ticket' %}" method="post" id="cancelForm">
     {% csrf_token %}
-
     <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
     <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
     <input type="hidden" name="date" value="{{ ticket.date }}">
@@ -621,11 +749,245 @@ function selectBank(element, method) {
     }
 }
 </script>
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
+<div id="initialCancelContainer" class="text-center my-3">
+    <button type="button" class="btn btn-warning btn-block font-weight-bold py-3 shadow-sm" onclick="showBankSelection()">
+        CANCEL TICKET
+    </button>
+</div>
+<form action="{% url 'cancel_ticket' %}" method="post" id="cancelForm" class="d-none">
+    {% csrf_token %}
+
+    <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+    <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+    <input type="hidden" name="date" value="{{ ticket.date }}">
+    <input type="hidden" name="plate_no" value="{{ ticket.plate_no }}">
+    <input type="hidden" name="side_no" value="{{ ticket.side_no }}">
+    <input type="hidden" name="price" value="{{ ticket.price }}">
+
+    <p class="small text-muted mb-3">Total Refund: <strong class="text-danger">{{ ticket.price }} ETB</strong></p>
+
+    <div class="bank-grid mb-4">
+        <label class="bank-option" onclick="selectBank(this, 'telebirr')">
+            <input type="radio" name="refund_method" value="telebirr" required style="display:none;">
+            <img src="{% static 'images/Tele.png' %}" alt="Telebirr">
+            <span>Telebirr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'cbe')">
+            <input type="radio" name="refund_method" value="cbe" style="display:none;">
+            <img src="{% static 'images/cbe.png' %}" alt="CBE">
+            <span>CBE Birr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'boa')">
+            <input type="radio" name="refund_method" value="boa" style="display:none;">
+            <img src="{% static 'images/BOA.png' %}" alt="Abyssinia">
+            <span>Abyssinia</span>
+        </label>
+    </div>
+
+    <div id="accountInputGroup" class="form-group d-none">
+        <label class="small font-weight-bold text-navy">Target Refund Account</label>
+        <input type="text" id="refund_account" name="refund_account"
+               class="form-control form-control-custom"
+               placeholder="Enter number" required
+               inputmode="numeric" autocomplete="off"
+               oninput="handleAccountTyping(this)">
+        <small id="helper_text" class="text-danger d-block mt-1" style="font-size: 11px;"></small>
+    </div>
+
+    <button type="submit" id="submitRefundBtn" class="btn btn-danger btn-block font-weight-bold py-3 mt-3 shadow-sm d-none">
+        CONFIRM REFUND
+    </button>
+</form>
+
+<script>
+// Step 1: Reveal the cancel setup panel
+function showBankSelection() {
+    document.getElementById('initialCancelContainer').classList.add('d-none');
+    document.getElementById('cancelForm').classList.remove('d-none');
+}
+
+// Step 2: Fired when you click Telebirr, CBE, or Abyssinia
+function selectBank(element, method) {
+    // 1. Highlight selected card UI
+    document.querySelectorAll('.bank-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+    element.querySelector('input[type="radio"]').checked = true;
+
+    // 2. Fetch DOM elements
+    const inputGroup = document.getElementById('accountInputGroup');
+    const input = document.getElementById('refund_account');
+    const helper = document.getElementById('helper_text');
+    const submitBtn = document.getElementById('submitRefundBtn');
+
+    // 3. Clear old values and hide submit button while switching banks
+    input.value = "";
+    submitBtn.classList.add('d-none');
+
+    // 4. CRITICAL: Show the input group element immediately!
+    inputGroup.classList.remove('d-none');
+
+    // 5. Configure rules per provider
+    if (method === 'telebirr') {
+        input.maxLength = 10;
+        helper.innerText = "Enter 10 digits starting with 09";
+    } else if (method === 'cbe') {
+        input.maxLength = 13;
+        helper.innerText = "Enter 13 digits starting with 1000";
+    } else if (method === 'boa') {
+        input.maxLength = 8;
+        helper.innerText = "Enter 8 digits starting with 48";
+    }
+}
+
+// Step 3 & 4: Monitors keystrokes to reveal the ultimate submit action button
+function handleAccountTyping(inputObj) {
+    // Keep only numbers
+    inputObj.value = inputObj.value.replace(/[^0-9]/g, '');
+
+    const submitBtn = document.getElementById('submitRefundBtn');
+
+    // Reveal button only when the user finishes entering the target digit threshold
+    if (inputObj.value.length === parseInt(inputObj.maxLength)) {
+        submitBtn.classList.remove('d-none');
+    } else {
+        submitBtn.classList.add('d-none');
+    }
+}
+</script>
+-->
+
+
+
+
+<!--
+<div id="initialCancelContainer" class="text-center my-3">
+    <button type="button" class="btn btn-warning btn-block font-weight-bold py-3 shadow-sm" onclick="showBankSelection()">
+        CANCEL TICKET
+    </button>
+</div>
+
+<form action="{% url 'cancel_ticket' %}" method="post" id="cancelForm" class="d-none">
+    {% csrf_token %}
+
+    <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+    <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+    <input type="hidden" name="date" value="{{ ticket.date }}">
+    <input type="hidden" name="plate_no" value="{{ ticket.plate_no }}">
+    <input type="hidden" name="side_no" value="{{ ticket.side_no }}">
+    <input type="hidden" name="price" value="{{ ticket.price }}">
+
+    <p class="small text-muted mb-3">Total Refund: <strong class="text-danger">{{ ticket.price }} ETB</strong></p>
+
+    <div class="bank-grid mb-4">
+        <label class="bank-option" onclick="selectBank(this, 'telebirr')">
+            <input type="radio" name="refund_method" value="telebirr" required style="display:none;">
+            <img src="{% static 'images/Tele.png' %}" alt="Telebirr">
+            <span>Telebirr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'cbe')">
+            <input type="radio" name="refund_method" value="cbe" style="display:none;">
+            <img src="{% static 'images/cbe.png' %}" alt="CBE">
+            <span>CBE Birr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'boa')">
+            <input type="radio" name="refund_method" value="boa" style="display:none;">
+            <img src="{% static 'images/BOA.png' %}" alt="Abyssinia">
+            <span>Abyssinia</span>
+        </label>
+    </div>
+
+    <div id="accountInputGroup" class="form-group d-none">
+        <label class="small font-weight-bold text-navy">Target Refund Account</label>
+        <input type="text" id="refund_account" name="refund_account" 
+               class="form-control form-control-custom" 
+               placeholder="Enter number" required 
+               inputmode="numeric" autocomplete="off"
+               oninput="validateAccountInput(this)">
+        <small id="helper_text" class="text-muted d-block mt-1" style="font-size: 11px;"></small>
+    </div>
+
+    <button type="submit" id="submitRefundBtn" class="btn btn-danger btn-block font-weight-bold py-3 mt-3 shadow-sm d-none">
+        CONFIRM REFUND
+    </button>
+</form>
+
+<script>
+// Step 1 Trigger: Shows the form with the banks
+function showBankSelection() {
+    document.getElementById('initialCancelContainer').classList.add('d-none');
+    document.getElementById('cancelForm').classList.remove('d-none');
+}
+
+// Step 2 Trigger: Highlights selection and reveals Account Input
+function selectBank(element, method) {
+    document.querySelectorAll('.bank-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+    element.querySelector('input[type="radio"]').checked = true;
+
+    const inputGroup = document.getElementById('accountInputGroup');
+    const input = document.getElementById('refund_account');
+    const helper = document.getElementById('helper_text');
+    
+    // Reset fields on switch
+    input.value = ""; 
+    document.getElementById('submitRefundBtn').classList.add('d-none');
+
+    // Reveal the account number field group
+    inputGroup.classList.remove('d-none');
+
+    // Configure bank specific placeholders
+    if (method === 'telebirr') {
+        input.maxLength = 10;
+        helper.innerText = "Enter 10 digits starting with 09";
+    } else if (method === 'cbe') {
+        input.maxLength = 13;
+        helper.innerText = "Enter 13 digits starting with 1000";
+    } else if (method === 'boa') {
+        input.maxLength = 8;
+        helper.innerText = "Enter 8 digits starting with 48";
+    }
+}
+
+// Step 3 & 4 Logic: Strips non-digits and reveals the submit button conditionally
+function validateAccountInput(inputObj) {
+    // Strip non-numeric characters
+    inputObj.value = inputObj.value.replace(/[^0-9]/g, '');
+    
+    const submitBtn = document.getElementById('submitRefundBtn');
+    
+    // Check if the input length matches its set max length constraint
+    if (inputObj.value.length === inputObj.maxLength) {
+        submitBtn.classList.remove('d-none');
+    } else {
+        submitBtn.classList.add('d-none');
+    }
+}
+</script>
+-->
+
+
+
+
 
 
 </div>
 </div>
-
 <script>
 function selectBank(element) {
     // 1. Handle visual 'active' state
