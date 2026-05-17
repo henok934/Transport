@@ -2175,6 +2175,11 @@ class DriverUpdateViewss(generics.GenericAPIView):
         return Response({'message': 'Request processed successfully'}, status=status.HTTP_200_OK)
 
 
+
+
+
+
+"""
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -2183,7 +2188,6 @@ from django.shortcuts import render
 from drf_spectacular.utils import extend_schema
 from .models import Bus, Sc, Route
 from .serializers import BusUpdateActionSerializer, BusTableResponseSerializer
-
 @extend_schema(tags=['Bus & Driver Management'])
 class BusUpdateViewss(APIView):
     serializer_class = BusUpdateActionSerializer
@@ -2225,22 +2229,17 @@ class BusUpdateViewss(APIView):
     @extend_schema(responses={200: BusTableResponseSerializer(many=True)})
     def get(self, request):
         sc_user = self.get_user_from_session(request)
-
         if not sc_user or not getattr(sc_user, 'name', None):
             request.session.flush()
             return render(request, 'users/login.html', {
                 'error': 'Authentication required. Please login to access this page.'
             })
-
         # Retrieve level and filter buses
         level = getattr(sc_user, 'level', '1st')
         buses, error = self.get_buses(sc_user.side, level)
-        
         if error:
             return Response(error, status=400)
-
         data = BusTableResponseSerializer(buses, many=True).data
-
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/busupdate.html', {
                 'buses': data,
@@ -2280,16 +2279,105 @@ class BusUpdateViewss(APIView):
                 'success': 'Fleet successfully updated!'
             })
         return Response(data, status=200)
+"""
 
 
 
 
 
+from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render
+from drf_spectacular.utils import extend_schema
+from .models import Bus, Sc, Route
+from .serializers import BusUpdateActionSerializer, BusTableResponseSerializer
+@extend_schema(tags=['Bus & Driver Management'])
+class BusUpdateViewss(APIView):
+    serializer_class = BusUpdateActionSerializer
+    def get_user_from_session(self, request):
+        user_id = request.session.get('sc_id')
+        return Sc.objects.filter(id=user_id).first() if user_id else None
+    def get_side_parts(self, side):
+        if not side:
+            return None, None
+        parts = side.split('/')
+        return (parts[0].strip(), parts[1].strip() if len(parts) > 1 else None)
+    #  FIXED INDENTATION: Now properly nested inside the class
+    def get_buses(self, side, level):
+        first_part, second_part = self.get_side_parts(side)
+        standard_levels = ['1st', '2nd', '3rd']
+        if not first_part:
+            # Safe fallback: return an empty queryset instead of None
+            return Bus.objects.none(), {'error': 'Invalid side format'}
+        # 1. Geographic Side Filter
+        if first_part == '3' or second_part == '3':
+            side_filter = Q(sideno__regex=r'^\d{3}$')
+        else:
+            side_filter = Q(sideno__startswith=first_part) & Q(sideno__regex=r'^\d{4}$')
+            if second_part:
+                side_filter |= Q(sideno__startswith=second_part) & Q(sideno__regex=r'^\d{4}$')
+        # 2. Level Category Filter
+        if level in standard_levels:
+            final_query = side_filter & Q(level=level)
+        else:
+            final_query = side_filter & Q(level='Special Bus')
+        return Bus.objects.filter(final_query), None
+    @extend_schema(responses={200: BusTableResponseSerializer(many=True)})
+    def get(self, request):
+        sc_user = self.get_user_from_session(request)
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Authentication required. Please login to access this page.'
+            })
+        # Retrieve level and filter buses
+        level = getattr(sc_user, 'level', '1st')
+        buses, error = self.get_buses(sc_user.side, level)
+        if error:
+            return Response(error, status=400)
 
+        data = BusTableResponseSerializer(buses, many=True).data
 
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/busupdate.html', {
+                'buses': data,
+                'side': sc_user.side,
+                'level': level,
+                'name': sc_user.name
+            })
+        return Response(data)
 
+    @extend_schema(request=BusUpdateActionSerializer, responses={200: BusTableResponseSerializer(many=True)})
+    def post(self, request):
+        sc_user = self.get_user_from_session(request)
 
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html')
 
+        plate_no = request.data.get('plate_no')
+        new_sideno = request.data.get('new_sideno')
+        no_seats = request.data.get('no_seats')
+        level = getattr(sc_user, 'level', '1st')
+
+        # Synchronize update across both models (Bus and Route)
+        Bus.objects.filter(plate_no=plate_no).update(sideno=new_sideno, no_seats=no_seats)
+        Route.objects.filter(plate_no=plate_no).update(side_no=new_sideno)
+
+        # Re-fetch filtered buses using the updated level logic
+        buses, _ = self.get_buses(sc_user.side, level)
+        data = BusTableResponseSerializer(buses, many=True).data
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/busupdate.html', {
+                'buses': data,
+                'side': sc_user.side,
+                'level': level,
+                'name': sc_user.name,
+                'success': 'Fleet successfully updated!'
+            })
+        return Response(data, status=200)
 
 
 
