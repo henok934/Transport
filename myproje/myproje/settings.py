@@ -9,7 +9,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 DEBUG = True
 #ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = ['wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['transportationtechnonogy.onrender.com', 'localhost', '127.0.0.1']
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 
 # Security Headers for Production/Audit
