@@ -142,7 +142,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
     'axes',
-    
+
     # Your Apps
     'users',
 ]
