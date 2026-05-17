@@ -9,7 +9,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 DEBUG = True
 #ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = ['transportationtechnonogy.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['transportationtechnonogy.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 
 # Security Headers for Production/Audit
@@ -161,7 +161,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CORS_ALLOW_ALL_ORIGINS = True
 
 #CSRF_TRUSTED_ORIGINS = ['https://m-k4xk.onrender.com']
-CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://wedehagertransport.onrender.com',
+    'https://transportationtechnonogy.onrender.com'
+]
+
+#CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 
 # 9. INTERNATIONALIZATION
 LANGUAGE_CODE = 'en-us'
