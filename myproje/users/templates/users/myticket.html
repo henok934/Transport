@@ -1,58 +1,4 @@
 
-
-<!--
-<!DOCTYPE html>
-{% load static %}
-<html lang="en">
-<head>
-    <title>My Boarding Passes | Wedehager Global</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <style>
-        :root {
-            --brand-navy: #00264d;
-            --brand-gold: #ffcc00;
-            --brand-blue: #003DA5;
-            --bg-body: #f1f5f9;
-            --muted: #64748b;
-        }
-
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-body); margin: 0; }
-
-        /* --- NAVBAR STYLES --- */
-        .navbar-main {
-            background: white; padding: 12px 0; border-bottom: 5px solid var(--brand-gold);
-            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-        .brand-logo { height: 60px !important; border-radius: 10px; border: 3px solid var(--brand-navy); }
-        .brand-text { font-weight: 800; color: var(--brand-navy); font-size: 24px; text-transform: uppercase; }
-        .nav-link { color: var(--brand-navy) !important; font-weight: 700; text-transform: uppercase; font-size: 13px; }
-        .btn-book-nav { background: var(--brand-gold); color: var(--brand-navy) !important; border-radius: 10px; font-weight: 800; }
-
-        /* --- TICKET CARD DESIGN --- */
-        .ticket-card {
-            background: #fff; border-radius: 24px; overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.06); max-width: 850px;
-            margin: 30px auto; border: 1px solid #e2e8f0;
-            /* Critical for multiple tickets: */
-            page-break-after: always; 
-        }
-        .ticket-header { background: var(--brand-navy); color: #fff; padding: 25px 35px; display: flex; justify-content: space-between; align-items: center; }
-        .badge-level { background: var(--brand-gold); color: var(--brand-navy); padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-        
-        .ticket-content { display: flex; flex-wrap: wrap; padding: 35px; }
-        .main-info { flex: 2; border-right: 1px solid #f1f5f9; padding-right: 30px; }
-        .qr-area { flex: 1; text-align: center; padding-left: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -554,10 +500,35 @@ function downloadAllPDF(event) {
                             <p class="data-label">Seat No</p>
                             <p class="m-0" style="font-size: 26px; font-weight: 900; color: var(--brand-blue);">{{ ticket.no_seat }}</p>
                         </div>
+
+			<!--
                         <div class="text-center">
-                            <p class="data-label">Total Fare</p>
-                            <p class="m-0" style="font-size: 22px; font-weight: 800; color: #15803d;">{{ ticket.price }} ETB</p>
+			{% load currency_filters %}
+			<p class="m-0" style="font-size: 22px; font-weight: 800; color: #15803d;">
+    			{{ ticket.price }} ETB
+			</p>
+			<p class="m-0" style="font-size: 16px; font-weight: 600; color: #374151; text-transform: uppercase;">
+    			{{ ticket.price|to_words }} Ethiopian Birr Only
+			</p>
                         </div>
+			-->
+			<div class="text-center" style="padding: 10px; background-color: #f9fafb; border-radius: 12px;">
+    			{% load currency_filters %}
+
+    			<p class="data-label" style="font-size: 11px; color: #6b7280; margin-bottom: 2px; font-weight: 600;">TOTAL FARE</p>
+    			<div style="display: flex; align-items: baseline; justify-content: center; gap: 8px;">
+        <!-- Large Bold Price -->
+        		<p class="m-0" style="font-size: 32px; font-weight: 800; color: #15803d; line-height: 1;">
+            		{{ ticket.price }}
+        		</p>
+
+        <!-- Word representation in one line using () -->
+        	<p class="m-0" style="font-size: 11px; font-weight: 700; color: #374151;">
+            	({{ ticket.price|price_to_words_am }})
+        	</p>
+    		</div>
+		</div>
+
                     </div>
                 </div>
 
@@ -573,80 +544,6 @@ function downloadAllPDF(event) {
         {% endfor %}
     </div>
 </div>
-
-<!--
-<script>
-    function downloadAllPDF() {
-        const element = document.getElementById('print-area');
-        const opt = {
-            margin: 0.3,
-            filename: 'Wedehager_Tickets_All.pdf',
-            image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { scale: 3, useCORS: true },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-    }
-</script>
--->
-<!--
-<style>
-@media print {
-    #print-area {
-        width: 100% !important;
-        background: white !important;
-    }
-    .ticket-card {
-        page-break-inside: avoid !important;
-        margin-bottom: 20px !important;
-        border: 1px solid #ddd !important;
-    }
-}
-
-/* Fix for html2pdf to see content properly on small screens */
-.html2canvas-container {
-    width: 1200px !important;
-    height: auto !important;
-}
-</style>
--->
-<!--
-<script>
-function downloadAllPDF() {
-    const element = document.getElementById('print-area');
-    
-    // Create an overlay to show the user it is working (Mobile can be slow)
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = "Generating PDF... Please wait";
-    btn.disabled = true;
-
-    const opt = {
-        margin: [0.3, 0.3],
-        filename: 'Wedehager_Tickets.pdf',
-        image: { type: 'jpeg', quality: 0.95 }, // JPEG is much lighter for mobile memory
-        html2canvas: { 
-            scale: 2,           // Reduced from 3 to 2 (3 crashes mobile RAM)
-            useCORS: true,      // Essential for images hosted on Render
-            logging: false,
-            letterRendering: true,
-            windowWidth: 1200   // Forces the script to see the "Large Device" version even on mobile
-        },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }).catch(err => {
-        console.error(err);
-        alert("Mobile Download Failed. Try taking a screenshot or use a desktop.");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    });
-}
-</script>
--->
 
 <div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
 </html>

@@ -213,9 +213,7 @@
         </div>
     </div>
 </nav>
-
-<div class="container py-4">
-    
+<div class="container py-4"> 
     <div class="d-flex justify-content-center mb-4 no-print" style="gap: 15px;">
         <button onclick="downloadPDF()" class="btn btn-danger font-weight-bold px-4 py-2" style="border-radius: 10px;">
             <i class="fas fa-file-pdf mr-2"></i> DOWNLOAD PDF
@@ -261,6 +259,10 @@
                 <div>
                     <h1 class="m-0" style="font-size: 20px; font-weight: 800;">Wedehager Transport</h1>
                     <span class="badge-level">LEVEL: {{ level|default:"Standard" }}</span>
+                </div>
+		 <div>
+                    <h1 class="m-0" style="font-size: 20px; font-weight: 800;">Operator Name</h1>
+                    <span class="badge-level">{{ name }}</span>
                 </div>
                 <div class="text-right">
                     <p class="data-label m-0" style="color: var(--brand-gold);">BOOKING REF / PNR</p>
@@ -333,10 +335,22 @@
                             <p class="data-label">Seat No</p>
                             <p class="m-0" style="font-size: 26px; font-weight: 900; color: var(--brand-blue);">{{ ticket.no_seat }}</p>
                         </div>
-                        <div class="text-center">
-                            <p class="data-label">Total Fare</p>
-                            <p class="m-0" style="font-size: 22px; font-weight: 800; color: #15803d;">{{ ticket.price }} ETB</p>
-                        </div>
+
+<div class="text-center" style="padding: 10px; background-color: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
+    {% load currency_filters %}
+    <p class="data-label" style="font-size: 11px; color: #6b7280; margin-bottom: 2px; font-weight: 600; text-transform: uppercase;">Total Fare</p>
+    <div style="display: flex; align-items: baseline; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <!-- Large Numeric Price -->
+        <p class="m-0" style="font-size: 32px; font-weight: 800; color: #15803d; line-height: 1;">
+            {{ ticket.price }}
+        </p>
+
+        <!-- Words in Parentheses on the same line -->
+        <p class="m-0" style="font-size: 10px; font-weight: 700; color: #374151; font-style: italic;">
+            ({{ ticket.price|price_to_words_intl }})
+        </p>
+    </div>
+</div>
                     </div>
                 </div>
                 <div class="qr-area">
@@ -348,7 +362,341 @@
                 </div>
             </div>
         </div>
+<div class="dashboard-area no-print">
+    
+    <div class="action-card shadow-sm border-left-success mb-3">
+        <form action="{% url 'update_ticket' %}" method="post" class="d-flex flex-wrap align-items-center">
+            {% csrf_token %}
+            <div class="icon-circle bg-light text-success"><i class="fas fa-calendar-alt"></i></div>
+            <div class="flex-grow-1 ml-3">
+                <label class="font-weight-bold m-0 text-success">Reschedule Trip</label>
+                <p class="small text-muted m-0">Change your travel date</p>
+            </div>
+            
+            <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+            <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+            <input type="hidden" name="depcity" value="{{ ticket.depcity }}">
+            <input type="hidden" name="descity" value="{{ ticket.descity }}">
+            <input type="hidden" name="da" value="{{ ticket.date }}">
+            
+            <input type="date" name="new_date" required class="form-control form-control-sm mx-md-3 my-2" style="width: auto;">
+            <button type="submit" class="btn btn-success btn-sm font-weight-bold ml-md-auto">Update Date</button>
+        </form>
+    </div>
 
+    <div class="action-card shadow-sm border-left-primary mb-3">
+        <form action="{% url 'passenger' %}" method="post" class="d-flex flex-wrap align-items-center">
+            {% csrf_token %}
+            <div class="icon-circle bg-light text-primary"><i class="fas fa-user-edit"></i></div>
+            <div class="flex-grow-1 ml-3">
+                <label class="font-weight-bold m-0 text-primary">Passenger Info</label>
+                <p class="small text-muted m-0">Transfer this ticket to another person</p>
+            </div>
+            
+            <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+            <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+            <input type="hidden" name="depcity" value="{{ ticket.depcity }}">
+            <input type="hidden" name="descity" value="{{ ticket.descity }}">
+            <input type="hidden" name="date" value="{{ ticket.date }}">
+            
+            <button type="submit" class="btn btn-primary btn-sm font-weight-bold ml-md-auto">Transfer Ticket</button>
+        </form>
+    </div>
+
+<style>
+/* Bank Grid Styling */
+.bank-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.bank-option {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+/* Visual Feedback when selected */
+.bank-option.active {
+    border-color: #2ecc71 !important;
+    background-color: #f0fdf4 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.15);
+}
+
+.bank-option img {
+    height: 30px;
+    width: auto;
+    display: block;
+    margin: 0 auto 5px;
+}
+
+.bank-option span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #00264d;
+    display: block;
+}
+
+.form-control-custom {
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    padding: 12px;
+    transition: 0.3s;
+}
+
+.form-control-custom:focus {
+    border-color: #00264d;
+    box-shadow: 0 0 0 3px rgba(0, 38, 77, 0.1);
+}
+</style>
+<!--
+    <div class="action-card shadow-sm border-left-danger mb-3">
+        <h6 class="text-danger font-weight-bold mb-3"><i class="fas fa-undo mr-2"></i>Refund & Cancel Ticket</h6>  
+        <form action="{% url 'cancel_ticket' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+            <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+            <input type="hidden" name="date" value="{{ ticket.date }}">
+            <input type="hidden" name="plate_no" value="{{ ticket.plate_no }}">
+            <input type="hidden" name="side_no" value="{{ ticket.side_no }}">
+            <p class="small text-muted mb-2">Select refund provider for <strong>{{ ticket.price }} ETB</strong>:</p>
+            <div class="bank-grid mb-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
+                <label class="bank-option p-2 border rounded text-center" onclick="selectBank(this)" style="cursor:pointer;">
+                    <input type="radio" name="refund_method" value="telebirr" required style="display:none;">
+                    <img src="{% static 'images/Tele.png' %}" alt="Telebirr" style="height:25px; display:block; margin:0 auto;">
+                    <span class="small d-block mt-1">Telebirr</span>
+                </label>
+                <label class="bank-option p-2 border rounded text-center" onclick="selectBank(this)" style="cursor:pointer;">
+                    <input type="radio" name="refund_method" value="cbe" style="display:none;">
+                    <img src="{% static 'images/cbe.png' %}" alt="CBE" style="height:25px; display:block; margin:0 auto;">
+                    <span class="small d-block mt-1">CBE Birr</span>
+                </label>
+                <label class="bank-option p-2 border rounded text-center" onclick="selectBank(this)" style="cursor:pointer;">
+                    <input type="radio" name="refund_method" value="boa" style="display:none;">
+                    <img src="{% static 'images/BOA.png' %}" alt="Abyssinia" style="height:25px; display:block; margin:0 auto;">
+                    <span class="small d-block mt-1">Abyssinia</span>
+                </label>
+            </div>
+
+            <div class="input-group mb-3">
+                <input type="text" name="refund_account" class="form-control form-control-sm" placeholder="Account/Phone Number" required>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-danger btn-sm font-weight-bold" onclick="return confirm('Are you sure you want to cancel and receive your refund?')">
+                        Confirm Refund
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+-->
+<div class="action-card border-left-danger shadow-sm p-4 bg-white rounded-lg">
+    <div class="d-flex align-items-center mb-3">
+        <div class="icon-circle bg-light text-danger" style="width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-undo-alt"></i>
+        </div>
+        <h6 class="font-weight-bold text-danger m-0 ml-3">Refund & Cancel Trip</h6>
+    </div>
+
+
+
+
+    <!--
+    <form action="{% url 'cancel_ticket' %}" method="post" id="cancelForm">
+        {% csrf_token %}
+        
+        <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+        <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+        <input type="hidden" name="date" value="{{ ticket.date }}">
+        <input type="hidden" name="plate_no" value="{{ ticket.plate_no }}">
+        <input type="hidden" name="side_no" value="{{ ticket.side_no }}">
+	<input type="hidden" name="price" value="{{ ticket.price }}">
+        <p class="small text-muted mb-3">Select account to receive <strong>{{ ticket.price }} ETB</strong> refund:</p>
+
+        <div class="bank-grid">
+            <label class="bank-option" onclick="selectBank(this)">
+                <input type="radio" name="refund_method" value="telebirr" required style="display:none;">
+                <img src="{% static 'images/Tele.png' %}" alt="Telebirr">
+                <span>Telebirr</span>
+            </label>
+            <label class="bank-option" onclick="selectBank(this)">
+                <input type="radio" name="refund_method" value="cbe" style="display:none;">
+                <img src="{% static 'images/cbe.png' %}" alt="CBE">
+                <span>CBE Birr</span>
+            </label>
+            <label class="bank-option" onclick="selectBank(this)">
+                <input type="radio" name="refund_method" value="boa" style="display:none;">
+                <img src="{% static 'images/BOA.png' %}" alt="Abyssinia">
+                <span>Abyssinia</span>
+            </label>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="small font-weight-bold text-navy">Account / Phone Number</label>
+            <input type="text" id="refund_account" name="refund_account" 
+                   class="form-control form-control-custom" 
+                   placeholder="Select a bank above" required autocomplete="off"
+       inputmode="numeric"
+       oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            <small id="helper_text" class="text-muted" style="font-size: 11px;"></small>
+        </div>
+        <button type="submit" class="btn btn-danger btn-block font-weight-bold py-3" 
+                onclick="return validateRefundForm()">
+            CONFIRM CANCELLATION
+        </button>
+    </form>
+    -->
+
+
+ <form action="{% url 'cancel_ticket' %}" method="post" id="cancelForm">
+    {% csrf_token %}
+
+    <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
+    <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
+    <input type="hidden" name="date" value="{{ ticket.date }}">
+    <input type="hidden" name="plate_no" value="{{ ticket.plate_no }}">
+    <input type="hidden" name="side_no" value="{{ ticket.side_no }}">
+    <input type="hidden" name="price" value="{{ ticket.price }}">
+
+    <p class="small text-muted mb-3">Total Refund: <strong class="text-danger">{{ ticket.price }} ETB</strong></p>
+
+    <div class="bank-grid mb-4">
+        <label class="bank-option" onclick="selectBank(this, 'telebirr')">
+            <input type="radio" name="refund_method" value="telebirr" required style="display:none;">
+            <img src="{% static 'images/Tele.png' %}" alt="Telebirr">
+            <span>Telebirr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'cbe')">
+            <input type="radio" name="refund_method" value="cbe" style="display:none;">
+            <img src="{% static 'images/cbe.png' %}" alt="CBE">
+            <span>CBE Birr</span>
+        </label>
+        <label class="bank-option" onclick="selectBank(this, 'boa')">
+            <input type="radio" name="refund_method" value="boa" style="display:none;">
+            <img src="{% static 'images/BOA.png' %}" alt="Abyssinia">
+            <span>Abyssinia</span>
+        </label>
+    </div>
+
+    <div class="form-group">
+        <label class="small font-weight-bold text-navy">Target Refund Account</label>
+        <input type="text" id="refund_account" name="refund_account" 
+               class="form-control form-control-custom" 
+               placeholder="Enter number" required 
+               inputmode="numeric" autocomplete="off"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+        <small id="helper_text" class="text-muted d-block mt-1" style="font-size: 11px;"></small>
+    </div>
+
+    <button type="submit" class="btn btn-danger btn-block font-weight-bold py-3 mt-3 shadow-sm">
+        CONFIRM REFUND
+    </button>
+</form>
+
+<script>
+function selectBank(element, method) {
+    document.querySelectorAll('.bank-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+    element.querySelector('input[type="radio"]').checked = true;
+
+    const input = document.getElementById('refund_account');
+    const helper = document.getElementById('helper_text');
+    input.value = ""; // Clear on switch
+
+    if (method === 'telebirr') {
+        input.maxLength = 10;
+        helper.innerText = "Enter 10 digits starting with 09";
+    } else if (method === 'cbe') {
+        input.maxLength = 13;
+        helper.innerText = "Enter 13 digits starting with 1000";
+    } else if (method === 'boa') {
+        input.maxLength = 8;
+        helper.innerText = "Enter 8 digits starting with 48";
+    }
+}
+</script>
+
+
+</div>
+</div>
+
+<script>
+function selectBank(element) {
+    // 1. Handle visual 'active' state
+    document.querySelectorAll('.bank-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+
+    // 2. Trigger the hidden radio button
+    const radio = element.querySelector('input[type="radio"]');
+    radio.checked = true;
+
+    // 3. Setup input rules based on the selection
+    const accountInput = document.getElementById('refund_account');
+    const helper = document.getElementById('helper_text');
+    const bank = radio.value;
+
+    accountInput.value = ""; // Clear on change
+
+    if (bank === 'telebirr') {
+        accountInput.placeholder = "09XXXXXXXX";
+        accountInput.setAttribute('maxlength', '10');
+        helper.innerHTML = "Required: 10 digits starting with 09";
+    } else if (bank === 'cbe') {
+        accountInput.placeholder = "1000XXXXXXXXX";
+        accountInput.setAttribute('maxlength', '13');
+        helper.innerHTML = "Required: 13 digits starting with 1000";
+    } else if (bank === 'boa') {
+        accountInput.placeholder = "XXXXXXXX";
+        accountInput.setAttribute('maxlength', '8');
+        helper.innerHTML = "Required: Exactly 8 digits";
+    }
+}
+
+function validateRefundForm() {
+    const radio = document.querySelector('input[name="refund_method"]:checked');
+    const accountInput = document.getElementById('refund_account').value;
+
+    if (!radio) {
+        alert("Please select a refund bank first!");
+        return false;
+    }
+
+    const bank = radio.value;
+
+    // Rule 1: Telebirr
+    if (bank === 'telebirr') {
+        if (accountInput.length !== 10 || !accountInput.startsWith('09')) {
+            alert("Error: Telebirr number must be 10 digits and start with 09.");
+            return false;
+        }
+    } 
+    // Rule 2: CBE
+    else if (bank === 'cbe') {
+        if (accountInput.length !== 13 || !accountInput.startsWith('1000')) {
+            alert("Error: CBE Account must be 13 digits and start with 1000.");
+            return false;
+        }
+    } 
+    // Rule 3: BOA (Abyssinia)
+    else if (bank === 'boa') {
+        if (accountInput.length !== 8) {
+            alert("Error: Abyssinia (BOA) account must be exactly 8 digits.");
+            return false;
+        }
+    }
+
+    return confirm("Are you sure? Once confirmed, your ticket will be cancelled and money sent to this account.");
+}
+</script>
+
+
+	<!--
         <div class="dashboard-area no-print">
             <div class="action-card shadow-sm">
                 <form action="{% url 'update_ticket' %}" method="post" class="d-flex flex-wrap align-items-center">
@@ -380,10 +728,12 @@
             <input type="hidden" name="firstname" value="{{ ticket.firstname }}">
             <input type="hidden" name="lastname" value="{{ ticket.lastname }}">
             <input type="hidden" name="date" value="{{ ticket.date }}">
-                    <button type="submit" class="btn btn-primary font-weight-bold ml-md-auto" style="background-color: var(--brand-blue);">Edit Details</button>
+	    <button type="submit" class="btn btn-primary font-weight-bold ml-md-auto" style="background-color: var(--brand-blue);">Transfer to Another Person</button>
                 </form>
             </div>
         </div>
+	-->
+
         {% endif %}
     </div>
 </div>

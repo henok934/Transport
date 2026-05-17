@@ -1,6 +1,6 @@
 from django.urls import path
 from .import views
-from .views import Workerdelet, BusDeleteViews, ProfileView, LogoutView, DeleteTicketViews, TicketBookingViews, DeleteTicketsView, SeeView, Changepassenger, Activates, Activate, TicketBookingViews, Books, Totalballance,  Specific, Serviceupdate, MyBus, ServicInsertView, UpdateTicketViews, ScDeleteViews, Scchange,  Sce, SelView, MyRoute, BusInsertView, ShowTicketsViewss,ScInsertViews, BusInsertViews, Safaricompassword, ForgotPasswordView, Boapassword, Cbepassword, Awashpassword, Telebirrpassword, ShowTicketsViews,TelebirrPaymentView, SafariPaymentView, AwashPaymentView, CbePaymentView, BoaPaymentView, ProcessPaymentView, SelectView,ChangesBusView, ChangePasswordView, ChangeBusesViews, DeleteTickets, BusUpdateViewss, CommentDeleteViews, WorkerDeleteViews, RouteDeleteViews, CityDeleteViews, About, AdminDeleteViews, LoginView, HomeViews, BookView, GetTicketViews, CommentsView,  CityInsertView, RoutesInsertView, UrRegisterView, Workers, TicketInfoView, SelectBusView, Buse, Com, Rout, Use, Drivers, RouteView, SelectBusView, SelectView, ChangePasswordView, CommentsView, SelectBusView,  RouteView
+from .views import Workerdelet, BusDeleteViews, CancelTicketView, ProfileView, LogoutView, DeleteTicketViews, TicketBookingViews, DeleteTicketsView, SeeView, Changepassenger, Activates, Activate, TicketBookingViews, Books, Totalballance,  Specific, Serviceupdate, MyBus, ServicInsertView, UpdateTicketViews, ScDeleteViews, Scchange,  Sce, SelView, MyRoute, BusInsertView, ShowTicketsViewss,ScInsertViews, BusInsertViews, Safaricompassword, ForgotPasswordView, Boapassword, Cbepassword, Awashpassword, Telebirrpassword, ShowTicketsViews,TelebirrPaymentView, SafariPaymentView, AwashPaymentView, CbePaymentView, BoaPaymentView, ProcessPaymentView, SelectView,ChangesBusView, ChangePasswordView, ChangeBusesViews, DeleteTickets, BusUpdateViewss, CommentDeleteViews, WorkerDeleteViews, RouteDeleteViews, CityDeleteViews, About, AdminDeleteViews, LoginView, HomeViews, BookView, GetTicketViews, CommentsView,  CityInsertView, RoutesInsertView, UrRegisterView, Workers, TicketInfoView, SelectBusView, Buse, Com, Rout, Use, Drivers, RouteView, SelectBusView, SelectView, ChangePasswordView, CommentsView, SelectBusView,  RouteView
 from django.views.generic import RedirectView
 
 from django.urls import path
@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('about/', About.as_view(), name='about'),
+    path('cancel-ticket/', CancelTicketView.as_view(), name='cancel_ticket'),
 
     #path('logout/', LogoutView.as_view(), name='logout'),
 
@@ -43,12 +44,9 @@ urlpatterns = [
     #path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     #path('updateservice_fee/<int:pk>/', ServiceUpdateViews.as_view(), name='updateservice_fee'),  # Use 'pk' to capture the ID
     #path('updateservice_fee/', ServiceUpdateViews.as_view(), name='updateservice_fee'),
-    
     path('forgot_password/', ForgotPasswordView.as_view(), name='forgot_password'),
     #path('login/forgot_password/', ForgotPasswordView.as_view(), name='forgot_password'),  # Existing line
     path('api/forgot_password/', ForgotPasswordView.as_view(), name='api_forgot_password'),
-
-
     path('comment/', CommentsView.as_view(), name='comment'),
     path('api/comment/', CommentsView.as_view(), name='api_comment'),
     #path('changebuses/', views.changebuses, name='changebuses'),
@@ -66,18 +64,9 @@ urlpatterns = [
     path('workerdelete/', Workerdelet.as_view(), name='workerdelete'),
     #path('api/workerdelete/', WorkerDeleteViews.as_view(), name='api-workerdelete'),  # Route for the JSON API
     #path('delete_tickets/', DeleteTickets.as_view(), name='delete_tickets'),  # Serve form.html
-
-    
-
-
     #path('delete_tickets/', DeleteTickets.as_view(), name='delete_ticketss'),  # Serve form.html
-    
-    
     #path('delete-tickets/', DeleteTicketsView.as_view(), name='delete_tickets'),
-
-
     path('delete_tickets/', DeleteTickets.as_view(), name='delete_tickets_web_search'),
-
     # 2. The Execution/Action View
     path('delete-tickets/', DeleteTicketsView.as_view(), name='delete_tickets_api_execution'),
 
@@ -167,9 +156,6 @@ urlpatterns = [
     path('select-bus/', SelectBusView.as_view(), name='select_bus'),
     #path('check-delete-ticket/', CheckDeleteTicketView.as_view(), name='check_delete_ticket'),
     #path('check-route/', RouteCheckView.as_view(), name='check_route'),
-    
-
-
     path('delete-ticket/', DeleteTicketViews.as_view(), name='delete_ticket'),
     
 
@@ -193,13 +179,12 @@ urlpatterns = [
     #path('update-bus/', UpdateBusView.as_view(), name='update_bus'),
     #path('city-delete/', CityDeleteView.as_view(), name='city_delete'),
     #path('admin-delete/', AdminDeleteView.as_view(), name='admin_delete'),
-    
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
-
 
     #path('comment-delete/', CommentDeleteView.as_view(), name='comment_delete'),
     #path('workerdelete/', WorkerDeleteView.as_view(), name='workerdelete'),
     #path('route-delete/', RouteDeleteView.as_view(), name='route_delete'),
+
     path('select-bus/', SelectBusView.as_view(), name='select_bus'),
     path('api/Select/', SelectView.as_view(), name='select_bus'),
     path('payment/', ProcessPaymentView.as_view(), name='payment'),
