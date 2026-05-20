@@ -1402,6 +1402,50 @@ class LoginView(APIView):
             return render(request, 'users/profile.html', {'user': user, 'buschanges_count': buschanges_count})
         return self.handle_login_error(buschanges_count, request, 'Invalid user credentials')
     
+
+    def handle_sc_login(self, username, password, buschanges_count, request):
+        try:
+            sc_user = Sc.objects.get(username=username)
+            if not check_password(password, sc_user.password):
+                return self.handle_login_error(buschanges_count, request, 'Invalid password')
+
+            # Set session storage parameters safely
+            request.session['sc_id'] = sc_user.id
+            request.session['username'] = sc_user.username
+            request.session['firstname'] = sc_user.firstname
+            request.session['lastname'] = sc_user.lastname
+
+            side_parts = sc_user.side.split('/')
+            first_part = side_parts[0].strip()
+            second_part = side_parts[1].strip() if len(side_parts) == 2 else None
+
+            if first_part == '3' or second_part == '3':
+                routes = Route.objects.filter(side_no__regex=r'^\d{3}$')
+            else:
+                filters = Q(side_no__startswith=first_part, side_no__regex=r'^\d{4}$')
+                if second_part:
+                    filters |= Q(side_no__startswith=second_part, side_no__regex=r'^\d{4}$')
+                routes = Route.objects.filter(filters)
+
+            serialized_routes = self.serialize_routes(routes)
+
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                # FIXED: Corrected template name string from 'users/rooteeess.html' to 'users/rooteees.html'
+                return render(request, 'users/rooteeess.html', {
+                'routes': serialized_routes,
+                'company': sc_user,          # Inlines logo binary link mapping
+                'level': sc_user.level,      # Inlines the Station Authority classification marker
+                'name': sc_user.name,
+                'firstname': sc_user.firstname,
+                'lastname': sc_user.lastname,
+                'side': sc_user.side
+            })
+            return Response({'routes': serialized_routes}, status=status.HTTP_200_OK)
+
+        except Sc.DoesNotExist:
+            return self.handle_login_error(buschanges_count, request, 'Invalid username')
+
+    """
     def handle_sc_login(self, username, password, buschanges_count, request):
         try:
             sc_user = Sc.objects.get(username=username)
@@ -1429,6 +1473,8 @@ class LoginView(APIView):
             if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
                 return render(request, 'users/rooteeess.html', {
                     'routes': serialized_routes,
+                     'company': sc_user,
+                     'level': sc_user.level,
                     'name': sc_user.name,
                     'firstname': sc_user.firstname,
                     'lastname': sc_user.lastname,
@@ -1437,7 +1483,7 @@ class LoginView(APIView):
             return Response({'routes': serialized_routes}, status=status.HTTP_200_OK)
         except Sc.DoesNotExist:
             return self.handle_login_error(buschanges_count, request, 'SC user not found')
-
+    """
     def serialize_routes(self, routes):
         return [{'id': r.id, 'depcity': r.depcity, 'plate_no': r.plate_no, 'side_no': r.side_no} for r in routes]
     def handle_login_error(self, buschanges_count, request, error_message):
@@ -1868,7 +1914,7 @@ class LogoutView(APIView):
 
 
 
-
+"""
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -1961,11 +2007,140 @@ class BusDeleteViews(APIView):
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/busdelet.html', {
                 'buses': data,
+                'company': sc_user,
+                'level': sc_user.level,
                 'name': sc_user.name,
                 'success': success_msg
             })
         return Response({'message': success_msg}, status=status.HTTP_200_OK)
+"""
 
+
+from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render
+
+from drf_spectacular.utils import extend_schema
+
+from .models import Bus, Sc
+from .serializers import (
+    BusDeleteActionSerializer,
+    BusDeleteDisplaySerializer
+)
+
+
+@extend_schema(tags=['Bus & Driver Management'])
+class BusDeleteViews(APIView):
+    serializer_class = BusDeleteActionSerializer
+
+    def get_user_from_session(self, request):
+        user_id = request.session.get('sc_id')
+        return Sc.objects.filter(id=user_id).first() if user_id else None
+
+    def get_side_parts(self, side):
+        if not side:
+            return None, None
+        parts = side.split('/')
+        return (parts[0].strip(), parts[1].strip() if len(parts) > 1 else None)
+
+    def get_filtered_buses(self, sc_user):
+        side = (sc_user.side or "").strip()
+        level = getattr(sc_user, 'level', '1st')
+
+        first_part, second_part = self.get_side_parts(side)
+        standard_levels = ['1st', '2nd', '3rd']
+
+        if not first_part:
+            return Bus.objects.none()
+
+        # 1. Geographic Side Filter
+        if first_part == '3' or second_part == '3':
+            side_filter = Q(sideno__regex=r'^\d{3}$')
+        else:
+            side_filter = Q(sideno__startswith=first_part) & Q(sideno__regex=r'^\d{4}$')
+            if second_part:
+                side_filter |= Q(sideno__startswith=second_part) & Q(sideno__regex=r'^\d{4}$')
+
+        # 2. Level Category Constraint
+        target_level = level if level in standard_levels else 'Special Bus'
+
+        return Bus.objects.filter(side_filter & Q(level=target_level))
+
+    def get_target_level_for_display(self, sc_user):
+        level = getattr(sc_user, 'level', '1st')
+        standard_levels = ['1st', '2nd', '3rd']
+        return level if level in standard_levels else 'Special Bus'
+
+    @extend_schema(responses={200: BusDeleteDisplaySerializer(many=True)})
+    def get(self, request):
+        sc_user = self.get_user_from_session(request)
+
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Authentication required. Please login to access this page.'
+            })
+
+        buses = self.get_filtered_buses(sc_user)
+        data = BusDeleteDisplaySerializer(buses, many=True).data
+
+        # ✅ display level should match what buses are filtered with
+        target_level = self.get_target_level_for_display(sc_user)
+
+        # ✅ pass company so template can render logo
+        # IMPORTANT: Change this line ONLY if logo is not directly on Sc.
+        company = sc_user  # <-- if logo is Sc.logo. If it's Sc.company.logo then use: company = sc_user.company
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/busdelet.html', {
+                'buses': data,
+                'name': sc_user.name,
+                'level': target_level,
+                'company': company,
+            })
+
+        return Response(data)
+
+    @extend_schema(request=BusDeleteActionSerializer)
+    def post(self, request):
+        sc_user = self.get_user_from_session(request)
+
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html')
+
+        plate_no = request.data.get('plate_no')
+
+        # Security: Only delete if the bus belongs to this user's Side AND Level
+        bus_to_delete = self.get_filtered_buses(sc_user).filter(plate_no=plate_no)
+
+        if bus_to_delete.exists():
+            bus_to_delete.delete()
+            success_msg = f'Bus {plate_no} deleted successfully'
+        else:
+            success_msg = f'Error: Bus {plate_no} not found or unauthorized'
+
+        # Re-fetch updated list using the same secure filter
+        updated_buses = self.get_filtered_buses(sc_user)
+        data = BusDeleteDisplaySerializer(updated_buses, many=True).data
+
+        target_level = self.get_target_level_for_display(sc_user)
+
+        # ✅ pass company so template can render logo
+        company = sc_user  # <-- change to sc_user.company if needed
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/busdelet.html', {
+                'buses': data,
+                'company': company,
+                'level': target_level,
+                'name': sc_user.name,
+                'success': success_msg,
+            })
+
+        return Response({'message': success_msg}, status=status.HTTP_200_OK)
 
 
 
@@ -2044,6 +2219,7 @@ class MyRoute(generics.GenericAPIView):
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/rooteees.html', {
                 'routes': serialized_routes,
+                 'company': sc_user,           # <--- ADD THIS LINE HERE
                 'name': sc_user.name,
                 'level': user_level
             })
@@ -2102,7 +2278,7 @@ class MyRoute(generics.GenericAPIView):
 
 
 
-
+"""
 from django.db.models import Q, OuterRef, Subquery
 from django.shortcuts import render
 from rest_framework import generics, status
@@ -2110,7 +2286,6 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from .models import Route, Sc, Bus
 from .serializers import RoutSerializer, SpecificFilterSerializer
-
 @extend_schema(tags=['Routes & Cities'])
 class Specific(generics.GenericAPIView):
     queryset = Route.objects.all()
@@ -2196,8 +2371,9 @@ class Specific(generics.GenericAPIView):
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/specific.html', {
                 'routes': serialized_data,
+                'campany': sc_user,
                 'name': sc_user.name,
-                'level': getattr(sc_user, 'level', '1st'),
+                'level': sc_user.level,
                 'from': start_date,
                 'to': end_date
             })
@@ -2227,72 +2403,152 @@ class Specific(generics.GenericAPIView):
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/specific.html', {
                 'routes': serialized_data,
+                'campany': sc_user,
                 'name': sc_user.name,
-                'level': getattr(sc_user, 'level', '1st'),
+                'level': sc_user.level,
                 'from': start_date,
                 'to': end_date
             })
         return Response(serialized_data, status=status.HTTP_200_OK)
+"""
 
+from django.db.models import Q, OuterRef, Subquery
+from django.shortcuts import render
+from rest_framework import generics, status
+from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from .models import Route, Sc, Bus
+from .serializers import RoutSerializer, SpecificFilterSerializer
 
+@extend_schema(tags=['Routes & Cities'])
+class Specific(generics.GenericAPIView):
+    queryset = Route.objects.all()
+    serializer_class = RoutSerializer
 
+    def get_user_from_session(self, request):
+        user_id = request.session.get('sc_id')
+        return Sc.objects.filter(id=user_id).first() if user_id else None
 
+    def get_side_parts(self, side):
+        if not side:
+            return None, None
+        parts = side.split('/')
+        return (parts[0].strip(), parts[1].strip() if len(parts) > 1 else None)
 
+    # NEW: Global helper to make sure company & level are never forgotten
+    def get_base_context(self, sc_user):
+        return {
+            'company': sc_user,  # FIXED: Spelling corrected from 'campany' to 'company'
+            'name': sc_user.name,
+            'level': sc_user.level,
+            'side': sc_user.side
+        }
 
+    def get_filtered_routes(self, sc_user, start_date, end_date):
+        side = sc_user.side.strip()
+        user_level = getattr(sc_user, 'level', '1st')
+        first_part, second_part = self.get_side_parts(side)
+        standard_levels = ['1st', '2nd', '3rd']
 
+        if not first_part:
+            return None
 
+        bus_level_subquery = Bus.objects.filter(
+            sideno=OuterRef('side_no')
+        ).values('level')[:1]
 
+        target_level = user_level if user_level in standard_levels else 'Special Bus'
 
+        if first_part == '3' or second_part == '3':
+            side_filter = Q(side_no__regex=r'^\d{3}$')
+        else:
+            side_filter = Q(side_no__startswith=first_part) & Q(side_no__regex=r'^\d{4}$')
+            if second_part:
+                side_filter |= Q(side_no__startswith=second_part) & Q(side_no__regex=r'^\d{4}$')
 
+        return Route.objects.annotate(
+            retrieved_bus_level=Subquery(bus_level_subquery)
+        ).filter(
+            side_filter,
+            Q(date__gte=start_date, date__lte=end_date),
+            Q(retrieved_bus_level=target_level)
+        ).distinct()
 
+    @extend_schema(
+        summary="Filter routes via Query Parameters (GET)",
+        parameters=[
+            OpenApiParameter(name='from', description="Start Date", required=True, type=str),
+            OpenApiParameter(name='to', description="End Date", required=True, type=str),
+        ],
+        responses={200: RoutSerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        sc_user = self.get_user_from_session(request)
 
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                return render(request, 'users/login.html', {'error': 'Authentication required.'})
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        start_date = request.query_params.get('from')
+        end_date = request.query_params.get('to')
 
+        if not start_date or not end_date:
+            error_msg = 'Provide both from and to dates.'
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                # FIXED: Logo and level variables are now bundled correctly during validation drops
+                context = self.get_base_context(sc_user)
+                context['error'] = error_msg
+                return render(request, 'users/specific.html', context)
+            return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
 
+        routes = self.get_filtered_routes(sc_user, start_date, end_date)
+        if routes is None:
+            return Response({'error': 'Invalid side format'}, status=status.HTTP_400_BAD_REQUEST)
 
+        serialized_data = RoutSerializer(routes, many=True).data
 
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            context = self.get_base_context(sc_user)
+            context.update({
+                'routes': serialized_data,
+                'from': start_date,
+                'to': end_date
+            })
+            return render(request, 'users/specific.html', context)
+        return Response(serialized_data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        summary="Filter routes via Request Body (POST)",
+        request=SpecificFilterSerializer,
+        responses={200: RoutSerializer(many=True)}
+    )
+    def post(self, request, *args, **kwargs):
+        sc_user = self.get_user_from_session(request)
 
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html')
 
+        start_date = request.data.get('from')
+        end_date = request.data.get('to') 
+        
+        routes = self.get_filtered_routes(sc_user, start_date, end_date)
+        if routes is None:
+            return Response({'error': 'Invalid format'}, status=status.HTTP_400_BAD_REQUEST)
 
+        serialized_data = RoutSerializer(routes, many=True).data
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            context = self.get_base_context(sc_user)
+            context.update({
+                'routes': serialized_data,
+                'from': start_date,
+                'to': end_date
+            })
+            return render(request, 'users/specific.html', context)
+        return Response(serialized_data, status=status.HTTP_200_OK)
 
 
 from rest_framework import status
@@ -2629,6 +2885,7 @@ class BusUpdateViewss(APIView):
                 'buses': data,
                 'side': sc_user.side,
                 'level': level,
+                'company': sc_user,
                 'name': sc_user.name
             })
         return Response(data)
@@ -2658,6 +2915,7 @@ class BusUpdateViewss(APIView):
                 'buses': data,
                 'side': sc_user.side,
                 'level': level,
+                'company': sc_user,
                 'name': sc_user.name,
                 'success': 'Fleet successfully updated!'
             })
@@ -3009,6 +3267,7 @@ class MyBus(generics.GenericAPIView):
         # --- RESPONSE ---
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/mybus.html', {
+                'company': sc_user,           # <--- ADD THIS LINE HERE
                 'name': sc_user.name,
                 'side': side,
                 'level': level,
@@ -3019,9 +3278,140 @@ class MyBus(generics.GenericAPIView):
 
 
 
+from drf_spectacular.utils import extend_schema
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, generics
+from django.shortcuts import render
+from django.db.models import Q, OuterRef, Subquery
+from .models import Ticket, Route, Sc, Bus
+from .serializers import (TicketSearchRequestSerializer, RoutSerializer, TicketNotFoundErrorSerializer)
+@extend_schema(tags=['Booking & Tickets'])
+class ShowTicketsViewss(APIView):
+    serializer_class = TicketSearchRequestSerializer
+
+    def get_user_from_session(self, request):
+        user_id = request.session.get('sc_id')
+        return Sc.objects.filter(id=user_id).first() if user_id else None
+
+    @extend_schema(summary="Get the ticket search page")
+    def get(self, request):
+        sc_user = self.get_user_from_session(request)
+
+        # MANDATORY AUTHENTICATION CHECK
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Authentication required. Please login to access this page.'
+            })
+
+        return render(request, 'users/ourticketoche.html', {'name': sc_user.name})
+
+    @extend_schema(
+        summary="Search tickets (API & Web)",
+        request=TicketSearchRequestSerializer,
+        responses={
+            200: TicketSearchRequestSerializer(many=True),
+            404: TicketNotFoundErrorSerializer
+        }
+    )
+    def post(self, request):
+        sc_user = self.get_user_from_session(request)
+
+        # MANDATORY AUTHENTICATION CHECK
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Authentication required. Please login to access this page.'
+            })
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return self.handle_html_post(request, sc_user)
+        else:
+            return self.handle_json_request(request, sc_user)
+
+    def handle_html_post(self, request, sc_user):
+        plate_no = request.POST.get('plate_no')
+        side_no = request.POST.get('side_no')
+        date = request.POST.get('date')
+        depcity = request.POST.get('depcity')
+        descity = request.POST.get('descity')
+
+        tickets = Ticket.objects.filter(
+            plate_no=plate_no,
+            side_no=side_no,
+            date=date,
+            depcity=depcity,
+            descity=descity
+        )
+
+        if tickets.exists():
+            return render(request, 'users/ourticketoche.html', {
+                'route': tickets,
+                'name': sc_user.name,
+                'company': sc_user,
+                'level': sc_user.level
+            })
+        else:
+            return self.handle_no_tickets(request, sc_user)
+
+    def handle_no_tickets(self, request, sc_user):
+        side_parts = [s.strip() for s in sc_user.side.split('/')]
+        user_level = getattr(sc_user, 'level', '1st')
+        standard_levels = ['1st', '2nd', '3rd']
+
+        # 1. Bus level subquery configuration
+        bus_level_subquery = Bus.objects.filter(
+            sideno=OuterRef('side_no')
+        ).values('level')[:1]
+
+        # 2. Dynamic side rule logic
+        if '3' in side_parts:
+            side_filter = Q(side_no__regex=r'^\d{3}$')
+        else:
+            side_filter = Q(side_no__startswith=side_parts[0]) & Q(side_no__regex=r'^\d{4}$')
+            if len(side_parts) > 1:
+                side_filter |= Q(side_no__startswith=side_parts[1]) & Q(side_no__regex=r'^\d{4}$')
+
+        # 3. Determine target bus logic level
+        target_level = user_level if user_level in standard_levels else 'Special Bus'
+
+        # 4. Fetch matching routes via annotation fallback
+        routes = Route.objects.annotate(
+            retrieved_bus_level=Subquery(bus_level_subquery)
+        ).filter(
+            side_filter & Q(retrieved_bus_level=target_level)
+        ).distinct()
+
+        return render(request, 'users/rooteees.html', {
+            'error': 'No booked tickets found',
+            'routes': self.serialize_routes(routes),
+            'company': sc_user,
+            'name': sc_user.name,
+            'level': user_level
+        })
+    def serialize_routes(self, routes):
+        return [
+            {
+                'id': r.id,
+                'depcity': r.depcity,
+                'descity': r.descity,
+                'date': r.date,
+                'plate_no': r.plate_no,
+                'side_no': r.side_no,
+            } for r in routes
+        ]
+    def handle_json_request(self, request, sc_user):
+        plate_no = request.data.get('plate_no')
+        date = request.data.get('date')
+        tickets = Ticket.objects.filter(plate_no=plate_no, date=date)
+        if tickets.exists():
+            return Response(list(tickets.values()), status=200)
+        return Response({"error": "No tickets found"}, status=404)
 
 
 
+"""
 from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -3094,7 +3484,6 @@ class ShowTicketsViewss(APIView):
             })
         else:
             return self.handle_no_tickets(request, sc_user)
-
     def handle_no_tickets(self, request, sc_user):
         # We use the sc_user passed from the post/get method
         side_parts = [s.strip() for s in sc_user.side.split('/')]
@@ -3133,16 +3522,114 @@ class ShowTicketsViewss(APIView):
 
         if tickets.exists():
             return Response(list(tickets.values()), status=200)
-
         return Response({"error": "No tickets found"}, status=404)
+"""
+
+
+
+from rest_framework import generics, status
+from rest_framework.response import Response
+from django.shortcuts import render
+from .models import Bus, Sc
+from .serializers import BusSerializer
+from drf_spectacular.utils import extend_schema
+
+@extend_schema(tags=['Bus & Driver Management'])
+class BusInsertView(generics.GenericAPIView):
+    queryset = Bus.objects.all()
+    serializer_class = BusSerializer
+
+    def get_user_from_session(self, request):
+        user_id = request.session.get('sc_id')
+        return Sc.objects.filter(id=user_id).first() if user_id else None
+
+    # FIXED: Added company and level directly into the core context generator
+    def get_context_data(self, sc_user):
+        sc_instances = Sc.objects.all()
+        return {
+            'company': sc_user,               # Added for the Logo context
+            'level': sc_user.level,           # Added for the Level Badge context
+            'name': sc_user.name,
+            'side': sc_user.side,
+            'names': [sc.name for sc in sc_instances]
+        }
+
+    def get(self, request, *args, **kwargs):
+        sc_user = self.get_user_from_session(request)
+
+        # MANDATORY AUTH CHECK
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Authentication required. Please login to access this page.'
+            })
+
+        # Now properly contains 'company' and 'level'
+        context = self.get_context_data(sc_user)
+        return render(request, 'users/Businsert.html', context)
+
+    def post(self, request, *args, **kwargs):
+        sc_user = self.get_user_from_session(request)
+
+        # MANDATORY AUTH CHECK
+        if not sc_user or not getattr(sc_user, 'name', None):
+            request.session.flush()
+            return render(request, 'users/login.html')
+
+        data = request.data.copy()
+
+        level = getattr(sc_user, 'level', '1st')
+
+        data['level'] = level
+        data['owner_sc'] = sc_user.id
+        data['name'] = sc_user.name
+
+        raw_input = data.get('plate_no', '').strip().upper()
+        clean_input = raw_input.replace('ET-', '').replace('ET', '').replace(' ', '').replace('-', '')
+        data['plate_no'] = f"ET-{clean_input}" if clean_input else raw_input
+
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            plate_no = serializer.validated_data['plate_no']
+            sideno = serializer.validated_data['sideno']
+
+            if Bus.objects.filter(plate_no=plate_no).exists():
+                return self.handle_error(request, sc_user, f'Plate number {plate_no} already exists.')
+
+            standard_levels = ['1st', '2nd', '3rd']
+            if (
+                (level in standard_levels and Bus.objects.filter(sideno=sideno, level__in=standard_levels).exists()) or
+                (level == 'Special Bus' and Bus.objects.filter(sideno=sideno, level='Special Bus').exists())
+            ):
+                return self.handle_error(request, sc_user, f'Side number "{sideno}" is already registered for this level category.')
+
+            serializer.save()
+            return self.handle_success(request, sc_user, f'Bus {plate_no} registered successfully.')
+
+        return self.handle_error(request, sc_user, serializer.errors)
+
+    def handle_success(self, request, sc_user, message):
+        context = self.get_context_data(sc_user)
+        context['success'] = message
+        return render(request, 'users/Businsert.html', context)
+
+    # FIXED: Level and company info are now always injected regardless of error type
+    def handle_error(self, request, sc_user, error):
+        context = self.get_context_data(sc_user)
+
+        if isinstance(error, dict):
+            error_list = [f"{(field or '').replace('_', ' ').title()}: {msgs[0]}" for field, msgs in error.items()]
+            context['errors'] = ", ".join(error_list)
+        else:
+            context['errors'] = str(error)
+
+        return render(request, 'users/Businsert.html', context)
 
 
 
 
 
-
-
-
+"""
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.shortcuts import render
@@ -3235,6 +3722,10 @@ class BusInsertView(generics.GenericAPIView):
         
         context = self.get_context_data(sc_user)
         context['success'] = message
+        context['name'] = sc_user.name
+        context['side'] = sc_user.side
+        context['level'] = sc_user.level
+        context['company'] = sc_user
         return render(request, 'users/Businsert.html', context)
 
     def handle_error(self, request, sc_user, error):
@@ -3245,9 +3736,13 @@ class BusInsertView(generics.GenericAPIView):
             context['errors'] = ", ".join(error_list)
         else:
             context['errors'] = str(error)
+            context['name'] = sc_user.name
+            context['side'] = sc_user.side
+            context['level'] = sc_user.level
+            context['company'] = sc_user
         return render(request, 'users/Businsert.html', context)
 
-
+"""
 
 
 from rest_framework.views import APIView
@@ -3526,7 +4021,6 @@ from django.utils import timezone
 from django.conf import settings
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
-
 @extend_schema(tags=['Booking & Tickets'])
 class TicketBookingViews(APIView):
     serializer_class = TicketSerializer
@@ -3561,6 +4055,7 @@ class TicketBookingViews(APIView):
         firstnames = request.data.getlist('firstname[]')
         emails = request.data.getlist('email[]')
         genders = request.data.getlist('gender[]')
+        passenger_types = request.data.getlist('passenger_type[]')
         lastnames = request.data.getlist('lastname[]')
         phones = request.data.getlist('phone[]')
         prices = request.data.getlist('price[]')
@@ -3585,7 +4080,7 @@ class TicketBookingViews(APIView):
         min_length = min(
             len(firstnames), len(lastnames), len(emails), len(genders),
             len(phones), len(prices), len(side_nos), len(plate_nos),
-            len(depcitys), len(descitys), len(dates), len(no_seats)
+            len(depcitys), len(descitys), len(dates), len(no_seats), len(passenger_types)
         )
 
         used_seats = set()
@@ -3681,6 +4176,7 @@ class TicketBookingViews(APIView):
                         'date': current_date,
                         'email': emails[i],
                         'gender': genders[i],
+                        'passenger_type': passenger_types[i],
                         'depcity': dep,
                         'descity': des,
                         'username': current_user,
@@ -5117,21 +5613,17 @@ class SelectBusView(APIView):
         # 4. QUERYING
         ticket_qs = Ticket.objects.filter(plate_no=plate_no, date=date, depcity=depcity, descity=descity)
         route_qs = Route.objects.filter(date=date, depcity=depcity, descity=descity)
-
         # 5. RESPONSE LOGIC
         context = {
             'buschanges_count': buschanges_count,
             'username': request.session.get('username')
         }
-
         if ticket_qs.exists():
             data = TickSerializer(ticket_qs, many=True).data
-            context['route'] = data
-            
+            context['route'] = data   
             if is_html:
                 return Response(context, template_name='users/ticketoch.html')
             return Response(context, status=status.HTTP_200_OK)
-
         else:
             alternative_data = RoutSerializer(route_qs, many=True).data
             context.update({
@@ -6484,6 +6976,519 @@ class UrRegisterView(APIView):
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+"""
+from django.utils import timezone
+from datetime import timedelta
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from .models import Bus, Route, Ticket, Buschange
+from .serializers import (BusChangeInputSerializer, BusChangeResponseSerializer)
+
+@extend_schema(tags=['Bus & Driver Management'])
+class ChangesBusView(APIView):
+
+    @extend_schema(
+        summary="Get list of all routes and buses matching tier levels",
+        responses={200: BusChangeResponseSerializer}
+    )
+    def get(self, request):
+        # 1. SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+
+        if not user_id:
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Unauthorized! Please login to change buses.',
+                'buschanges_count': buschanges_count
+            })
+
+        # 2. FETCH DATA WITH EXACT LEVEL FIELDS
+        routes = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+        buses = list(Bus.objects.all().values('level', 'name', 'sideno', 'plate_no', 'no_seats'))
+
+        context = {
+            'routes': routes,
+            'buses': buses,
+            'buschanges_count': buschanges_count,
+            'username': request.session.get('username')
+        }
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/buschange.html', context)
+
+        return Response(context, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Execute bus change validation based on matching level hierarchies",
+        request=BusChangeInputSerializer,
+        responses={200: BusChangeResponseSerializer}
+    )
+    def post(self, request):
+        # 3. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 4. VALIDATION
+        serializer = BusChangeInputSerializer(data=request.data)
+        routes_list = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+        buses_list = list(Bus.objects.all().values('level', 'name', 'sideno', 'plate_no', 'no_seats'))
+
+        if not serializer.is_valid():
+            return self._handle_response(request, {
+                'error': serializer.errors,
+                'routes': routes_list,
+                'buses': buses_list
+            }, status.HTTP_400_BAD_REQUEST)
+
+        # 5. DATA EXTRACTION
+        data = serializer.validated_data
+        depcity = data['depcity']
+        descity = data['descity']
+        date_obj = data['date']
+        side_no = data['side_no']
+        new_side_no = data['new_side_no']
+
+        try:
+            # Check if target route exists
+            route = Route.objects.get(depcity=depcity, descity=descity, date=date_obj, side_no=side_no)
+
+            # Find the level profile of the original assigned bus
+            current_bus = Bus.objects.filter(sideno=side_no).first()
+            if not current_bus:
+                return self._handle_response(request, {
+                    'error': f"Original bus with side number {side_no} not found in repository.",
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            # Find the new bus profile
+            new_bus_info = Bus.objects.filter(sideno=new_side_no).first()
+            if not new_bus_info:
+                return self._handle_response(request, {
+                    'error': 'Selected new side number does not exist.',
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            # CRITICAL ENFORCEMENT: Level strings must match exactly
+            if str(current_bus.level).strip().lower() != str(new_bus_info.level).strip().lower():
+                return self._handle_response(request, {
+                    'error': f"Level mismatch! You can only swap with a '{current_bus.level}' bus.",
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            # Check availability conflicts for the targeted swap date
+            if Route.objects.filter(side_no=new_side_no, date=date_obj).exists():
+                return self._handle_response(request, {
+                    'error': 'This replacement bus is already reserved on this date.',
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            new_plate_no = new_bus_info.plate_no
+            total_seats = int(new_bus_info.no_seats) if new_bus_info.no_seats else 0
+
+            # 6. UPDATE LOGIC (Route & Associated Tickets)
+            route.plate_no = new_plate_no
+            route.side_no = new_side_no
+            route.save()
+
+            # Handle Return Routing Logistics (Addisababa Next-Day Sequence)
+            if depcity.strip() == "Addisababa":
+                next_day = date_obj + timedelta(days=1)
+                Route.objects.filter(depcity=descity, descity=depcity, date=next_day, side_no=side_no).update(
+                    plate_no=new_plate_no, side_no=new_side_no
+                )
+
+            # Update structural manifests
+            Ticket.objects.filter(date=date_obj, side_no=side_no).update(
+                plate_no=new_plate_no, side_no=new_side_no
+            )
+
+            # Log Audit Trail
+            Buschange.objects.create(
+                plate_no=side_no,
+                side_no=side_no,
+                new_plate_no=new_plate_no,
+                new_side_no=new_side_no,
+                date=date_obj,
+                depcity=depcity,
+                descity=descity
+            )
+
+            # Refresh list dataset context parameters
+            new_routes_list = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+            return self._handle_response(request, {
+                'success': 'Bus level verified and swapped successfully.',
+                'total_seats': total_seats,
+                'routes': new_routes_list,
+                'buses': buses_list
+            }, status.HTTP_200_OK)
+
+        except Route.DoesNotExist:
+            return self._handle_response(request, {
+                'error': "Original transaction route deployment mapping not found.",
+                'routes': routes_list, 'buses': buses_list
+            }, status.HTTP_404_NOT_FOUND)
+
+    def _handle_response(self, request, context, status_code):
+        context['buschanges_count'] = Buschange.objects.count()
+        context['username'] = request.session.get('username')
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/buschange.html', context)
+        return Response(context, status=status_code)
+"""
+
+
+from django.utils import timezone
+from datetime import timedelta
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from .models import Bus, Route, Ticket, Buschange
+from .serializers import (BusChangeInputSerializer, BusChangeResponseSerializer)
+
+@extend_schema(tags=['Bus & Driver Management'])
+class ChangesBusView(APIView):
+
+    @extend_schema(
+        summary="Get list of all routes and buses",
+        responses={200: BusChangeResponseSerializer}
+    )
+    def get(self, request):
+        # 1. SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+
+        if not user_id:
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Unauthorized! Please login to change buses.',
+                'buschanges_count': buschanges_count
+            })
+
+        # 2. FETCH DATA WITH COMPATIBLE TEMPLATE PROPERTY FIELDS
+        routes = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+        buses = list(Bus.objects.all().values('level', 'name', 'sideno', 'plate_no', 'no_seats'))
+
+        context = {
+            'routes': routes,
+            'buses': buses,
+            'buschanges_count': buschanges_count,
+            'username': request.session.get('username')
+        }
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/buschange.html', context)
+
+        return Response(context, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Execute bus change",
+        request=BusChangeInputSerializer,
+        responses={200: BusChangeResponseSerializer}
+    )
+    def post(self, request):
+        # 3. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 4. VALIDATION
+        serializer = BusChangeInputSerializer(data=request.data)
+        routes_list = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+        buses_list = list(Bus.objects.all().values('level', 'name', 'sideno', 'plate_no', 'no_seats'))
+
+        if not serializer.is_valid():
+            return self._handle_response(request, {
+                'error': serializer.errors,
+                'routes': routes_list,
+                'buses': buses_list
+            }, status.HTTP_400_BAD_REQUEST)
+
+        # 5. DATA EXTRACTION
+        data = serializer.validated_data
+        depcity = data['depcity']
+        descity = data['descity']
+        date_obj = data['date']
+        side_no = data['side_no']
+        new_side_no = data['new_side_no']
+
+        try:
+            # Check availability
+            if Route.objects.filter(side_no=new_side_no, date=date_obj).exists():
+                return self._handle_response(request, {
+                    'error': 'This bus is already reserved for this date.',
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            bus_info = Bus.objects.filter(sideno=new_side_no).first()
+            if not bus_info:
+                return self._handle_response(request, {
+                    'error': 'Invalid side number.',
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            new_plate_no = bus_info.plate_no
+            total_seats = int(bus_info.no_seats) if bus_info.no_seats else 0
+
+            # 6. UPDATE LOGIC (Route & Tickets)
+            route = Route.objects.get(depcity=depcity, descity=descity, date=date_obj, side_no=side_no)
+            route.plate_no = new_plate_no
+            route.side_no = new_side_no
+            route.save()
+
+            # Handle Addisababa Return Logic
+            if depcity.strip() == "Addisababa":
+                next_day = date_obj + timedelta(days=1)
+                Route.objects.filter(depcity=descity, descity=depcity, date=next_day, side_no=side_no).update(
+                    plate_no=new_plate_no, side_no=new_side_no
+                )
+
+            # Update all associated tickets
+            Ticket.objects.filter(date=date_obj, side_no=side_no).update(
+                plate_no=new_plate_no, side_no=new_side_no
+            )
+
+            # Log the change
+            Buschange.objects.create(
+                plate_no=side_no,
+                side_no=side_no,
+                new_plate_no=new_plate_no,
+                new_side_no=new_side_no,
+                date=date_obj,
+                depcity=depcity,
+                descity=descity
+            )
+
+            # Refresh list for UI
+            new_routes_list = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+            return self._handle_response(request, {
+                'success': 'Bus changed successfully.',
+                'total_seats': total_seats,
+                'routes': new_routes_list,
+                'buses': buses_list
+            }, status.HTTP_200_OK)
+
+        except Route.DoesNotExist:
+            return self._handle_response(request, {
+                'error': "Original route not found.",
+                'routes': routes_list, 'buses': buses_list
+            }, status.HTTP_404_NOT_FOUND)
+
+    def _handle_response(self, request, context, status_code):
+        context['buschanges_count'] = Buschange.objects.count()
+        context['username'] = request.session.get('username')
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/buschange.html', context)
+        return Response(context, status=status_code)
+
+
+
+"""
+from django.utils import timezone
+from datetime import timedelta
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from .models import Bus, Route, Ticket, Buschange
+from .serializers import (BusChangeInputSerializer, BusChangeResponseSerializer)
+
+@extend_schema(tags=['Bus & Driver Management'])
+class ChangesBusView(APIView):
+    
+    @extend_schema(
+        summary="Get list of all routes and buses matching tier levels",
+        responses={200: BusChangeResponseSerializer}
+    )
+    def get(self, request):
+        # 1. SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+
+        if not user_id:
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'Unauthorized! Please login to change buses.',
+                'buschanges_count': buschanges_count
+            })
+
+        # 2. FETCH DATA WITH EXACT LEVEL FIELDS
+        routes = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+        # Include level, name, sideno, and plate_no to manage dependencies via JS
+        buses = list(Bus.objects.all().values('level', 'name', 'sideno', 'plate_no', 'no_seats'))
+
+        context = {
+            'routes': routes,
+            'buses': buses,
+            'buschanges_count': buschanges_count,
+            'username': request.session.get('username')
+        }
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/buschange.html', context)
+
+        return Response(context, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Execute bus change validation based on matching level hierarchies",
+        request=BusChangeInputSerializer,
+        responses={200: BusChangeResponseSerializer}
+    )
+    def post(self, request):
+        # 3. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 4. VALIDATION
+        serializer = BusChangeInputSerializer(data=request.data)
+        routes_list = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+        buses_list = list(Bus.objects.all().values('level', 'name', 'sideno', 'plate_no', 'no_seats'))
+
+        if not serializer.is_valid():
+            return self._handle_response(request, {
+                'error': serializer.errors,
+                'routes': routes_list,
+                'buses': buses_list
+            }, status.HTTP_400_BAD_REQUEST)
+
+        # 5. DATA EXTRACTION
+        data = serializer.validated_data
+        depcity = data['depcity']
+        descity = data['descity']
+        date_obj = data['date']
+        side_no = data['side_no']
+        new_side_no = data['new_side_no']
+
+        try:
+            # Check if target route exists
+            route = Route.objects.get(depcity=depcity, descity=descity, date=date_obj, side_no=side_no)
+            
+            # Find the level profile of the original assigned bus
+            current_bus = Bus.objects.filter(sideno=side_no).first()
+            if not current_bus:
+                return self._handle_response(request, {
+                    'error': f"Original bus with side number {side_no} not found in repository.",
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            # Find the new bus profile
+            new_bus_info = Bus.objects.filter(sideno=new_side_no).first()
+            if not new_bus_info:
+                return self._handle_response(request, {
+                    'error': 'Selected new side number does not exist.',
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            # CRITICAL ENFORCEMENT: Level strings must match exactly
+            if str(current_bus.level).strip().lower() != str(new_bus_info.level).strip().lower():
+                return self._handle_response(request, {
+                    'error': f"Level mismatch! You can only swap with a '{current_bus.level}' bus.",
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            # Check availability conflicts for the targeted swap date
+            if Route.objects.filter(side_no=new_side_no, date=date_obj).exists():
+                return self._handle_response(request, {
+                    'error': 'This replacement bus is already reserved on this date.',
+                    'routes': routes_list, 'buses': buses_list
+                }, status.HTTP_400_BAD_REQUEST)
+
+            new_plate_no = new_bus_info.plate_no
+            total_seats = int(new_bus_info.no_seats) if new_bus_info.no_seats else 0
+
+            # 6. UPDATE LOGIC (Route & Associated Tickets)
+            route.plate_no = new_plate_no
+            route.side_no = new_side_no
+            route.save()
+
+            # Handle Return Routing Logistics (Addisababa Next-Day Sequence)
+            if depcity.strip() == "Addisababa":
+                next_day = date_obj + timedelta(days=1)
+                Route.objects.filter(depcity=descity, descity=depcity, date=next_day, side_no=side_no).update(
+                    plate_no=new_plate_no, side_no=new_side_no
+                )
+
+            # Update structural manifests
+            Ticket.objects.filter(date=date_obj, side_no=side_no).update(
+                plate_no=new_plate_no, side_no=new_side_no
+            )
+
+            # Log Audit Trail
+            Buschange.objects.create(
+                plate_no=side_no,
+                side_no=side_no,
+                new_plate_no=new_plate_no,
+                new_side_no=new_side_no,
+                date=date_obj,
+                depcity=depcity,
+                descity=descity
+            )
+
+            # Refresh list dataset context parameters
+            new_routes_list = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
+            return self._handle_response(request, {
+                'success': 'Bus level verified and swapped successfully.',
+                'total_seats': total_seats,
+                'routes': new_routes_list,
+                'buses': buses_list
+            }, status.HTTP_200_OK)
+
+        except Route.DoesNotExist:
+            return self._handle_response(request, {
+                'error': "Original transaction route deployment mapping not found.",
+                'routes': routes_list, 'buses': buses_list
+            }, status.HTTP_404_NOT_FOUND)
+
+    def _handle_response(self, request, context, status_code):
+        context['buschanges_count'] = Buschange.objects.count()
+        context['username'] = request.session.get('username')
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/buschange.html', context)
+        return Response(context, status=status_code)
+
+"""
+
+"""
 from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import render
@@ -6510,7 +7515,6 @@ class ChangesBusView(APIView):
                 'error': 'Unauthorized! Please login to change buses.',
                 'buschanges_count': buschanges_count
             })
-
         # 2. FETCH DATA
         routes = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
         buses = list(Bus.objects.all().values('sideno', 'plate_no', 'no_seats'))
@@ -6567,7 +7571,6 @@ class ChangesBusView(APIView):
         date_str = date_obj.strftime('%Y-%m-%d')
         side_no = data['side_no']
         new_side_no = data['new_side_no']
-
         try:
             # Check availability
             if Route.objects.filter(side_no=new_side_no, date=date_obj).exists():
@@ -6614,17 +7617,14 @@ class ChangesBusView(APIView):
                 depcity=depcity,
                 descity=descity
             )
-
             # Refresh list for UI
             new_routes_list = list(Route.objects.all().values('depcity', 'descity', 'date', 'side_no', 'plate_no'))
-
             return self._handle_response(request, {
                 'success': 'Bus changed successfully.',
                 'total_seats': total_seats,
                 'routes': new_routes_list,
                 'buses': buses_list
             }, status.HTTP_200_OK)
-
         except Route.DoesNotExist:
             return self._handle_response(request, {
                 'error': "Original route not found.",
@@ -6639,6 +7639,9 @@ class ChangesBusView(APIView):
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/buschange.html', context)
         return Response(context, status=status_code)
+"""
+
+
 
 
 from rest_framework.views import APIView
@@ -7329,6 +8332,7 @@ class ServicInsertView(generics.GenericAPIView):
 
 
 
+"""
 from django.shortcuts import render, redirect
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -7449,6 +8453,270 @@ class ScInsertViews(generics.GenericAPIView):
         if is_html:
             return render(request, 'users/scc.html', context)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+"""
+
+
+
+
+
+
+"""
+from django.shortcuts import render, redirect
+from rest_framework import generics, status
+from rest_framework.response import Response
+from .models import Sc, Buschange, CustomUser
+from .serializers import scSerializer
+class ScInsertViews(generics.GenericAPIView):
+    queryset = Sc.objects.all()
+    serializer_class = scSerializer
+
+    def get(self, request, *args, **kwargs):
+        # 1. INITIAL SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Unauthorized! Please login to access the Registry.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION (International Clearance)
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            # Only 'henok' is authorized to initialize new Share Companies
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count,
+                        'error': 'Security Protocol: Master Admin clearance required to register new entities.'
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. AUTHORIZED: Render entry form
+        return render(request, 'users/scc.html', {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        })
+
+    def post(self, request, *args, **kwargs):
+        # 1. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. DATA VALIDATION (FIXED: Passed both POST payload and FILES data dict dictionary arrays)
+        serializer = self.get_serializer(data=request.data, files=request.FILES)
+        context = {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        }
+
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            side = serializer.validated_data.get('side')
+            username = serializer.validated_data.get('username')
+            email = serializer.validated_data.get('email')
+            level = serializer.validated_data.get('level')
+
+            # Business Logic: Uniqueness checks category verification
+            if (
+                (level in ['1st', '2nd', '3rd'] and Sc.objects.filter(name__iexact=name, level__in=['1st', '2nd', '3rd']).exists()) or
+                (level == 'Special Bus' and Sc.objects.filter(name__iexact=name, level='Special Bus').exists())
+            ):
+                context['error'] = f'Company name "{name}" is already registered for this level category.'
+
+            elif (
+                (level in ['1st', '2nd', '3rd'] and Sc.objects.filter(side__iexact=side, level__in=['1st', '2nd', '3rd']).exists()) or
+                (level == 'Special Bus' and Sc.objects.filter(side__iexact=side, level='Special Bus').exists())
+            ):
+                context['error'] = f'Side "{side}" is already registered for this level category.'
+
+            elif Sc.objects.filter(username__iexact=username).exists():
+                context['error'] = 'System Username is already taken.'
+
+            elif email and Sc.objects.filter(email__iexact=email).exists():
+                context['error'] = 'Official Email is already registered.'
+
+            if 'error' in context:
+                if is_html:
+                    return render(request, 'users/scc.html', context)
+                return Response({'error': context['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 4. SAVE & RESPONSE (Triggers custom model file naming pipeline)
+            serializer.save()
+            context['success'] = 'Share Company Registered successfully.'
+            if is_html:
+                return render(request, 'users/scc.html', context)
+            return Response({'success': context['success']}, status=status.HTTP_201_CREATED)
+
+        # 5. HANDLE SERIALIZER ERRORS
+        context['errors'] = serializer.errors
+        if is_html:
+            return render(request, 'users/scc.html', context)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+"""
+
+from django.shortcuts import render, redirect
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Sc, Buschange, CustomUser
+from .serializers import scSerializer
+
+class ScInsertViews(generics.GenericAPIView):
+    queryset = Sc.objects.all()
+    serializer_class = scSerializer
+    # CRITICAL: Ensures DRF natively parses both text fields and binary image file uploads smoothly
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        # 1. INITIAL SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Unauthorized! Please login to access the Registry.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION (International Clearance)
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            # Only 'henok' is authorized to initialize new Share Companies
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count,
+                        'error': 'Security Protocol: Master Admin clearance required to register new entities.'
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. AUTHORIZED: Render entry form
+        return render(request, 'users/scc.html', {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        })
+
+    def post(self, request, *args, **kwargs):
+        # 1. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. DATA VALIDATION (FIXED: Standard DRF data instantiation maps files automatically)
+        serializer = self.get_serializer(data=request.data)
+        context = {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        }
+
+        if serializer.is_valid():
+            # SAFE GET EXTRACTION: Prevents Python crash if fields are empty
+            name = serializer.validated_data.get('name')
+            side = serializer.validated_data.get('side')
+            username = serializer.validated_data.get('username')
+            email = serializer.validated_data.get('email')
+            level = serializer.validated_data.get('level')
+
+            # Business Logic: Uniqueness checks category verification
+            if (
+                (level in ['1st', '2nd', '3rd'] and Sc.objects.filter(name__iexact=name, level__in=['1st', '2nd', '3rd']).exists()) or
+                (level == 'Special Bus' and Sc.objects.filter(name__iexact=name, level='Special Bus').exists())
+            ):
+                context['error'] = f'Company name "{name}" is already registered for this level category.'
+
+            elif (
+                (level in ['1st', '2nd', '3rd'] and Sc.objects.filter(side__iexact=side, level__in=['1st', '2nd', '3rd']).exists()) or
+                (level == 'Special Bus' and Sc.objects.filter(side__iexact=side, level='Special Bus').exists())
+            ):
+                context['error'] = f'Side "{side}" is already registered for this level category.'
+
+            elif Sc.objects.filter(username__iexact=username).exists():
+                context['error'] = 'System Username is already taken.'
+
+            elif email and Sc.objects.filter(email__iexact=email).exists():
+                context['error'] = 'Official Email is already registered.'
+
+            if 'error' in context:
+                if is_html:
+                    return render(request, 'users/scc.html', context)
+                return Response({'error': context['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 4. SAVE & RESPONSE
+            serializer.save()
+            context['success'] = 'Share Company Registered successfully.'
+            if is_html:
+                return render(request, 'users/scc.html', context)
+            return Response({'success': context['success']}, status=status.HTTP_201_CREATED)
+
+        # 5. HANDLE SERIALIZER ERRORS
+        context['errors'] = serializer.errors
+        if is_html:
+            return render(request, 'users/scc.html', context)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 

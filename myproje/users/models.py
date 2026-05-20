@@ -19,6 +19,8 @@ class CustomUser(AbstractUser):
     phone = models.CharField(max_length=50, null=True, blank=True)
     registered_time = models.DateTimeField(auto_now_add=True)
 
+
+
 class Sc(models.Model):
     """ SHARE COMPANY Admin """
     registration_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -28,6 +30,10 @@ class Sc(models.Model):
     username = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=128) 
     name = models.CharField(max_length=50, null=True, blank=True) # Company Name
+
+    #logo = models.ImageField(upload_files="company_logos/", null=True, blank=True)
+    logo = models.ImageField(upload_to="company_logos/", null=True, blank=True)
+
     side = models.CharField(max_length=50, null=True, blank=True)
     level = models.CharField(max_length=50, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
@@ -118,6 +124,7 @@ class Ticket(models.Model):
     date = models.CharField(max_length=50, null=True, blank=True)
     email = models.CharField(max_length=100, null=True, blank=True)
     gender = models.CharField(max_length=20, null=True, blank=True)
+    passenger_type = models.CharField(max_length=20, null=True, blank=True)
     no_seat = models.CharField(max_length=20, null=True, blank=True)
     price = models.CharField(max_length=50, null=True, blank=True)
     side_no = models.CharField(max_length=20, null=True, blank=True)

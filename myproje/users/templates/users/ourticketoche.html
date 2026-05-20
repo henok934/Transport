@@ -4,7 +4,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mereb Transport Technology - Manifest</title>
+    
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     
     <style>
         :root {
@@ -15,25 +18,12 @@
         }
 
         /* --- NAVBAR BASE --- */
-        .navbar-main {
+        .bg-navy-custom {
             background: var(--brand-navy) !important;
             border-bottom: 2px solid var(--brand-gold);
             padding: 8px 15px;
         }
 
-        .nav-logo { 
-            height: 45px; 
-            width: 45px; 
-            border-radius: 50%; 
-            border: 2px solid var(--brand-gold); 
-            background: white; 
-            object-fit: cover;
-        }
-
-        .brand-text-lg { color: white; font-weight: 800; font-size: 0.95rem; line-height: 1.1; }
-        .brand-text-sm { color: var(--brand-gold); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
-
-        /* --- SELECT DROPDOWNS --- */
         .intl-select {
             background: var(--glass-light);
             color: white;
@@ -49,80 +39,213 @@
         .intl-select:hover { background: rgba(255,255,255,0.25); }
         .intl-select option { background: var(--brand-navy); color: white; }
 
-        /* --- MOBILE OPTIMIZATION --- */
-        @media (max-width: 991.98px) {
+        .home-btn-active {
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            border: 1px solid var(--brand-gold);
+            padding: 6px 12px;
+            border-radius: 5px;
+            text-decoration: none !important;
+            transition: 0.3s;
+        }
+        .home-btn-active:hover {
+            background: var(--brand-gold);
+            color: var(--brand-navy);
+        }
+
+        /* --- FILTER BAR --- */
+        .filter-utility-bar {
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 0;
+        }
+
+        .date-input-mini {
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: var(--brand-navy);
+        }
+
+        /* --- TABLE ARCHITECTURE --- */
+        .table-intl-container {
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .table-intl th {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            vertical-align: middle !important;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .table-intl td {
+            vertical-align: middle !important;
+        }
+
+        .count-cell {
+            font-weight: bold;
+            color: var(--brand-navy);
+        }
+
+        /* --- SCREEN SIZE BREAKPOINT OPTIMIZATIONS --- */
+        @media (max-width: 576px) {
+            /* Transforms 9-Column Rows into Clean Dynamic Micro-Cards on Small Phones */
+            .responsive-stack-table, 
+            .responsive-stack-table thead, 
+            .responsive-stack-table tbody, 
+            .responsive-stack-table th, 
+            .responsive-stack-table td, 
+            .responsive-stack-table tr { 
+                display: block; 
+                width: 100% !important;
+            }
+            
+            .responsive-stack-table thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            .responsive-stack-table tr { 
+                border-bottom: 2px solid #dee2e6;
+                margin-bottom: 12px;
+                padding: 10px 6px;
+                background: #fff;
+            }
+            
+            .responsive-stack-table td { 
+                border: none !important;
+                position: relative;
+                padding-left: 45% !important; 
+                text-align: right !important;
+                padding-top: 5px !important;
+                padding-bottom: 5px !important;
+                font-size: 12px !important;
+            }
+            
+            /* Generates English/Amharic data markers dynamically */
+            .responsive-stack-table td:before { 
+                content: attr(data-label);
+                position: absolute;
+                top: 5px;
+                left: 8px;
+                width: 40%; 
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: #64748b;
+                font-size: 11px;
+            }
+            
+            .responsive-stack-table td:last-child {
+                text-align: center !important;
+                padding-left: 0 !important;
+                margin-top: 8px;
+                border-top: 1px dashed #dee2e6 !important;
+            }
+            .responsive-stack-table td:last-child:before {
+                display: none;
+            }
+        }
+
+        @media (max-width: 1199.98px) {
             .navbar-collapse {
                 background: var(--brand-navy);
                 padding: 15px;
                 margin-top: 10px;
                 border-top: 1px solid rgba(255,255,255,0.1);
+                border-radius: 6px;
             }
             
-            .d-flex.align-items-center {
-                flex-direction: column; /* Stacks items vertically on mobile */
-                align-items: stretch !important;
+            .select-cluster {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                margin-top: 10px;
             }
 
-            .intl-select, .btn-sm {
+            .intl-select {
                 margin-left: 0 !important;
-                margin-bottom: 10px;
-                width: 100%; /* Full width buttons/selects on mobile */
+                width: 100%;
+            }
+            .home-btn-active {
+                display: block;
                 text-align: center;
             }
-
-            .brand-text-lg { font-size: 0.85rem; }
         }
-        /* --- HIDE GOOGLE UI --- */ 
+
+        /* --- HIDE TRANSLATION UI OVERLAYS --- */ 
         .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
         body { top: 0px !important; position: static !important; } 
         html { margin-top: 0px !important; } 
-        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-main">
+<header>
+    <nav class="navbar navbar-expand-xl navbar-dark bg-navy-custom">
         <div class="container-fluid">
-            <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
-                <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="nav-logo" alt="Logo">
-                <div class="ml-2 ml-md-3">
-                    <span class="brand-text-lg">TRANSIT SYSTEM</span><br>
-                    <span class="brand-text-sm">{{ name }} Share Company</span>
+            <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center text-decoration-none" style="gap: 14px;">
+                <div class="nav-logo-container" style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background-color: #ffffff; border-radius: 50%; border: 3px solid #ffcc00; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; flex-shrink: 0;">
+                    {% if company.logo %}
+                        <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <div class="nav-logo-fallback" style="font-size: 22px; color: #00264d;"><i class="fas fa-bus"></i></div>
+                    {% endif %}
+                </div>
+
+                <div class="brand-text-wrapper" style="display: flex; flex-direction: column; justify-content: center;">
+                    <span class="brand-name-main" style="color: #ffffff; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 0.75px; line-height: 1.2;">Wedehager Transport</span>
+                    <span class="brand-subtext" style="color: #ffcc00; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; margin-top: 3px; gap: 8px;">
+                        {% if name %}{{ name }}{% else %}Consolidated{% endif %} Share Co.
+                        {% if level %}
+                            <span class="badge badge-warning text-dark font-weight-bold" style="font-size: 9px; padding: 2px 6px; font-weight: 800; background-color: #ffcc00; border-radius: 4px;">LEVEL: {{ level }}</span>
+                        {% endif %}
+                    </span>
                 </div>
             </a>
-
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation">
+            
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navSystem">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse justify-content-end" id="mainMenu">
-                <div class="d-flex align-items-center">
-                    
-                    <a href="{% url 'home' %}" class="btn btn-sm text-white font-weight-bold" style="font-size: 11px; border: 1px solid var(--brand-gold);">HOME</a>
-                    
-                    <select onchange="location.href = this.value;" class="intl-select">
-                        <option value="#" disabled selected>📁 REGISTRATION</option>
-                        <option value="{% url 'businsert' %}">Register Bus</option>
-                    </select>
+            <div class="collapse navbar-collapse" id="navSystem">
+                <div class="d-xl-flex align-items-center ml-auto">
+                    <a href="{% url 'home' %}" class="home-btn-active">HOME</a>
 
-                    <select onchange="location.href = this.value;" class="intl-select">
-                        <option value="#" disabled selected>⚙️ OPERATIONS</option>
-                        <option value="{% url 'myroute' %}">Active Routes</option>
-                        <option value="{% url 'mybus' %}">View Fleet</option>
-                    </select>
-
-                    <select onchange="location.href = this.value;" class="intl-select" style="border-color: var(--danger);">
-                        <option value="#" disabled selected>🛠️ MANAGEMENT</option>
-                        <option value="{% url 'updatebus' %}">Edit Details</option>
-                        <option value="{% url 'busdelete' %}">Remove Bus</option>
-                    </select>
-                    
-                    <a href="{% url 'logout' %}" class="btn btn-sm btn-danger ml-lg-3 font-weight-bold" style="font-size: 11px;">LOGOUT</a>
+                    <div class="select-cluster d-xl-flex ml-xl-2">
+                        <select onchange="if(this.value!='#') location.href = this.value;" class="intl-select">
+                            <option value="#" disabled selected>Fleet Registration</option>
+                            <option value="{% url 'businsert' %}">Add New Bus</option>
+                        </select>
+                        <select onchange="if(this.value!='#') location.href = this.value;" class="intl-select">
+                            <option value="#" disabled selected>Operational Reports</option>
+                            <option value="{% url 'myroute' %}">Route Data</option>
+                            <option value="{% url 'mybus' %}">Bus Status</option>
+                        </select>
+                        <select onchange="if(this.value!='#') location.href = this.value;" class="intl-select">
+                            <option value="#" disabled selected>Management</option>
+                            <option value="{% url 'updatebus' %}">Update Assets</option>
+                            <option value="{% url 'busdelete' %}">Delete Asset</option>
+                        </select>
+                        <a href="{% url 'logout' %}" class="btn btn-sm btn-danger ml-xl-3 font-weight-bold" style="font-size: 11px; padding: 6px 12px;">LOGOUT</a>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
-<section class="filter-utility-bar">
+
+    <section class="filter-utility-bar">
         <div class="container d-flex justify-content-center align-items-center">
             <form action="{% url 'specific' %}" method="post" class="form-inline">
                 {% csrf_token %}
@@ -134,97 +257,78 @@
         </div>
     </section>
 </header>
-<main class="main-viewport" style="display: flex; justify-content: center; padding: 20px;">
-    <div class="centered-container" style="width: fit-content; max-width: 95%;">
-        <div class="table-intl-container" style="display: block; overflow-x: auto; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-            
-            <table class="table table-hover table-intl" style="width: auto; margin-bottom: 0; white-space: nowrap;">
-                <thead style="background: #f8fafc;">
-                    <tr>
-                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">#</th>
-                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">Phone</th>
-                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">PLATE</th>
-                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">ROUTE</th>
-                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">PASSENGER NAME</th>
-                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">SEAT</th>
-                        <th class="w-shrink" style="width: 1%; padding: 12px 15px;">PRICE</th>
-                       
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in route %}
-                    <tr style="background: white;">
-                        <td class="w-shrink count-cell text-center" style="font-weight: bold; color: #1a2a6c; padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ forloop.counter }}</td>
-                        <td class="w-shrink text-muted font-weight-bold" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">#{{ ticket.phone }}</td>
-                        <td class="w-shrink" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">
-                            <span class="plate-cell" style="background: #1e293b; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 11px;">{{ ticket.plate_no }}</span>
-                        </td>
-                        <td class="w-shrink font-weight-bold text-secondary" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ ticket.depcity }} to {{ ticket.descity }}</td>
-                        <td class="w-shrink name-cell" style="font-weight: 800; color: #001f3f; text-transform: uppercase; padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ ticket.firstname }} {{ ticket.lastname }}</td>
-                        <td class="w-shrink text-center font-weight-bold" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">{{ ticket.no_seat }}</td>
-                        <td class="w-shrink font-weight-bold text-success" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; color: #10b981;">{{ ticket.price }} ETB</td>
-                        <td class="w-shrink text-center" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9;">
-                            <button onclick="window.print()" class="btn btn-sm p-0 text-primary">
-                                <i class="fas fa-print"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="8" class="text-center py-5 text-muted">Manifest empty for selected range.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</main>
 
-<!--
-<main class="main-viewport">
-    <div class="centered-container">
+<main class="main-viewport pt-4 pb-5">
+    <div class="container-fluid px-2 px-md-4 mx-auto" style="max-width: 100%;">
         <div class="table-intl-container">
-            <table class="table table-hover table-intl">
+            
+            <table class="table table-sm table-hover table-intl responsive-stack-table w-100 m-0" style="table-layout: auto; font-size: 13px;">
                 <thead>
-                    <tr>
-                        <th class="w-shrink">#</th>
-                        <th class="w-shrink">Phone</th>
-                        <th class="w-shrink">PLATE</th>
-                        <th class="w-shrink">ROUTE</th>
-                        <th class="w-shrink">PASSENGER NAME</th>
-                        <th class="w-shrink">SEAT</th>
-                        <th class="w-shrink">PRICE</th>
-                        <th class="w-shrink">ACTION</th>
+                    <tr class="small text-muted">
+                        <th style="width: 3%;">#</th>
+                        <th>ልክስ (Phone)</th>
+                        <th>ሰሌዳ (Plate)</th>
+                        <th>መንገድ (Route)</th>
+                        <th>የተሳፋሪ ስም (Name)</th>
+                        <th class="text-center">የተሳፋሪ ዓይነት (Type)</th>
+                        <th class="text-center">መቀመጫ (Seat)</th>
+                        <th>PRICE</th>
+                        <th class="text-center">ACTION</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for ticket in route %}
                     <tr>
-                        <td class="w-shrink count-cell text-center">{{ forloop.counter }}</td>
-
-                        <td class="w-shrink text-muted font-weight-bold">#{{ ticket.phone }}</td>
-                        <td class="w-shrink"><span class="plate-cell">{{ ticket.plate_no }}</span></td>
-                        <td class="w-shrink font-weight-bold text-secondary">{{ ticket.depcity }} to {{ ticket.descity }}</td>
-                        <td class="w-shrink name-cell">{{ ticket.firstname }} {{ ticket.lastname }}</td>
-                        <td class="w-shrink text-center font-weight-bold">{{ ticket.no_seat }}</td>
-                        <td class="w-shrink font-weight-bold text-success">{{ ticket.price }} ETB</td>
-                        <td class="w-shrink text-center">
-                            <button onclick="window.print()" class="btn btn-sm p-0 text-primary">
-                                <i class="fas fa-print"></i>
+                        <td data-label="#" class="count-cell text-center py-2 text-muted">{{ forloop.counter }}</td>
+                        <td data-label="ልክስ (Phone)" class="text-muted font-weight-bold py-2">#{{ ticket.phone }}</td>
+                        <td data-label="ሰሌዳ (Plate)" class="py-2">
+                            <span class="badge badge-dark p-1 font-weight-bold" style="letter-spacing: 0.5px; background-color: #1e293b;">
+                                {{ ticket.plate_no }}
+                            </span>
+                        </td>
+                        <td data-label="መንገድ (Route)" class="font-weight-bold text-secondary py-2">{{ ticket.depcity }} ወደ {{ ticket.descity }}</td>
+                        <td data-label="የተሳፋሪ ስም (Name)" class="name-cell font-weight-bold py-2 text-primary">{{ ticket.firstname }} {{ ticket.lastname }}</td>
+                        <td data-label="የተሳፋሪ ዓይነት (Type)" class="text-center py-2"><span class="badge badge-light text-dark px-2 py-1" style="border: 1px solid #dee2e6;">{{ ticket.passenger_type }}</span></td>
+                        <td data-label="መቀመጫ (Seat)" class="text-center font-weight-bold py-2">{{ ticket.no_seat }}</td>
+                        
+                        <td data-label="PRICE" class="font-weight-bold text-success py-2" style="line-height: 1.1;">
+                            {{ ticket.price }} <br>
+                            <small class="text-muted font-weight-normal" style="font-size: 10px;">የኢትዮጵያ ብር</small>
+                        </td>
+                        
+                        <td class="text-center py-2">
+                            <button onclick="window.print()" class="btn btn-sm btn-link text-primary p-0" title="Print Ticket">
+                                <i class="fas fa-print" style="font-size: 14px;"></i>
                             </button>
                         </td>
                     </tr>
                     {% empty %}
-
-  <tr><td colspan="8" class="text-center py-5 text-muted">Manifest empty for selected range.</td></tr>
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted font-italic">Manifest empty for selected range.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            
         </div>
     </div>
 </main>
--->
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
+<div id="google_translate_element" style="display:none;"></div>
+
+<script type="text/javascript">
+    function googleTranslateElementInit(){
+        new google.translate.TranslateElement({
+            pageLanguage:"en",
+            includedLanguages:"en,am,om,ti",
+            autoDisplay:false
+        }, "google_translate_element");
+    }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
 </html>

@@ -216,6 +216,231 @@
     </div>
 </nav>
 
+
+<main class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="admin-card">
+                <div class="text-center mb-4">
+                    <h2 class="font-weight-bold" style="color: var(--brand-navy);">Share Company Registry</h2>
+                    <p class="text-muted font-weight-bold small">NATIONAL INFRASTRUCTURE EXPANSION PROTOCOL</p>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger border-0 small font-weight-bold mb-4">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> {{ error }}
+                    </div>
+                {% endif %}
+                {% if success %}
+                    <div class="alert alert-success border-0 small font-weight-bold mb-4">
+                        <i class="fas fa-check-circle mr-2"></i> {{ success }}
+                    </div>
+                {% endif %}
+
+                <form action="{% url 'sc' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Share Company Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" maxlength="15" required
+                                   class="form-control form-control-modern"
+                                   placeholder="e.g. Abay"
+                                   style="text-transform: capitalize;">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">System Username <span class="text-danger">*</span></label>
+                            <input type="text" name="username" maxlength="15" required class="form-control form-control-modern" placeholder="e.g. abay_admin">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Director First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="firstname" maxlength="15" required class="form-control form-control-modern"
+                                   oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)" placeholder="e.g. Abebe">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Director Last Name <span class="text-danger">*</span></label>
+                            <input type="text" name="lastname" maxlength="15" required class="form-control form-control-modern"
+                                   oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)" placeholder="e.g. Bikela">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Division Side ID <span class="text-danger">*</span></label>
+                            <input type="text" name="side" maxlength="5" required class="form-control form-control-modern" placeholder="4-Digit Code">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Security Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password" maxlength="20" required class="form-control form-control-modern" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Official Phone <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" maxlength="10" required class="form-control form-control-modern" placeholder="09...">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Official Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" maxlength="50" required class="form-control form-control-modern" placeholder="corporate@domain.com">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Station Level <span class="text-danger">*</span></label>
+                            <select name="level" class="form-control form-control-modern" required>
+                                <option value="" disabled selected>Select Authority Level</option>
+                                <option value="1st">Primary (1st)</option>
+                                <option value="2nd">Secondary (2nd)</option>
+                                <option value="3rd">Tertiary Hub (3rd)</option>
+                                <option value="Special Bus">Special Bus</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Director Gender <span class="text-danger">*</span></label>
+                            <select name="gender" class="form-control form-control-modern" required>
+                                <option value="" disabled selected>Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 form-group">
+                            <label class="form-label" style="color: var(--brand-navy);">Corporate Identity Logo <span class="text-danger">*</span> </label>
+                            <input type="file" name="logo" class="form-control-modern w-100" accept="image/*" style="padding: 7px 12px; height: auto;">
+                            <small class="form-text text-muted mt-1">Accepts standard PNG, JPG, or JPEG brand identity image assets.</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn-submit">Initialize Share Company</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!--
+<main class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="admin-card">
+                <div class="text-center mb-4">
+                    <h2 class="font-weight-bold" style="color: var(--brand-navy);">Share Company Registry</h2>
+                    <p class="text-muted font-weight-bold small">NATIONAL INFRASTRUCTURE EXPANSION PROTOCOL</p>
+                </div>
+
+                {% if error %}
+                    <div class="alert alert-danger border-0 small font-weight-bold mb-4">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> {{ error }}
+                    </div>
+                {% endif %}
+                {% if success %}
+                    <div class="alert alert-success border-0 small font-weight-bold mb-4">
+                        <i class="fas fa-check-circle mr-2"></i> {{ success }}
+                    </div>
+                {% endif %}
+
+                <form action="{% url 'sc' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Share Company Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" maxlength="15" required
+                                   class="form-control form-control-modern"
+                                   placeholder="e.g. Abay"
+                                   style="text-transform: capitalize;">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">System Username <span class="text-danger">*</span></label>
+                            <input type="text" name="username" maxlength="15" required class="form-control form-control-modern">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Director First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="firstname" maxlength="15" required class="form-control form-control-modern"
+                                   oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)" placeholder="e.g. Abebe">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Director Last Name <span class="text-danger">*</span></label>
+                            <input type="text" name="lastname" maxlength="15" required class="form-control form-control-modern"
+                                   oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)" placeholder="e.g. Bikela">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Division Side ID <span class="text-danger">*</span></label>
+                            <input type="text" name="side" maxlength="5" required class="form-control form-control-modern" placeholder="4-Digit Code">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Security Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password" maxlength="20" required class="form-control form-control-modern">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Official Phone <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" maxlength="10" required class="form-control form-control-modern" placeholder="09...">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Official Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" maxlength="50" required class="form-control form-control-modern">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Station Level <span class="text-danger">*</span></label>
+                            <select name="level" class="form-control form-control-modern" required>
+                                <option value="" disabled selected>Select Authority Level</option>
+                                <option value="1st">Primary (1st)</option>
+                                <option value="2nd">Secondary (2nd)</option>
+                                <option value="3rd">Tertiary Hub (3rd)</option>
+                                <option value="Special Bus">Special Bus</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="form-label">Director Gender <span class="text-danger">*</span></label>
+                            <select name="gender" class="form-control form-control-modern" required>
+                                <option value="" disabled selected>Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 form-group">
+                            <label class="form-label" style="color: var(--brand-navy);">Corporate Identity Logo</label>
+                            <input type="file" name="logo" class="form-control form-control-modern w-100" accept="image/*" style="padding: 7px 12px; height: auto;">
+                            <small class="form-text text-muted mt-1">Accepts standard PNG, JPG, or JPEG images representing the company logo profile image.</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn-submit">Initialize Share Company</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+-->
+
+
+<!--
 <main class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -315,6 +540,8 @@
         </div>
     </div>
 </main>
+-->
+
 
 <footer class="footer-main">
     <div class="container">

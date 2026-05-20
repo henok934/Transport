@@ -131,7 +131,6 @@ class LoginRequestSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, style={'input_type': 'password'})
     role = serializers.ChoiceField(choices=['worker', 'user', 'sc'], required=True)
 
-
 from rest_framework import serializers
 from .models import Buschange, Service_fee, Worker, Feedback # and the others
 class BuschangeSerializer(serializers.ModelSerializer):
@@ -146,7 +145,6 @@ class ServiceFeeSerializer(serializers.ModelSerializer):
 
 
 from rest_framework import serializers
-
 class PaymentRequestSerializer(serializers.Serializer):
     PAYMENT_CHOICES = [
         ('cbe', 'Commercial Bank of Ethiopia (CBE)'),
@@ -159,20 +157,11 @@ class PaymentRequestSerializer(serializers.Serializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
 
-
-
-
 from rest_framework import serializers
-
 class BooksSearchRequestSerializer(serializers.Serializer):
     depcity = serializers.CharField(help_text="Departure City")
     descity = serializers.CharField(help_text="Destination City")
     date = serializers.CharField(help_text="Travel Date (YYYY-MM-DD)")
-
-
-
-
-
 
 
 from rest_framework import serializers
@@ -183,7 +172,6 @@ class ChangePassengerRequestSerializer(serializers.Serializer):
     depcity = serializers.CharField(help_text="Departure City")
     descity = serializers.CharField(help_text="Destination City")
     date = serializers.CharField(help_text="Travel Date (YYYY-MM-DD)")
-
     # New Data (The update)
     new_firstname = serializers.CharField(help_text="New First Name")
     new_lastname = serializers.CharField(help_text="New Last Name")
@@ -191,30 +179,28 @@ class ChangePassengerRequestSerializer(serializers.Serializer):
     new_gender = serializers.CharField(help_text="New gender")
 
 
+
+
+"""
 from rest_framework import serializers
 from .models import Ticket, Sc
 class ScSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sc
         fields = '__all__'  # Adjust fields as necessary
-
+"""
 
 from rest_framework import serializers
-
 class ForgotPasswordSerializer(serializers.Serializer):
     username_or_email = serializers.CharField(required=True)
     role = serializers.ChoiceField(choices=['user', 'sc'], required=True)
 
 
-
-
 from rest_framework import serializers
-
 class TicketSearchRequestSerializer(serializers.Serializer):
     date = serializers.CharField(help_text="Travel date (YYYY-MM-DD)")
     depcity = serializers.CharField(help_text="Departure City")
     descity = serializers.CharField(help_text="Destination City")
-
 
 from rest_framework import serializers
 from .models import Bus
@@ -223,10 +209,8 @@ class BusesSerializer(serializers.ModelSerializer):
         model = Bus
         fields = '__all__' # Or specific fields like ['plate_no', 'level', 'no_seats']
 
-
 from rest_framework import serializers
 from .models import Worker
-
 class WorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Worker
@@ -237,7 +221,7 @@ from .models import Ticket, Route  # Adjust the import if your models are in a d
 class TickSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket  # Ensure this is the correct model for tickets
-        fields = ['firstname', 'lastname', 'phone', 'plate_no', 'date', 'depcity', 'descity', 'no_seat', 'price', 'side_no']
+        fields = ['firstname', 'lastname', 'phone', 'plate_no', 'date', 'depcity', 'descity', 'no_seat', 'price', 'side_no', 'passenger_type']
 
 class TSerializer(serializers.ModelSerializer):
     class Meta:
@@ -262,7 +246,6 @@ class RoutSerializer(serializers.ModelSerializer):
 
 
 from rest_framework import serializers
-
 class UpdateTicketRequestSerializer(serializers.Serializer):
     firstname = serializers.CharField()
     lastname = serializers.CharField()
@@ -300,7 +283,6 @@ class TelebirrPaymentSerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-
 class TelebirrAuthSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=10, help_text="Format: 09xxxxxxxx")
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -324,9 +306,7 @@ class CbeInputSerializer(serializers.Serializer):
     account = serializers.CharField(max_length=13, help_text="13-digit account starting with 1000")
     price = serializers.FloatField(help_text="The amount to pay")
 
-
 from rest_framework import serializers
-
 class BoaInputSerializer(serializers.Serializer):
     account = serializers.CharField(
         min_length=8,
@@ -338,16 +318,12 @@ class BoaInputSerializer(serializers.Serializer):
     )
 
 from rest_framework import serializers
-
 class BoaAuthSerializer(serializers.Serializer):
     account = serializers.CharField(max_length=8, min_length=8)
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
     price = serializers.FloatField()
 
-
-
 from rest_framework import serializers
-
 class AwashInputSerializer(serializers.Serializer):
     account = serializers.CharField(
         max_length=13,
@@ -358,15 +334,11 @@ class AwashInputSerializer(serializers.Serializer):
         help_text="The total amount to be paid"
     )
     
-
 from rest_framework import serializers
-
 class AwashAuthSerializer(serializers.Serializer):
     account = serializers.CharField(max_length=13, min_length=13, help_text="13-digit account number")
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
     price = serializers.FloatField(help_text="Amount to be paid")
-
-
 
 from rest_framework import serializers
 class ChangePasswordSerializer(serializers.Serializer):
@@ -383,7 +355,6 @@ class SafariPhoneSerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-
 class SafaricomAuthSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=10, min_length=10)
     password = serializers.CharField(write_only=True)
@@ -399,7 +370,6 @@ class RouSerializer(serializers.ModelSerializer):
 
 
 from rest_framework import serializers
-
 class TelebirrInitiateSerializer(serializers.Serializer):
     # Using 'phone' as the key; if your HTML uses name="phone[]", 
     # the serializer can still map it.
@@ -438,10 +408,8 @@ class BusChangeResponseSerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-
 class ActivateRequestSerializer(serializers.Serializer):
     date = serializers.DateField(help_text="The date to check for active routes (YYYY-MM-DD)")
-
 class RouteDisplaySerializer(serializers.Serializer):
     # This ensures Swagger shows the names you want
     departure = serializers.CharField(source='depcity') 
@@ -473,7 +441,6 @@ class ActivateResponseSerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-
 # This defines what one "Route" looks like in Swagger
 class RouteListDisplaySerializer(serializers.Serializer):
     departure = serializers.CharField(source='depcity') # Maps depcity to "departure"
@@ -481,26 +448,9 @@ class RouteListDisplaySerializer(serializers.Serializer):
     date = serializers.DateField()
     side_no = serializers.CharField()
 
-"""
-# This defines the full GET response
-class ServiceUpdateResponseSerializer(serializers.Serializer):
-    routes = RouteListDisplaySerializer(many=True)
-    buses = serializers.ListField(child=serializers.DictField())
-    success = serializers.CharField(required=False)
-    error = serializers.CharField(required=False)
 
 
 from rest_framework import serializers
-
-# Simplified response for the GET method as requested
-class ServiceFeeSimpleSerializer(serializers.Serializer):
-    service_fee = serializers.CharField()
-"""
-
-
-
-from rest_framework import serializers
-
 class WorkerDeleteRequestSerializer(serializers.Serializer):
     fname = serializers.CharField(required=True)
     lname = serializers.CharField(required=True)
@@ -520,25 +470,7 @@ class WorkerDeleteResponseSerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-"""
-# For the GET response (List of cities)
-class CityListSerializer(serializers.Serializer):
-    cities = serializers.ListField(child=serializers.CharField())
-
-# For the POST request (Search filters)
-class TicketSearchRequestSerializer(serializers.Serializer):
-    date = serializers.DateField(required=True, help_text="Travel date (YYYY-MM-DD)")
-    depcity = serializers.CharField(required=True, help_text="Departure City")
-    descity = serializers.CharField(required=True, help_text="Destination City")
-
-# For the POST response (List of routes)
-class RouteResponseSerializer(serializers.Serializer):
-    routes = serializers.ListField(child=serializers.DictField())
-    error = serializers.CharField(required=False)
-"""
-
 from rest_framework import serializers
-
 # For GET response: List of cities
 class CityListSerializer(serializers.Serializer):
     cities = serializers.ListField(child=serializers.CharField())
@@ -556,7 +488,6 @@ class ErrorResponseSerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-
 # This serializer defines exactly what a single ticket looks like
 class TicketDetailSerializer(serializers.Serializer):
     first_name = serializers.CharField(source='fname') # Maps fname to first_name
@@ -582,7 +513,6 @@ class DeleteTicketsResponseSerializer(serializers.Serializer):
 from rest_framework import serializers
 
 from rest_framework import serializers
-
 # To describe individual bus change objects
 class BusChangeDetailSerializer(serializers.Serializer):
     # Adjust these fields to match your actual Buschange model attributes
@@ -623,7 +553,6 @@ class BusChangeRequestSerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-
 # For the POST Request (The Search/Update Form)
 class BusUpdateActionUniqueSerializer(serializers.Serializer):
     plate_no = serializers.CharField(required=True)
@@ -693,7 +622,6 @@ class BusDeleteDisplaySerializer(serializers.Serializer):
 
 
 from rest_framework import serializers
-
 # Specific for Delete action: removes new_sideno
 class BusDeleteActionSerializer(serializers.Serializer):
     plate_no = serializers.CharField(required=True, help_text="Plate number of the bus to delete")
@@ -701,7 +629,6 @@ class BusDeleteActionSerializer(serializers.Serializer):
     no_seats = serializers.IntegerField(required=True)
 
 from rest_framework import serializers
-
 # Controls the POST input in Swagger (Removes new_sideno)
 class BusDeleteActionSerializer(serializers.Serializer):
     plate_no = serializers.CharField(required=True)
@@ -1123,14 +1050,34 @@ class TSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = '__all__'
 
-
+"""
 from rest_framework import serializers
 from .models import Sc, Service_fee
+class scSerializer(serializers.ModelSerializer):  # Kept lowercase 's' to match your view implementation
+    # Explicitly marking logo as an image field that is not required (optional)
+    logo = serializers.ImageField(required=False, allow_null=True)
 
-class ScSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sc
         fields = '__all__'
+
+    def create(self, validated_data):
+        # 1. Pull the password out of the dictionary safely before instance initialization
+        password = validated_data.pop('password', None)
+
+        # 2. Initialize the Sc instance object with all remaining validated data (including files like logo)
+        instance = Sc(**validated_data)
+
+        # 3. Hash the password using the custom function built into your model
+        if password:
+            instance.set_password(password)
+
+        # 4. Save to the database (This step triggers your custom dynamic file renaming function)
+        instance.save()
+        return instance
+"""
+
+
 
 class ServiceFeeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1192,18 +1139,6 @@ class MessageSerializer(serializers.Serializer):
     detail = serializers.CharField(help_text="The response message from the server.")
 
 
-"""
-# Input Serializer: Validates password change logic
-class ChangePasswordSerializer(serializers.Serializer):
-    currentPassword = serializers.CharField(required=True)
-    newPassword = serializers.CharField(required=True, min_length=8)
-    reNewPassword = serializers.CharField(required=True)
-
-    def validate(self, data):
-        if data['newPassword'] != data['reNewPassword']:
-            raise serializers.ValidationError({"reNewPassword": "Passwords do not match."})
-        return data
-"""
 
 class ChangePasswordSerializer(serializers.Serializer):
     currentPassword = serializers.CharField(required=True)
@@ -1255,13 +1190,18 @@ class SelectBusResponseSerializer(serializers.Serializer):
     error = serializers.CharField(required=False)
 
 
+
+
 from rest_framework import serializers
 from .models import Sc, Bus
 
+"""
 class ScSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sc
         fields = '__all__'
+"""
+
 
 class BusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1284,6 +1224,8 @@ class ScUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     email = serializers.EmailField(help_text="Current Email")
     new_email = serializers.EmailField(help_text="New Email to update")
+
+
 
 
 
@@ -1340,6 +1282,46 @@ class WorkerSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
+from .models import Sc
+class scSerializer(serializers.ModelSerializer):  # Matches your lowercase view implementation
+    # 1. CRITICAL: Explicitly define the logo field so DRF registers binary streams
+    logo = serializers.ImageField(required=False, allow_null=True)
+
+    # 2. RELAX RULES: Prevents DRF validation failures if fields are left empty in the form
+    firstname = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    lastname = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    phone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    gender = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = Sc
+        # 3. CRITICAL: Added 'logo' explicitly to the fields list
+        fields = [
+            'username', 'phone', 'password', 'name', 'side',
+            'firstname', 'email', 'level', 'lastname', 'gender', 'logo'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        # 4. Hash the password securely using your current setup
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+
+        # 5. Save everything (including the logo file object) to the database
+        return super().create(validated_data)
+
+
+
+
+
+
+
+
 
 """
 from rest_framework import serializers
@@ -1369,6 +1351,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 
+"""
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from .models import Worker, Sc
@@ -1381,7 +1364,7 @@ class scSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
-
+"""
 
 
 # This serializer is specifically for the Swagger POST request to match your HTML form

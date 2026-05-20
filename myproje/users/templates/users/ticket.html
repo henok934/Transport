@@ -187,7 +187,6 @@ function closeError() {
         // Remove from layout after animation
         setTimeout(() => {
             errorToast.style.display = 'none';
-            // Optional: errorToast.remove(); 
         }, 300);
     }
 }
@@ -215,9 +214,6 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="toast-progress"></div>
 </div>
 {% endif %}
-
-
-
 
 <nav class="navbar-main navbar navbar-expand-lg">
     <div class="container">
@@ -275,25 +271,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="hidden" name="date[]" value="{{ route.date }}">
                 <input type="hidden" name="depcity[]" value="{{ route.depcity }}">
                 <input type="hidden" name="descity[]" value="{{ route.descity }}">
-
-		<!--<input type="hidden" name="username[]" value="{{ username|default:'Guest' }}">-->
-		<input type="hidden" name="username[]" value="{{ username }}">
-<!--		<input type="hidden" name="username[]" value="{% if user.is_authenticated %}{{ user.username }}{% else %}Guest{% endif %}">-->
-
+                <input type="hidden" name="username[]" value="{{ username }}">
+                
                 <div class="row">
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="small font-weight-bold">First Name <span class="text-danger">*</span></label>
                         <input type="text" name="firstname[]" class="form-control form-control-intl cap-input" oninput="handleNameInput(this)" required>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="small font-weight-bold">Father Name <span class="text-danger">*</span></label>
                         <input type="text" name="lastname[]" class="form-control form-control-intl cap-input" oninput="handleNameInput(this)" required>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="small font-weight-bold">Phone Number <span class="text-danger">*</span></label>
                         <input type="tel" name="phone[]" class="form-control form-control-intl" maxlength="10" placeholder="09..." required>
                     </div>
-                    <div class="col-md-3 mb-3">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
                         <label class="small font-weight-bold">Gender <span class="text-danger">*</span></label>
                         <select name="gender[]" class="form-control form-control-intl" required>
                             <option value="" disabled selected>Select</option>
@@ -301,9 +297,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             <option value="female">Female</option>
                         </select>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="small font-weight-bold">Passenger Type <span class="text-danger">*</span></label>
+                        <select name="passenger_type[]" class="form-control form-control-intl" required>
+                            <option value="" disabled selected>Select type</option>
+                            <option value="adult">Adult</option>
+                            <option value="child">Child</option>
+                        </select>
+                    </div>
                 </div>
-
-                <div class="row">
+               <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="small font-weight-bold">Email Address <span class="text-danger">*</span></label>
                         <input type="email" name="email[]" class="form-control form-control-intl" required>
@@ -329,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </form>
     {% endfor %}
 </div>
-
 
 <div id="seatModal" class="seat-modal">
     <div class="modal-content-custom shadow-lg">
@@ -395,6 +397,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const clone = container.firstElementChild.cloneNode(true);
         clone.querySelectorAll('input:not([type="hidden"])').forEach(i => i.value = '');
         clone.querySelector('select[name="no_seat[]"]').innerHTML = '<option value="" disabled selected>Select seat from map...</option>';
+        
+        // Ensure dropdown selections are reset for cloned items
+        clone.querySelectorAll('select').forEach(select => {
+            select.selectedIndex = 0;
+        });
+
         const x = document.createElement('button');
         x.innerHTML = '&times;'; x.className = 'remove-x'; x.type = 'button';
         x.onclick = () => { clone.remove(); calculateTotal(); };
@@ -409,5 +417,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('totalDisplay').innerText = total.toFixed(2);
     }
 </script>
-<div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>
+<div id="google_translate_element" style="display:none;"></div>
+<script type="text/javascript">
+function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
 </html>

@@ -1,12 +1,13 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
-# 1. BASE DIRECTORY
+# 1. BASE DIRECTORY DEFINED FIRST
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 2. SECURITY SETTINGS
+# 2. SECURITY SETTINGS...
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 DEBUG = True
+
 #ALLOWED_HOSTS = ['*']
 
 ALLOWED_HOSTS = ['transportationtechnonogy.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
@@ -166,6 +167,11 @@ CSRF_TRUSTED_ORIGINS = [
     'https://wedehagertransport.onrender.com',
     'https://transportationtechnonogy.onrender.com'
 ]
+
+
+
+
+
 
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 

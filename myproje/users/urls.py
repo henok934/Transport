@@ -128,14 +128,10 @@ urlpatterns = [
     #path('users/', UsersView.as_view(), name='users'),
     #path('see/', SeeView.as_view(), name='see'),
     #path('routes/', RoutesView.as_view(), name='routes'),
-
     path('api/routes/', Rout.as_view(), name='routes_api'),
     path('routes/', Rout.as_view(), name='routes'),
-
     path('api/users/', Use.as_view(), name='users_api'),
-    
     path('users/', Use.as_view(), name='users'),
-
     path('sce/', Sce.as_view(), name='sce'),
     path('passenger/', Changepassenger.as_view(), name='passenger'),
     #path('register/', RegisterView.as_view(), name='register'),

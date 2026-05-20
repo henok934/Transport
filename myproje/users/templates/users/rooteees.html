@@ -15,6 +15,173 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'styles/bootstrap4/bootstrap.min.css' %}">
 
+<!--
+<style>
+        :root {
+            --brand-navy: #00264d;
+            --brand-gold: #ffcc00;
+            --brand-dark: #0f172a;
+            --bg-soft: #f4f7fa;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-soft); 
+            color: #1e293b;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- TOP BAR --- */
+        .top-bar-mini {
+            background: var(--brand-dark);
+            color: rgba(255,255,255,0.8);
+            padding: 8px 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* --- NAVIGATION --- */
+        .bg-navy-custom {
+            background: var(--brand-navy) !important;
+            padding: 10px 0;
+            border-bottom: 4px solid var(--brand-gold);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* INTERNATIONAL BRAND ROUND LOGO ARCHITECTURE */
+        .nav-logo-full { 
+            width: 60px; 
+            height: 60px; 
+            object-fit: cover; 
+            border-radius: 6px; 
+            border: 2px solid white; 
+        }
+        
+        .brand-name-main { color: white; font-weight: 800; font-size: 15px; text-transform: uppercase; }
+        .brand-subtext { color: var(--brand-gold); font-size: 10px; font-weight: 700; }
+
+        /* Space before Home button */
+        .nav-action-cluster {
+            margin-left: 80px; /* The gap you requested */
+        }
+
+        /* Minimized & Ultra-Bold Home Button */
+        .home-btn-active {
+            color: white !important;
+            font-weight: 900 !important; /* Ultra Bold */
+            background: rgba(255,255,255,0.15);
+            padding: 5px 14px !important; /* Minimized size */
+            border-radius: 4px;
+            font-size: 10px !important; /* Smaller text */
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none !important;
+            display: inline-block;
+        }
+
+        .intl-select {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 8px;
+            cursor: pointer;
+            height: 28px;
+        }
+
+        /* --- CONTENT CARD & SEARCH --- */
+        .fleet-card {
+            background: white;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            max-width: 1150px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .fleet-header-bar {
+            background: var(--brand-navy);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .search-inline-box {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(255,255,255,0.08);
+            padding: 6px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .search-inline-box label {
+            color: var(--brand-gold);
+            font-size: 9px;
+            font-weight: 800;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .search-inline-box input {
+            background: #ffffff;
+            border: none;
+            color: #333;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* --- TABLE STYLES --- */
+        .table thead th {
+            background: #f8fafc;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            padding: 12px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .plate-badge {
+            background: #f1f5f9;
+            color: var(--brand-navy);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            border: 1px solid #cbd5e1;
+            font-weight: 800;
+        }
+
+        .phone-text { color: #10b981; font-weight: 700; font-size: 13px; }
+
+        @media (max-width: 991px) {
+            .nav-action-cluster { margin-left: 0; margin-top: 15px; width: 100%; }
+            .fleet-header-bar { flex-direction: column; gap: 10px; text-align: center; }
+            .home-btn-active { width: 100%; text-align: center; }
+            .intl-select { width: 100%; margin-left: 0; margin-top: 5px; }
+        }
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+    </style>
+    -->
+   
     <style>
         :root {
             --brand-navy: #00264d;
@@ -164,12 +331,16 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+    
+
 </head>
 <body>
 
 <header>
     <nav class="navbar navbar-expand-xl navbar-dark bg-navy-custom">
         <div class="container-fluid">
+	
+	<!--
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
                 <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="nav-logo-full">
                 <div class="brand-text-wrapper ml-3">
@@ -177,6 +348,52 @@
                     <span class="brand-subtext">{{ name }} Share Company</span>
                 </div>
             </a>
+	-->
+<!--
+<a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center text-decoration-none">
+            <div class="nav-logo-container">
+                {% if company.logo %}
+                    <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo">
+                {% else %}
+                    <div class="nav-logo-fallback"><i class="fas fa-bus"></i></div>
+                {% endif %}
+            </div>
+            <div class="brand-text-wrapper ml-3">
+                <span class="brand-name-main">Wedehager Transport</span>
+                <span class="brand-subtext">
+                    {% if name %}{{ name }}{% else %}Consolidated{% endif %} Share Co. 
+                    {% if level %}
+                        <span class="badge badge-warning ml-2 text-dark font-weight-bold" style="font-size: 10px; padding: 3px 8px;">{{ level }}</span>
+                    {% endif %}
+                </span>
+            </div>
+        </a>
+	-->
+
+<a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center text-decoration-none" style="display: flex !important; align-items: center !important; text-decoration: none !important; gap: 14px;">
+    
+    <div class="nav-logo-container" style="display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #ffffff; border-radius: 50%; border: 3px solid #ffcc00; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; flex-shrink: 0;">
+        {% if company.logo %}
+            <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo" style="width: 100%; height: 100%; object-fit: cover;">
+        {% else %}
+            <div class="nav-logo-fallback" style="font-size: 28px; color: #00264d;"><i class="fas fa-bus"></i></div>
+        {% endif %}
+    </div>
+    
+    <div class="brand-text-wrapper" style="display: flex; flex-direction: column; justify-content: center; margin-left: 1rem !important;">
+        <span class="brand-name-main" style="color: #ffffff; font-weight: 800; font-size: 17px; text-transform: uppercase; letter-spacing: 0.75px; line-height: 1.2;">Wedehager Transport</span>
+        <span class="brand-subtext" style="color: #ffcc00; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; margin-top: 3px; gap: 8px;">
+            {% if name %}{{ name }}{% else %}Consolidated{% endif %} Share Co. 
+            
+            {% if level %}
+                <span class="badge badge-warning text-dark font-weight-bold" style="display: inline-block; font-size: 9px; padding: 3px 8px; font-weight: 800; color: #212529; background-color: #ffcc00; border-radius: 4px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05);">LEVEL: {{ level }}</span>
+            {% endif %}
+        </span>
+    </div>
+
+</a>
+
+
 	{% endif %}
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navSystem">
                 <span class="navbar-toggler-icon"></span>
