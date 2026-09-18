@@ -10,8 +10,16 @@ DEBUG = False
 
 #ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = ['https:fermataa-3ooq.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
+#ALLOWED_HOSTS = ['https:fermataa-3ooq.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
+
+ALLOWED_HOSTS = [
+    'fermataa-3ooq.onrender.com',
+    'wedehagertransport.onrender.com',
+    '.onrender.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 # Security Headers for Production/Audit
 SESSION_COOKIE_SECURE = True
@@ -162,14 +170,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CORS_ALLOW_ALL_ORIGINS = True
 
 #CSRF_TRUSTED_ORIGINS = ['https://m-k4xk.onrender.com']
-
+"""
 CSRF_TRUSTED_ORIGINS = [
     'https://wedehagertransport.onrender.com',
     'https://fermataa-3ooq.onrender.com/',
 
 ]
-
-
+"""
+CSRF_TRUSTED_ORIGINS = [
+    'https://wedehagertransport.onrender.com',
+    'https://fermataa-3ooq.onrender.com',
+]
 
 
 
