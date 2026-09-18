@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Wedehager | National Admin Portal</title>
+    <title>Busfermata | National Admin Portal</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -129,6 +129,20 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -146,10 +160,10 @@
 <nav class="navbar navbar-expand-xl navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" width="60" height="60" class="rounded mr-3 border" style="border-color: var(--brand-navy) !important;">
+            <img src="../static/images/l.jpeg" width="60" height="60" class="rounded mr-3 border" style="border-color: var(--brand-navy) !important;">
             <div>
-                <span class="brand-text">Wedehager</span>
-                <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
+            <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
             </div>
         </a>
 
@@ -162,9 +176,9 @@
                 
                 <select onchange="location.href = this.value;" class="custom-nav-select mx-xl-1 my-2 my-xl-0">
                     <option value="#" selected disabled>Registry</option>
-                    <option value="{% url 'sc' %}">Register Share Company</option>
+                <option value="{% url 'route' %}">Define New Route</option>
                     <option value="{% url 'route' %}">Define New Route</option>
-                    <option value="{% url 'registor' %}">Add System Controller</option>
+                    <option value="{% url 'registor' %}">Add System Admin</option>
                     <option value="{% url 'worker' %}">Register Ticket Agent</option>
                     <option value="{% url 'city' %}">Add Terminal Hub</option>
                     <option value="{% url 'service_fee' %}">Set Service Tariff</option>
@@ -172,7 +186,7 @@
 
                 <select onchange="location.href = this.value;" class="custom-nav-select mx-xl-1 my-2 my-xl-0">
                     <option value="#" selected disabled>System Configuration</option>
-                    <option value="{% url 'changebus' %}">Update Fleet (Bus)</option>
+                    <option value="{% url 'changebus' %}">Update Bus (Bus)</option>
                     <option value="{% url 'scupdate' %}">Edit Share Company</option>
                     <option value="{% url 'active' %}">Active Deployments</option>
                     <option value="{% url 'serviceupdate' %}">Tariff Adjustment</option>
@@ -184,21 +198,21 @@
                     <option value="{% url 'users' %}">User Registry</option>
                     <option value="{% url 'totalballance' %}">Revenue Analytics</option>
                     <option value="{% url 'sce' %}">View Share Companies</option>
-                    <option value="{% url 'buses' %}">View Fleet (Buses)</option>
+                    <option value="{% url 'buses' %}">View Buses</option>
                     <option value="{% url 'comments' %}">Passenger Feedback</option>
                     <option value="{% url 'driver' %}">Booker Registry</option>
-                    <option value="{% url 'ticketinfo' %}">Transaction History</option>
+                    <option value="{% url 'ticketinfo' %}">Booked Tickets</option>
                 </select>
 
                 <select onchange="location.href = this.value;" class="custom-nav-select maintenance-select mx-xl-1 my-2 my-xl-0">
                     <option value="#" selected disabled>Data Control</option>
-                    <option value="{% url 'admindelete' %}">Remove Controller</option>
-                    <option value="{% url 'scdelete' %}">Decommission Share Company</option>
+                    <option value="{% url 'admindelete' %}">Remove Admin</option>
+                    <option value="{% url 'scdelete' %}">Remove Share Company</option>
                     <option value="{% url 'citydelete' %}">Remove Terminal</option>
                     <option value="{% url 'commentdelete' %}">Delete Feedback</option>
                     <option value="{% url 'routedelete' %}">Delete Route</option>
-                    <option value="{% url 'workerdelete' %}">Terminate Agent</option>
-                    <option value="{% url 'delete_ticket' %}">Void Transaction</option>
+                    <option value="{% url 'workerdelete' %}">Delete Booker Agent</option>
+                    <option value="{% url 'delete_ticket' %}">Delete Ticket</option>
                 </select>
                 
             </div>
@@ -219,10 +233,10 @@
 <nav class="navbar-main">
     <div class="container d-flex align-items-center justify-content-between">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" width="60" height="60" class="rounded mr-3 border" style="border-color: var(--brand-navy) !important;">
+            <img src="../static/images/l.jpeg" width="60" height="60" class="rounded mr-3 border" style="border-color: var(--brand-navy) !important;">
             <div>
-                <span class="brand-text">Wedehager</span>
-                <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
+            <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
             </div>
         </a>
 
@@ -230,8 +244,8 @@
             <select onchange="location.href = this.value;" class="custom-nav-select mx-1">
                 <option value="#" selected disabled>Registry</option>
                 <option value="{% url 'sc' %}">Register Service Center</option>
-                <option value="{% url 'route' %}">Define New Route</option>
-                <option value="{% url 'registor' %}">Add System Controller</option>
+                    <option value="{% url 'sc' %}">Register Share Company</option>
+                <option value="{% url 'registor' %}">Add System Admin</option>
                 <option value="{% url 'worker' %}">Register Ticket Agent</option>
                 <option value="{% url 'city' %}">Add Terminal Hub</option>
                 <option value="{% url 'service_fee' %}">Set Service Tariff</option>
@@ -239,9 +253,9 @@
 
             <select onchange="location.href = this.value;" class="custom-nav-select mx-1">
                 <option value="#" selected disabled>System Configuration</option>
-                <option value="{% url 'changebus' %}">Update Fleet (Bus)</option>
-                <option value="{% url 'scupdate' %}">Edit Service Center</option>
                 <option value="{% url 'active' %}">Active Deployments</option>
+                <option value="{% url 'scupdate' %}">Edit Service Center</option>
+                <option value="{% url 'changebus' %}">Update Bus (Bus)</option>
                 <option value="{% url 'serviceupdate' %}">Tariff Adjustment</option>
             </select>
 
@@ -251,21 +265,21 @@
                 <option value="{% url 'users' %}">User Registry</option>
                 <option value="{% url 'totalballance' %}">Revenue Analytics</option>
                 <option value="{% url 'sce' %}">View Service Centers</option>
-                <option value="{% url 'buses' %}">View Fleet (Buses)</option>
+                <option value="{% url 'buses' %}">View Buses</option>
                 <option value="{% url 'comments' %}">Passenger Feedback</option>
                 <option value="{% url 'driver' %}">Booker Registry</option>
-                <option value="{% url 'ticketinfo' %}">Transaction History</option>
+                <option value="{% url 'ticketinfo' %}">Booked Tickets</option>
             </select>
 
             <select onchange="location.href = this.value;" class="custom-nav-select maintenance-select mx-1">
                 <option value="#" selected disabled>Data Control</option>
-                <option value="{% url 'admindelete' %}">Remove Controller</option>
-                <option value="{% url 'scdelete' %}">Decommission Share Company</option>
+                <option value="{% url 'admindelete' %}">Remove Admin</option>
+                <option value="{% url 'scdelete' %}">Remove Share Company</option>
                 <option value="{% url 'citydelete' %}">Remove Terminal</option>
                 <option value="{% url 'commentdelete' %}">Delete Feedback</option>
+                <option value="{% url 'workerdelete' %}">Delete Booker Agent</option>
                 <option value="{% url 'routedelete' %}">Delete Route</option>
-                <option value="{% url 'workerdelete' %}">Terminate Agent</option>
-                <option value="{% url 'delete_ticket' %}">Void Transaction</option>
+                <option value="{% url 'delete_ticket' %}">Delete Ticket</option>
             </select>
         </div>
     </div>
@@ -371,9 +385,9 @@
 
 <footer class="footer-main">
     <div class="container">
-        <h3 class="mb-4" style="font-weight: 800;">Wedehager Transport Tech</h3>
+        <h3 class="mb-4" style="font-weight: 800;">Busfermata Digital Technology</h3>
         <p class="small opacity-75">Integrated Transport Information Systems • Ethiopia Core Division</p>
-        <p class="opacity-50 mt-2">© 2026 Wedehager • National Travel Solutions</p>
+        <p class="opacity-50 mt-2">© 2026 Busfermata • National Travel Solutions</p>
         <div class="mt-4">
             <i class="fab fa-facebook mx-2"></i>
             <i class="fab fa-telegram mx-2"></i>

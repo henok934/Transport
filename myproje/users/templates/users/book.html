@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Find Routes | Wedehager Global</title>
+    <title>Find Routes | Busfermata Global</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
@@ -82,15 +82,41 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-main">
     <div class="container">
+	    <!--
         <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="45" class="mr-2 rounded shadow-sm">
-            <span style="font-weight:800; color:var(--primary); font-size: 22px;">Wedehager</span>
+	 <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
+            <div>
+        <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
         </a>
+-->
+ <a href="{% url 'home' %}" class="brand-area">
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
+            <div>
+        <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
+            </div>
+        </a>
+
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#globalNav">
             <i class="fas fa-bars"></i>
@@ -127,24 +153,76 @@
                 <form action="{% url 'booker' %}" method="post">
                     {% csrf_token %}
                     <div class="row">
+			<!--
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Departure Station</label>
                             <input type="text" name="depcity" value="{{ city }}" readonly class="form-control form-control-premium bg-light">
-                        </div> <!--
-			                            <input type="text" name="username" value="{{ username }}" readonly class="form-control form-control-premium bg-light">
-						    -->
-			<div class="col-md-4 mb-3">
+                        </div>
+			-->
+
+
+
+<!--
+<div class="col-md-4 mb-3">
+<label class="form-label">Departure Station</label>
+<input type="text" name="depcity" value="{% if city == 'Autobustera' or city == 'Ayertena' or city == 'Lamberet' or city == 'Asko' %}Addisababa{% else %}{{ city }}{% endif %}"
+           readonly
+           class="form-control form-control-premium bg-light">
+</div>
+-->
+
+
+<div class="col-md-4 mb-3">
+    <label class="form-label">Departure Station</label>
+    <input type="text"
+           name="depcity"
+           value="{% if city == 'Autobustera' or city == 'Asko' or city == 'Kality' or city == 'Lamberet' or city == 'Ayertena' %}Addisababa{% else %}{{ city }}{% endif %}"
+           readonly
+           class="form-control form-control-premium bg-light">
+</div>
+
+
+<div class="col-md-4 mb-3">
     <label class="form-label">Destination</label>
     <select name="descity" class="form-control form-control-premium" required>
         <option value="">Choose Destination...</option>
+
         {% for depcity in des %}
             {% if depcity.depcity != city and depcity.depcity != 'Asko' and depcity.depcity != 'Lamberet' and depcity.depcity != 'Kality' and depcity.depcity != 'Ayertena' and depcity.depcity != 'Autobustera' %}
-                <option value="{{ depcity.depcity }}">{{ depcity.depcity }}</option>
+
+                {% if city == 'Autobustera' %}
+                    {# Autobustera Cities Route #}
+                    {% if depcity.depcity in "Adet,Adolaweyu,Alemdegolowereilu,Amanuel,Bahirdar,Harar,Jigjiga,Chiro,Diredawa,Bichena,Bulehora,Bure,Chagni,Dangila,Dansha,Debremarkos,Debark,Debreeliasguy,Dejen,Debretabor,Debrewerk,Dejenkuy,Dembecha,Dgotsion,Dilla,Ebnat,Este,Robe,Digotsion,Feresbet,Funeteselam,Mertolemariam,Gaynt,Gimijabetazenayehu,Gonder,Gundewoin,Goba,Humera,Glgelbelesasosa,Jamadegolo,Jaragedo,Kobodeder,Kosober,Lumame,Negeleborena,Mekaneselam,Metema,Motabahirdar,Moyale,Hawassa,Shakiso,Shashemene,Motta,Humera,Wendobensa,Shebelberentayeadwuha,Woreta,Yejube,Yabelo,Yirgalem,Yirgachefe" %}
+                        <option value="{{ depcity.depcity }}">{{ depcity.depcity }}</option>
+                    {% endif %}
+                {% elif city == 'Lamberet' %}
+                    {# Lamberet Cities Route #}
+                    {% if depcity.depcity in "Kemise,Kombolcha,Dessie,Desseakesta,Dessemasha,Densa,Werailu,Werababo,Weinamba,Kelala,Wegidi,Mekaneselam,Weldiya,Alamata,Mekele" %}                        <option value="{{ depcity.depcity }}">{{ depcity.depcity }}</option>
+                    {% endif %}
+                {% elif city == 'Asko' %}
+                    {# Asko Cities Route #}
+                    {% if depcity.depcity in "Assosa,Ambo,Ameya,Amuru,Arjogudetu,Bako,Ayira,Bambasi,Bullene,Buregambela,Bureoromia,Dangur,Dansha,Debrezeitbenishangul,Dedu,Dibate,Endabaguna,Finchawabereha,Finchawaketema,Gambela,Gambella,Gilgelbeles,Gimbi,Ginchi,Gog,Guba,Holeta,Mankus,Mendi,Mendibenishangul,Merero,Nekemte,Shambu,Sherkole,Sherkolegambela,Shishinda" %}
+                        <option value="{{ depcity.depcity }}">{{ depcity.depcity }}</option>
+                    {% endif %}
+                {% elif city == 'Ayertena' %}
+                    {# Ayertena Cities Route #}
+                    {% if depcity.depcity in "Agaro,Bonga,Chena,Dedu,Gera,Inango,Jinka,Arbaminch,Chencha,Butajira,Metu,Durame,Hosana,Tolay,Mizanaman,Mizanteferi,Gofa,Jimma,Kake,Limu,Metu,Lera,Mizan,Mizanaman,Mizanteferi,Shishinda,Tepi,Jimma,Welayatatercha,Welita,Welkite,Sawla,Sodo,Lera" %}
+                        <option value="{{ depcity.depcity }}">{{ depcity.depcity }}</option>
+                    {% endif %}
+                {% elif city == 'Kality' %}
+                    {# Kality Cities Route #}
+                    {% if depcity.depcity in "Adaba,Adama,Alabakulito,Aletawondo,Amaresa,Amibara,Arere,Awash,Awasharba,Awbare,Babile,Babillesomali,Birbir,Shashemene,Chena,Chereti,Berhale,Bureafar,Chifra,Danod,Degehabur,Dinsho,Ditre,Dolloado,Dubti,Elkere,Erer,Fafan,Filtu,Galessa,Gashamo,Gawane,Geladin,Gera,Gewane,Gidole,Gode,Goderesomali,Hararroadmojo,Hargelle,Semera,Imey,Iteya,Karati,Kebridahar,Kelafo,Kersa,Kika,Logiya,Manda,Meskela,Mustahil,Nazreth,Odabuldigilu,Shilabo,Togwajale,Turmi,Waka,Wardher,Wayu" %}
+<option value="{{ depcity.depcity }}">{{ depcity.depcity }}</option>
+                    {% endif %}
+                {% else %}
+                    {# Default Fallback Loop #}
+                    <option value="{{ depcity.depcity }}">{{ depcity.depcity }}</option>
+                {% endif %}
             {% endif %}
         {% endfor %}
     </select>
 </div>
-                        <div class="col-md-4 mb-3">
+			    <div class="col-md-4 mb-3">
                             <label class="form-label">Travel Date</label>
                             <input type="date" name="date" class="form-control form-control-premium" required>
                         </div>
@@ -193,11 +271,11 @@
 <footer class="bg-white border-top py-5 text-center">
     <div class="container">
         <div class="mb-4">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="40" class="rounded mr-2">
-            <span style="font-weight: 800; color: var(--primary);">WEDEHAGER</span>
+            <img src="../static/images/l.jpeg" height="40" class="rounded mr-2">
+            <span style="font-weight: 800; color: var(--primary);">Busfermata</span>
         </div>
-        <p class="font-weight-bold mb-1" style="color: var(--primary);">Global Support: +251 925 049 118</p>
-        <p class="text-muted small">© 2026 Wedehager Transport Technology. All Rights Reserved.</p>
+        <p class="font-weight-bold mb-1" style="color: var(--primary);">Global Support: +251 975143134</p>
+        <p class="text-muted small">© 2026 Busfermata Digital Technology. All Rights Reserved.</p>
     </div>
 </footer>
 

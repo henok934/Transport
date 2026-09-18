@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Agent Dashboard | Wedehager Global</title>
+    <title>Agent Dashboard | Busfermata Global</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
@@ -150,6 +150,20 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 <script>
@@ -195,9 +209,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <nav class="navbar navbar-expand-lg navbar-main">
     <div class="container">
+	<!--
         <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="45" class="mr-2 rounded shadow-sm">
-            <span style="font-weight:800; color:var(--primary); font-size: 22px;">Wedehager</span>
+            <img src="../static/images/l.jpeg" height="45" class="mr-2 rounded shadow-sm">
+            <span style="font-weight:800; color:var(--primary); font-size: 22px;">Busfermata</span>
+        </a>
+	-->
+
+	 <a href="{% url 'home' %}" class="brand-area">
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
+            <div>
+        <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
+            </div>
         </a>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#globalNav">
@@ -209,9 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <li><a class="nav-link nav-link-custom" href="{% url 'home' %}">Home</a></li>
                 <li><a class="nav-link nav-link-custom" href="{% url 'booker' %}">Book</a></li>
                 <li><a class="nav-link nav-link-custom" href="{% url 'get_ticket' %}">Manage Ticket</a></li>
-                <li><a class="nav-link nav-link-custom" href="{% url 'comment' %}">Feedback</a></li>
             </ul>
-            
             <div class="d-flex align-items-center justify-content-center pt-3 pt-lg-0">
                 <div class="bell-wrapper mr-4" id="notificationButton">
                     <i class="fas fa-bell fa-lg text-muted"></i>
@@ -328,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <footer class="bg-white border-top py-4 mt-5 text-center">
     <div class="container">
         <p class="font-weight-bold mb-1" style="color: var(--primary);">24/7 Global Support: +251  975 143 134</p>
-        <p class="small text-muted mb-0">© 2026 Wedehager Transport Technology. All Rights Reserved.</p>
+        <p class="small text-muted mb-0">© 2026 Busfermata Digital Technology. All Rights Reserved.</p>
     </div>
 </footer>
 

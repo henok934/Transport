@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Route Selection | Wedehager Transport</title>
+    <title>Route Selection | Busfermata Digital Tech</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
@@ -333,6 +333,20 @@
     </style>
     
 
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -342,9 +356,9 @@
 	
 	<!--
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
-                <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="nav-logo-full">
+                <img src="{% static 'images/l.jpeg' %}" class="nav-logo-full">
                 <div class="brand-text-wrapper ml-3">
-                    <span class="brand-name-main">WEDEHAGER TRANSPORT</span>
+                    <span class="brand-name-main">Busfermata TRANSPORT</span>
                     <span class="brand-subtext">{{ name }} Share Company</span>
                 </div>
             </a>
@@ -353,13 +367,13 @@
 <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center text-decoration-none">
             <div class="nav-logo-container">
                 {% if company.logo %}
-                    <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo">
+                    <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo" style="width: 100px !important; height: 100px !important; object-fit: contain !important;">
                 {% else %}
                     <div class="nav-logo-fallback"><i class="fas fa-bus"></i></div>
                 {% endif %}
             </div>
             <div class="brand-text-wrapper ml-3">
-                <span class="brand-name-main">Wedehager Transport</span>
+                <span class="brand-name-main">Busfermata Digital Tech</span>
                 <span class="brand-subtext">
                     {% if name %}{{ name }}{% else %}Consolidated{% endif %} Share Co. 
                     {% if level %}
@@ -374,14 +388,14 @@
     
     <div class="nav-logo-container" style="display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #ffffff; border-radius: 50%; border: 3px solid #ffcc00; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; flex-shrink: 0;">
         {% if company.logo %}
-            <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo" style="width: 100px !important; height: 100px !important; object-fit: contain !important;">
         {% else %}
             <div class="nav-logo-fallback" style="font-size: 28px; color: #00264d;"><i class="fas fa-bus"></i></div>
         {% endif %}
     </div>
     
     <div class="brand-text-wrapper" style="display: flex; flex-direction: column; justify-content: center; margin-left: 1rem !important;">
-        <span class="brand-name-main" style="color: #ffffff; font-weight: 800; font-size: 17px; text-transform: uppercase; letter-spacing: 0.75px; line-height: 1.2;">Wedehager Transport</span>
+        <span class="brand-name-main" style="color: #ffffff; font-weight: 800; font-size: 17px; text-transform: uppercase; letter-spacing: 0.75px; line-height: 1.2;">Busfermata Digital Tech</span>
         <span class="brand-subtext" style="color: #ffcc00; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; margin-top: 3px; gap: 8px;">
             {% if name %}{{ name }}{% else %}Consolidated{% endif %} Share Co. 
             
@@ -406,6 +420,7 @@
                     <select onchange="if(this.value!='#') location.href = this.value;" class="intl-select">
                         <option value="#" disabled selected>REGISTRATION</option>
                         <option value="{% url 'businsert' %}">Add New Bus</option>
+        <option value="{% url 'special_route' %}">Add New Route</option>
                     </select>
                     <select onchange="if(this.value!='#') location.href = this.value;" class="intl-select">
                         <option value="#" disabled selected>OPERATIONAL</option>
@@ -414,8 +429,25 @@
                     </select>
                     <select onchange="if(this.value!='#') location.href = this.value;" class="intl-select">
                         <option value="#" disabled selected>MANAGEMENT</option>
-                        <option value="{% url 'updatebus' %}">Update Assets</option>
-                        <option value="{% url 'busdelete' %}">Delete Asset</option>
+                        <option value="{% url 'updatebus' %}">Update Buss</option>
+			{% if level == 'Special Bus' %}
+                                 <option value="{% url 'special_active' %}">Active Route</option>
+    {% endif %}
+                        {% if level == 'Special Bus' %}
+                            <option value="{% url 'special_route_delete' %}" selected>Route Delete</option>
+                        {% endif %}
+
+                     {% if level == 'Special Bus' %}
+                                 <option value="{% url 'special_bus_change' %}">Bus Change</option>
+    {% endif %}
+                     {% if level == 'Special Bus' %}
+                                 <option value="{% url 'special_route_delete' %}">Route Delete</option>
+    {% endif %}
+        {% if level == 'Special Bus' %}
+                                 <option value="{% url 'specialdeleteticket' %}">Delete Ticket</option>
+    {% endif %}
+
+                        <option value="{% url 'busdelete' %}">Delete Bus</option>
                     </select>
                 </div>
 
@@ -450,7 +482,7 @@
     <div class="route-card">
         <div class="bg-navy-custom p-2 text-white text-center">
             <span class="small font-weight-bold text-uppercase" style="letter-spacing: 1px;">
-                <i class="fas fa-database mr-2 text-warning"></i> Fleet Dispatch Logs
+                <i class="fas fa-database mr-2 text-warning"></i> Bus Dispatch Logs
             </span>
         </div>
         
@@ -507,7 +539,7 @@
             </div>
             <div class="col-md-6 text-md-right">
                 <p class="mb-0 small font-weight-bold" style="letter-spacing: 1px;">
-                    © 2026 WEDEHAGER TRANSPORT Share Company
+                    © 2026 Busfermata TRANSPORT Share Company
                 </p>
             </div>
         </div>

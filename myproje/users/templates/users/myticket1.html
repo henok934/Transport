@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="en">
 <head>
-    <title>Boarding Pass | Wedehager Global</title>
+    <title>Boarding Pass | Busfermata Global</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -94,6 +94,13 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 
 <body>
@@ -105,7 +112,7 @@
                 <span class="mx-3 opacity-50">|</span>
                 <i class="fas fa-mobile-alt mr-2 text-warning"></i> +251 975 143 134
             </div>
-            <div class="small text-uppercase">Wedehager Global Transport System</div>
+            <div class="small text-uppercase">Busfermata Global Transport System</div>
         </div>
     </div>
 
@@ -113,9 +120,9 @@
         <div class="container">
             <a href="{% url 'home' %}" class="d-flex align-items-center" style="text-decoration:none">
                 <div class="brand-logo-box">
-                    <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="brand-logo" alt="Logo">
+                    <img src="{% static 'images/l.jpeg' %}" class="brand-logo" alt="Logo">
                 </div>
-                <span class="brand-text-main">Wedehager</span>
+                <span class="brand-text-main">Busfermata</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar">

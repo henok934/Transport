@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Wedehager | User Registry</title>
+    <title>Busfermata | User Registry</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -60,6 +60,20 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -73,10 +87,10 @@
 <nav class="navbar navbar-expand-xl navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center text-decoration-none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" width="55" height="55" class="rounded mr-3 border">
+            <img src="../static/images/l.jpeg" class="brand-logo mr-3" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
             <div>
-                <span class="brand-text">Wedehager</span>
-                <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
+            <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
             </div>
         </a>
 
@@ -84,9 +98,9 @@
             <div class="navbar-nav ml-auto">
                 <select onchange="location.href = this.value;" class="custom-nav-select mx-xl-1">
                     <option value="#" selected disabled>Registry</option>
-                    <option value="{% url 'sc' %}">Register Share Company</option>
                     <option value="{% url 'route' %}">Define New Route</option>
-                    <option value="{% url 'registor' %}">Add System Controller</option>
+                    <option value="{% url 'sc' %}">Register Share Company</option>
+                    <option value="{% url 'registor' %}">Add System Admin</option>
                     <option value="{% url 'worker' %}">Register Ticket Agent</option>
                     <option value="{% url 'city' %}">Add Terminal Hub</option>
                     <option value="{% url 'service_fee' %}">Set Service Tariff</option>
@@ -94,9 +108,9 @@
 
                 <select onchange="location.href = this.value;" class="custom-nav-select mx-xl-1">
                     <option value="#" selected disabled>System Configuration</option>
-                    <option value="{% url 'changebus' %}">Update Fleet (Bus)</option>
-                    <option value="{% url 'scupdate' %}">Edit Share Company</option>
                     <option value="{% url 'active' %}">Active Deployments</option>
+                    <option value="{% url 'scupdate' %}">Edit Share Company</option>
+                    <option value="{% url 'changebus' %}">Update Bus (Bus)</option>
                     <option value="{% url 'serviceupdate' %}">Tariff Adjustment</option>
                 </select>
 
@@ -106,21 +120,21 @@
                     <option value="{% url 'users' %}" selected>User Registry</option>
                     <option value="{% url 'totalballance' %}">Revenue Analytics</option>
                     <option value="{% url 'sce' %}">View Share Companies</option>
-                    <option value="{% url 'buses' %}">View Fleet (Buses)</option>
+                    <option value="{% url 'buses' %}">View Buses</option>
                     <option value="{% url 'comments' %}">Passenger Feedback</option>
                     <option value="{% url 'driver' %}">Booker Registry</option>
-                    <option value="{% url 'ticketinfo' %}">Transaction History</option>
+                    <option value="{% url 'ticketinfo' %}">Booked Tickets</option>
                 </select>
 
                 <select onchange="location.href = this.value;" class="custom-nav-select mx-xl-1" style="color: red;">
                     <option value="#" selected disabled>Data Control</option>
-                    <option value="{% url 'admindelete' %}">Remove Controller</option>
-                    <option value="{% url 'scdelete' %}">Decommission Share Co.</option>
+                    <option value="{% url 'admindelete' %}">Remove Admin</option>
+                    <option value="{% url 'scdelete' %}">Remove Share Co.</option>
                     <option value="{% url 'citydelete' %}">Remove Terminal</option>
                     <option value="{% url 'commentdelete' %}">Delete Feedback</option>
+                    <option value="{% url 'workerdelete' %}">Delete Booker Agent</option>
                     <option value="{% url 'routedelete' %}">Delete Route</option>
-                    <option value="{% url 'workerdelete' %}">Terminate Agent</option>
-                    <option value="{% url 'delete_ticket' %}">Void Transaction</option>
+                    <option value="{% url 'delete_ticket' %}">Delete Ticket</option>
                 </select>
             </div>
         </div>
@@ -166,7 +180,7 @@
 </div>
 
 <footer class="footer-main">
-    <p class="small mb-0">© 2026 Wedehager Transport Technology</p>
+    <p class="small mb-0">© 2026 Busfermata Digital Technology</p>
 </footer>
 
 <div id="google_translate_element" style="display:none;"></div><script type="text/javascript">function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script></body>

@@ -2,7 +2,7 @@
 {% load static %}
 <html lang="en">
 <head>
-    <title>Update Passenger | Wedehager Digital Network</title>
+    <title>Update Passenger | Busfermata Digital Network</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -75,14 +75,28 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container d-flex justify-content-between">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="40" class="mr-2 rounded">
-            <span class="brand-text">Wedehager</span>
+            <img src="../static/images/l.jpeg" height="40" class="mr-2 rounded">
+            <span class="brand-text">Busfermata</span>
         </a>
         <div class="nav-links">
             <a href="{% url 'get_ticket' %}" class="btn btn-outline-primary btn-sm font-weight-bold">Back to Ticket</a>
@@ -141,7 +155,7 @@
     </div>
 
     <div class="footer-simple">
-        © 2026 Wedehager Transport Technology Hub • Ethiopian Digital Standard
+        © 2026 Busfermata Digital Technology Hub • Ethiopian Digital Standard
     </div>
 </div>
 

@@ -14,6 +14,37 @@ class BSerializer(serializers.ModelSerializer):
         model = Bus
         fields = '__all__'  # Adjust fields as necessary
 
+
+
+from rest_framework import serializers
+
+class RecoverBalanceRequestSerializer(serializers.Serializer):
+    refund_method = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    refund_account = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    firstname = serializers.CharField(max_length=50)
+    lastname = serializers.CharField(max_length=50)
+    plate_no = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    side_no = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    price = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    depcity = serializers.CharField(max_length=50)
+    descity = serializers.CharField(max_length=50)
+    date = serializers.CharField(max_length=50)
+
+from rest_framework import serializers
+class CancelTicketRequestSerializer(serializers.Serializer):
+    refund_method = serializers.CharField(max_length=50, help_text="e.g., CBE Birr, Telebirr")
+    refund_account = serializers.CharField(max_length=50, help_text="Target bank account string")
+    password = serializers.CharField(max_length=128, help_text="Password of the operator/user authorizing cancellation")
+    
+    # Hidden ticket tracking keys
+    firstname = serializers.CharField(max_length=50)
+    lastname = serializers.CharField(max_length=50)
+    plate_no = serializers.CharField(max_length=50)
+    side_no = serializers.CharField(max_length=50)
+    price = serializers.CharField(max_length=50, required=False)
+
+
+
 """
 from rest_framework import serializers
 class UserProfileSerializer(serializers.Serializer):
@@ -83,7 +114,7 @@ class BusSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'phone', 'password', 'first_name', 'last_name']
+        fields = ['username', 'email', 'phone', 'password', 'city', 'first_name', 'last_name']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -97,6 +128,26 @@ class FeedbackSerializer(serializers.ModelSerializer):
         model = Feedback
         fields = '__all__'
 """
+
+
+
+class ActivateRequestSerializer(serializers.Serializer):
+    date = serializers.DateField(required=True, help_text="The date to fetch bus routes for.")
+
+class RouteDataSerializer(serializers.Serializer):
+    departure = serializers.CharField(source='depcity')
+    destination = serializers.CharField(source='descity')
+    date = serializers.DateField()
+    side_no = serializers.CharField()
+
+class ActivateResponseSerializer(serializers.Serializer):
+    routes = RouteDataSerializer(many=True)
+    buses_count = serializers.IntegerField()
+
+
+
+
+
 
 from rest_framework import serializers
 class CancelTicketRefundSerializer(serializers.Serializer):

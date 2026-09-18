@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Passenger Details | Wedehager Luxury Travel</title>
+    <title>Passenger Details | Busfermata Luxury Travel</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -207,6 +207,13 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 <script>
@@ -255,20 +262,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <nav class="navbar-main navbar navbar-expand-lg">
     <div class="container">
+
+	<!--
         <a href="{% url 'home' %}" class="d-flex align-items-center" style="text-decoration:none">
             <div class="brand-logo-box">
-                <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Logo">
-            </div>
+		 <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
             <div>
-                <span class="brand-text-main">Wedehager</span>
-                <span class="brand-tag">TRANSPORT TECHNOLOGY</span>
+        <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
+
+            </div>
+        </a>
+	-->
+
+	 <a href="{% url 'home' %}" class="brand-area">
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
+            <div>
+        <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
             </div>
         </a>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar">
             <span class="navbar-toggler-icon"><i class="fas fa-bars" style="color:var(--brand-navy)"></i></span>
         </button>
-
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav ml-auto align-items-center">
                 <li class="nav-item"><a class="nav-link nav-link-custom" href="{% url 'home' %}">Home</a></li>
@@ -279,6 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </nav>
+
 <header class="header-mini">
     <div class="container d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
@@ -309,6 +327,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
+
+    <!--
     <form action="{% url 'ticket' %}" method="post" id="search_form_1">
         {% csrf_token %}
         <div id="passenger-container">
@@ -320,11 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="hidden" name="date[]" value="{{ route.date }}">
                 <input type="hidden" name="depcity[]" value="{{ route.depcity }}">
                 <input type="hidden" name="descity[]" value="{{ route.descity }}">
-
-		<!--<input type="hidden" name="username[]" value="{{ username|default:'Guest' }}">-->
 		<input type="hidden" name="username[]" value="{{ username }}">
-<!--		<input type="hidden" name="username[]" value="{% if user.is_authenticated %}{{ user.username }}{% else %}Guest{% endif %}">-->
-
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <label class="small font-weight-bold">First Name</label>
@@ -372,6 +388,81 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     </form>
+    -->
+
+
+<form action="{% url 'ticket' %}" method="post" id="search_form_1">
+        {% csrf_token %}
+        <div id="passenger-container">
+            <div class="passenger-card shadow-sm border-0">
+                <h6 class="font-weight-bold mb-4" style="color:var(--brand-navy)"><i class="fas fa-user-circle mr-2"></i>PASSENGER DETAILS</h6>
+                <input type="hidden" name="price[]" class="individual-price" value="{{ route.price|default:'0' }}">
+                <input type="hidden" name="side_no[]" value="{{ route.side_no }}">
+                <input type="hidden" name="plate_no[]" value="{{ route.plate_no }}">
+                <input type="hidden" name="date[]" value="{{ route.date }}">
+                <input type="hidden" name="depcity[]" value="{{ route.depcity }}">
+                <input type="hidden" name="descity[]" value="{{ route.descity }}">
+
+                <input type="hidden" name="username[]" value="{{ username }}">
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="small font-weight-bold">First Name</label>
+                        <input type="text" name="firstname[]" class="form-control form-control-intl cap-input" oninput="handleNameInput(this)" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="small font-weight-bold">Father Name</label>
+                        <input type="text" name="lastname[]" class="form-control form-control-intl cap-input" oninput="handleNameInput(this)" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="small font-weight-bold">Phone Number</label>
+                        <input type="tel" name="phone[]" class="form-control form-control-intl" maxlength="10" placeholder="09..." required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="small font-weight-bold">Gender</label>
+                        <select name="gender[]" class="form-control form-control-intl" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="small font-weight-bold">Passenger Type</label>
+                        <select name="passenger_type[]" class="form-control form-control-intl" required>
+                            <option value="" disabled selected>Select Type</option>
+                            <option value="adult">Adult</option>
+                            <option value="child">Child</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="small font-weight-bold">Email Address</label>
+                        <input type="email" name="email[]" class="form-control form-control-intl" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="small font-weight-bold">Choose Seat</label>
+                        <select name="no_seat[]" class="form-control form-control-intl seat-trigger" onmousedown="event.preventDefault(); openSeatModal(this);" required>
+                            <option value="" disabled selected>Select seat from map...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center p-4 bg-white rounded-lg shadow-sm border">
+            <button type="button" id="addBtn" class="btn btn-outline-dark font-weight-bold">+ ADD PASSENGER</button>
+            <div class="text-right">
+                <span class="d-block small font-weight-bold text-muted">TOTAL AMOUNT</span>
+                <h3 class="font-weight-bold text-primary mb-2"><span id="totalDisplay">{{ route.price }}</span> ETB</h3>
+                <button type="submit" class="btn btn-lg px-5 font-weight-bold" style="background:var(--brand-gold); color:var(--brand-navy); border-radius:10px;">PROCEED TO BOOK</button>
+            </div>
+        </div>
+    </form>
+
+
+
+
     {% endfor %}
 </div>
 
@@ -400,8 +491,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <footer class="footer-dark">
     <div class="container">
-        <h5 class="font-weight-bold mb-3">Wedehager Transport Tech</h5>
-        <p class="small opacity-50 mb-0">© 2026 Wedehager • Digital Travel Solutions</p>
+        <h5 class="font-weight-bold mb-3">Busfermata Digital Technology</h5>
+        <p class="small opacity-50 mb-0">© 2026 Busfermata • Digital Travel Solutions</p>
     </div>
 </footer>
 

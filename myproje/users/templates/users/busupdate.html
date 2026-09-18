@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Update Fleet | Enterprise Transit</title>
+    <title>Update Bus | Enterprise Transit</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -119,6 +119,20 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -128,10 +142,10 @@
 	
 	<!--
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
-                <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="nav-logo">
+                <img src="{% static 'images/l.jpeg' %}" class="nav-logo">
                 <div class="ml-3">
-                    <span class="brand-name-main">Wedehager</span><br>
-                    <span class="brand-subtext">{{ name }} Share Company FLEET</span>
+                    <span class="brand-name-main">Busfermata</span><br>
+                    <span class="brand-subtext">{{ name }} Share Company BUS</span>
                 </div>
             </a>
 	-->
@@ -139,14 +153,14 @@
 
     <div class="nav-logo-container" style="display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #ffffff; border-radius: 50%; border: 3px solid #ffcc00; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; flex-shrink: 0;">
         {% if company.logo %}
-            <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="{{ company.logo.url }}" class="nav-logo-full" alt="Company Logo" style="width: 100px !important; height: 100px !important; object-fit: contain !important;">
         {% else %}
             <div class="nav-logo-fallback" style="font-size: 28px; color: #00264d;"><i class="fas fa-bus"></i></div>
         {% endif %}
     </div>
 
     <div class="brand-text-wrapper" style="display: flex; flex-direction: column; justify-content: center; margin-left: 1rem !important;">
-        <span class="brand-name-main" style="color: #ffffff; font-weight: 800; font-size: 17px; text-transform: uppercase; letter-spacing: 0.75px; line-height: 1.2;">Wedehager Transport</span>
+        <span class="brand-name-main" style="color: #ffffff; font-weight: 800; font-size: 17px; text-transform: uppercase; letter-spacing: 0.75px; line-height: 1.2;">Busfermata Digital Tech</span>
         <span class="brand-subtext" style="color: #ffcc00; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; margin-top: 3px; gap: 8px;">
             {% if name %}{{ name }}{% else %}Consolidated{% endif %} Share Co.
 
@@ -169,20 +183,26 @@
                     <select onchange="location.href = this.value;" class="intl-dropdown">
                         <option value="#" disabled selected>📁 REGISTRATION</option>
                         <option value="{% url 'businsert' %}">Register New Bus</option>
+        		<option value="{% url 'special_route' %}">Add New Route</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="intl-dropdown">
                         <option value="#" disabled selected>⚙️ OPERATIONS</option>
                         <option value="{% url 'myroute' %}">Active Routes</option>
-                        <option value="{% url 'mybus' %}">View Fleet</option>
+                        <option value="{% url 'mybus' %}">View Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="intl-dropdown" style="border-color: var(--danger-red);">
                         <option value="#" disabled selected>🛠️ MANAGEMENT</option>
                         <option value="{% url 'updatebus' %}">Edit Details</option>
+			 {% if level == 'Special Bus' %}
+                         <option value="{% url 'special_active' %}">Active Route</option>
+                        {% endif %}
+                        {% if level == 'Special Bus' %}
+                            <option value="{% url 'special_route_delete' %}" selected>Route Delete</option>
+                        {% endif %}
                         <option value="{% url 'busdelete' %}">Remove Bus</option>
                     </select>
-                    
                     <a href="{% url 'logout' %}" class="btn btn-sm btn-danger ml-xl-3 font-weight-bold py-1" style="font-size: 11px;">LOGOUT</a>
                 </div>
             </div>

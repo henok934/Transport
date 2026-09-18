@@ -13,6 +13,20 @@
 <link rel="stylesheet" type="text/css" href="../static/plugins/OwlCarousel2-2.2.1/animate.css">
 <link rel="stylesheet" type="text/css" href="../static/styles/main_styles.css">
 <link rel="stylesheet" type="text/css" href="../static/styles/responsive.css">
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body style="background-color: lightblue;">
 <div class="super_container">
@@ -118,7 +132,7 @@
 <header class="main-system-header shadow-sm">
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
-            <div class="contact-info"><i class="fa fa-phone"></i> +251 925 049 118</div>
+            <div class="contact-info"><i class="fa fa-phone"></i> +251 975143134</div>
             <div class="auth-box"><a href="{% url 'logout' %}" class="logout-text">LOGOUT</a></div>
         </div>
     </div>
@@ -130,7 +144,7 @@
 
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center p-0">
                 <div class="logo-container" style="width: 90px; height: 90px;">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-fluid">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-fluid">
                 </div>
 
                 <div class="brand-text-wrapper ml-1">
@@ -157,7 +171,7 @@
                     <select onchange="location.href = this.value;" class="mini-transit-select">
                         <option value="#" disabled selected>VIEW DATA</option>
                         <option value="{% url 'myroute' %}">Routes</option>
-                        <option value="{% url 'mybus' %}">Fleet</option>
+                        <option value="{% url 'mybus' %}">Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="mini-transit-select delete-border">

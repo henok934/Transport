@@ -6,11 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 2. SECURITY SETTINGS...
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
-DEBUG = False
+DEBUG = True
 
 #ALLOWED_HOSTS = ['*']
 
-#ALLOWED_HOSTS = ['https:fermataa-3ooq.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
+#ALLOWED_HOSTS = ['fermataa.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 
 ALLOWED_HOSTS = [
@@ -20,7 +20,6 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1'
 ]
-
 # Security Headers for Production/Audit
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -64,7 +63,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'myproje.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -84,7 +82,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'myproje.wsgi.application'
 
 # 4. DATABASE (PostgreSQL)
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
 """
+import os
+import dj_database_url
+# Default fallback database setup for local testing on your computer
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -95,50 +105,16 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-"""
 
-
-"""
-import dj_database_url
-import os
-
-# This checks if we are on Render. If yes, it uses Render's DB.
-# If no, it uses your local PostgreSQL.
+# Dynamic live configuration override for Render Cloud
 if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'my_app_db',
-            'USER': 'data',
-            'PASSWORD': 'Teklu@934',
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
-    }
-import dj_database_url
-import os
-DATABASES = {
-    'default': dj_database_url.config(
+    DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
-        conn_health_checks=True,
         ssl_require=True
     )
-}
 
-SECURE_SSL_REDIRECT = False
 """
 
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 # 5. AUTHENTICATION & USERS
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -170,20 +146,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CORS_ALLOW_ALL_ORIGINS = True
 
 #CSRF_TRUSTED_ORIGINS = ['https://m-k4xk.onrender.com']
-"""
-CSRF_TRUSTED_ORIGINS = [
-    'https://wedehagertransport.onrender.com',
-    'https://fermataa-3ooq.onrender.com/',
 
-]
-"""
 CSRF_TRUSTED_ORIGINS = [
     'https://wedehagertransport.onrender.com',
     'https://fermataa-3ooq.onrender.com',
 ]
 
-
-
+"""
+CSRF_TRUSTED_ORIGINS = [
+    'https://wedehagertransport.onrender.com',
+    'https://busfermata.onrender.com'
+]
+"""
 
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 

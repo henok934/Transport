@@ -13,6 +13,20 @@
 <link rel="stylesheet" type="text/css" href="../static/plugins/OwlCarousel2-2.2.1/animate.css">
 <link rel="stylesheet" type="text/css" href="../static/styles/main_styles.css">
 <link rel="stylesheet" type="text/css" href="../static/styles/responsive.css">
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body style="background-color: lightblue;">
 <div class="super_container">
@@ -123,7 +137,7 @@
 <div class="container">
 <div class="row">
 <div class="col d-flex flex-row">
-<div class="phone">+251 925 049 118</div>
+<div class="phone">+251 975143134</div>
 <div class="social">
 
         <ul class="social_list">
@@ -167,7 +181,7 @@
   <li class="main_nav_item">
             <a href="#" class="d-flex align-items-center" style="text-decoration: none;">
 
-                                <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="" style="width: 150px; height: 150px; margin-left: 100px; margin-top: 30px;">
+                                <img src="../static/images/l.jpeg" alt="" style="width: 150px; height: 150px; margin-left: 100px; margin-top: 30px;">
 				<span style="color: white;"></span>
             </a>
         </li>
@@ -268,7 +282,7 @@
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="contact-info">
-                <i class="fa fa-phone"></i> <span>+251 925 049 118</span>
+                <i class="fa fa-phone"></i> <span>+251 975143134</span>
             </div>
             <div class="top-links d-flex align-items-center">
                 <div class="social-icons mr-4">
@@ -290,7 +304,7 @@
     <nav class="navbar navbar-expand-xl navbar-dark bg-navy-custom">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo">
+                <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo">
                 <span class="brand-text-transit ml-2">TRANSIT PRO</span>
             </a>
 
@@ -315,7 +329,7 @@
                         <select onchange="location.href = this.value;" class="transit-select update">
                             <option value="#" disabled selected>MANAGEMENT</option>
                             <option value="{% url 'updatebus' %}">Update Details</option>
-                            <option value="{% url 'busdelete' %}">Delete Assets</option>
+                            <option value="{% url 'busdelete' %}">Delete Buss</option>
                         </select>
                     </li>
 
@@ -323,7 +337,7 @@
                         <select onchange="location.href = this.value;" class="transit-select show">
                             <option value="#" disabled selected>VIEW REPORTS</option>
                             <option value="{% url 'myroute' %}">My Routes</option>
-                            <option value="{% url 'mybus' %}">My Bus Fleet</option>
+                            <option value="{% url 'mybus' %}">My Bus Bus</option>
                         </select>
                     </li>
 
@@ -422,7 +436,7 @@
 <!--<header class="main-system-header shadow-sm">
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between">
-            <div class="contact-info"><i class="fa fa-phone"></i> +251 925 049 118</div>
+            <div class="contact-info"><i class="fa fa-phone"></i> +251 975143134</div>
             <div class="auth-box"><a href="{% url 'logout' %}" class="logout-text">LOGOUT</a></div>
         </div>
     </div>
@@ -432,7 +446,7 @@
             
             <div class="brand-section d-flex align-items-center">
                 <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-large">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-large">
                     <span class="brand-name-lg ml-2">TRANSIT SYSTEM</span>
                 </a>
                 
@@ -581,7 +595,7 @@
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="contact-info">
-                <i class="fa fa-phone"></i> +251 925 049 118
+                <i class="fa fa-phone"></i> +251 975143134
             </div>
             <div class="auth-box">
                 <a href="{% url 'logout' %}" class="logout-text">LOGOUT</a>
@@ -594,7 +608,7 @@
             
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center p-0">
                 <div class="logo-safe-area">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-full">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-full">
                 </div>
                 <div class="brand-text-wrapper ml-3">
                     <span class="brand-name-main">TRANSIT SYSTEM</span>
@@ -615,7 +629,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select">
                         <option value="#" disabled selected>Update Bus</option>
-                        <option value="{% url 'updatebus' %}">Manage Fleet</option>
+                        <option value="{% url 'updatebus' %}">Manage Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="intl-select">
@@ -626,7 +640,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select delete-action">
                         <option value="#" disabled selected>Delete Actions</option>
-                        <option value="{% url 'busdelete' %}">Remove Asset</option>
+                        <option value="{% url 'busdelete' %}">Remove Bus</option>
                     </select>
                 </div>
             </div>
@@ -750,7 +764,7 @@
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="contact-info">
-                <i class="fa fa-phone"></i> +251 925 049 118
+                <i class="fa fa-phone"></i> +251 975143134
             </div>
             <div class="auth-box">
                 <a href="{% url 'logout' %}" class="logout-text">LOGOUT</a>
@@ -763,10 +777,10 @@
 
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center p-0">
                 <div class="logo-safe-area">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-full">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-full">
                 </div>
                 <div class="brand-text-wrapper ml-1">
-                    <span class="brand-name-main">Wedehager Transport</span>
+                    <span class="brand-name-main">Busfermata Digital Tech</span>
                     <span class="brand-subtext"> {{ name }} Share Company </span>
                 </div>
             </a>
@@ -784,7 +798,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select">
                         <option value="#" disabled selected>Update Bus</option>
-                        <option value="{% url 'updatebus' %}">Manage Fleet</option>
+                        <option value="{% url 'updatebus' %}">Manage Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="intl-select">
@@ -795,7 +809,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select delete-action">
                         <option value="#" disabled selected>Delete Actions</option>
-                        <option value="{% url 'busdelete' %}">Remove Asset</option>
+                        <option value="{% url 'busdelete' %}">Remove Bus</option>
                     </select>
                 </div>
             </div>
@@ -919,7 +933,7 @@
 <header class="main-system-header shadow-sm">
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
-            <div class="contact-info"><i class="fa fa-phone"></i> +251 925 049 118</div>
+            <div class="contact-info"><i class="fa fa-phone"></i> +251 975143134</div>
             <div class="auth-box"><a href="{% url 'logout' %}" class="logout-text">LOGOUT</a></div>
         </div>
     </div>
@@ -931,7 +945,7 @@
 
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center p-0">
                 <div class="logo-container" style="width: 90px; height: 90px;">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-fluid">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-fluid">
                 </div>
                 
                 <div class="brand-text-wrapper ml-1">
@@ -958,7 +972,7 @@
                     <select onchange="location.href = this.value;" class="mini-transit-select">
                         <option value="#" disabled selected>VIEW DATA</option>
                         <option value="{% url 'myroute' %}">Routes</option>
-                        <option value="{% url 'mybus' %}">Fleet</option>
+                        <option value="{% url 'mybus' %}">Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="mini-transit-select delete-border">
@@ -1060,7 +1074,7 @@
 <header class="main-system-header shadow-sm">
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
-            <div class="contact-info"><i class="fa fa-phone"></i> +251 925 049 118</div>
+            <div class="contact-info"><i class="fa fa-phone"></i> +251 975143134</div>
             <div class="auth-box"><a href="{% url 'logout' %}" class="logout-text">LOGOUT</a></div>
         </div>
     </div>
@@ -1075,7 +1089,7 @@
             
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center p-0">
                 <div class="logo-container">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-fluid">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-fluid">
                 </div>
 	
 		<div class="brand-text-wrapper ml-2">
@@ -1102,7 +1116,7 @@
                     <select onchange="location.href = this.value;" class="mini-transit-select">
                         <option value="#" disabled selected>VIEW DATA</option>
                         <option value="{% url 'myroute' %}">Routes</option>
-                        <option value="{% url 'mybus' %}">Fleet</option>
+                        <option value="{% url 'mybus' %}">Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="mini-transit-select delete-border">
@@ -1123,7 +1137,7 @@
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="contact-info">
-                <i class="fa fa-phone"></i> +251 925 049 118
+                <i class="fa fa-phone"></i> +251 975143134
             </div>
             <div class="auth-box">
                 <a href="{% url 'logout' %}" class="logout-text">LOGOUT</a>
@@ -1136,7 +1150,7 @@
 
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center p-0">
                 <div class="logo-safe-area">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-full">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-full">
                 </div>
                 <div class="brand-text-wrapper ml-2">
                     <span class="brand-name-main">TRANSIT SYSTEM</span>
@@ -1157,7 +1171,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select">
                         <option value="#" disabled selected>Update Bus</option>
-                        <option value="{% url 'updatebus' %}">Manage Fleet</option>
+                        <option value="{% url 'updatebus' %}">Manage Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="intl-select">
@@ -1168,7 +1182,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select delete-action">
                         <option value="#" disabled selected>Delete Actions</option>
-                        <option value="{% url 'busdelete' %}">Remove Asset</option>
+                        <option value="{% url 'busdelete' %}">Remove Bus</option>
                     </select>
                 </div>
             </div>
@@ -1181,7 +1195,7 @@
     <div class="top-bar-mini">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <div class="contact-info">
-                <i class="fa fa-phone"></i> +251 925 049 118
+                <i class="fa fa-phone"></i> +251 975143134
             </div>
             <div class="auth-box">
                 <a href="{% url 'logout' %}" class="logout-text">LOGOUT</a>
@@ -1194,7 +1208,7 @@
 
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center p-0">
                 <div class="logo-safe-area">
-                    <img src="../static/images/photo_2026-01-31_09-14-55.jpg" alt="Logo" class="nav-logo-full">
+                    <img src="../static/images/l.jpeg" alt="Logo" class="nav-logo-full">
                 </div>
                 <div class="brand-text-wrapper ml-2">
                     <span class="brand-name-main">TRANSIT SYSTEM</span>
@@ -1215,7 +1229,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select">
                         <option value="#" disabled selected>Update Bus</option>
-                        <option value="{% url 'updatebus' %}">Manage Fleet</option>
+                        <option value="{% url 'updatebus' %}">Manage Bus</option>
                     </select>
 
                     <select onchange="location.href = this.value;" class="intl-select">
@@ -1226,7 +1240,7 @@
 
                     <select onchange="location.href = this.value;" class="intl-select delete-action">
                         <option value="#" disabled selected>Delete Actions</option>
-                        <option value="{% url 'busdelete' %}">Remove Asset</option>
+                        <option value="{% url 'busdelete' %}">Remove Bus</option>
                     </select>
                 </div>
             </div>

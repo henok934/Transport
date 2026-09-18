@@ -110,6 +110,20 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -117,7 +131,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-main">
         <div class="container-fluid">
             <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
-                <img src="{% static 'images/photo_2026-01-31_09-14-55.jpg' %}" class="nav-logo">
+                <img src="{% static 'images/l.jpeg' %}" class="nav-logo">
                 <div class="ml-3">
                     <span class="brand-text-lg">TRANSIT SYSTEM</span><br>
                     <span class="brand-text-sm">{{ name }} Share Company</span>
@@ -132,7 +146,7 @@
                 <select onchange="location.href = this.value;" class="intl-select">
                     <option value="#" disabled selected>⚙️ OPERATIONS</option>
                     <option value="{% url 'myroute' %}">Routes</option>
-                    <option value="{% url 'mybus' %}">Fleet</option>
+                    <option value="{% url 'mybus' %}">Bus</option>
                 </select>
                 <select onchange="location.href = this.value;" class="intl-select" style="border-color: var(--danger);">
                     <option value="#" disabled selected>🛠️ MANAGEMENT</option>

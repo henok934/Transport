@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Feedback | Wedehager Transport Technology</title>
+    <title>Feedback | Busfermata Digital Technology</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -56,6 +56,13 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -65,14 +72,15 @@
         <a href="{% url 'login' %}"><i class="fas fa-lock mr-1"></i> STAFF LOGIN</a>
     </div>
 </div>
-
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo">
-	    <div><span class="brand-text">Wedehager</span>
-		    <span class="brand-tagline">TRANSPORT TECHNOLOGY</span></div>
-        </a>
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
+	    <div> <!--<span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span>
+                <h1 class="brand-tagline" style="color: #007A78 !important; font-weight: bold !important; display: inline; margin: 0; padding: 0;">Digital Technology</h1>-->
+<h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
+	    </div></a>
         <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#mainMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -129,6 +137,133 @@
             </div>
             {% endif %}
 
+
+	    <form id="feedbackForm" action="{% url 'comment' %}" method="post">
+    {% csrf_token %}
+    <div class="form-group mb-3">
+        <label class="form-label">Full Name <span class="text-danger">*</span> </label>
+        <input type="text" name="name" class="form-control form-control-custom" placeholder="Enter your name" required>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+        <input type="tel" name="phone" class="form-control form-control-custom" maxlength="10" placeholder="09xxxxxxxx" pattern="[0][9,7][0-9]{8}" required>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="form-label">Email Address <span class="text-danger">*</span></label>
+        <input type="email" name="email" class="form-control form-control-custom" placeholder="name@example.com" required>
+    </div>
+
+    <div class="form-group mb-4">
+        <label class="form-label">Message <span class="text-danger">*</span></label>
+        <textarea
+            id="experienceMessage"
+            name="message"
+            class="form-control form-control-custom"
+            rows="5"
+            placeholder="Tell us about your experience..."
+            required></textarea>
+
+        <div id="errorMessage" style="color: red; font-size: 14px; margin-top: 5px; display: none; font-weight: 500;">
+            ⚠️ Please enter a meaningful message instead of random keyboard spam characters.
+        </div>
+    </div>
+
+    <button type="submit" id="submitBtn" class="btn-submit-comment shadow-sm">Send Feedback</button>
+</form>
+
+<script>
+const messageArea = document.getElementById('experienceMessage');
+const errorDiv = document.getElementById('errorMessage');
+const submitBtn = document.getElementById('submitBtn');
+const feedbackForm = document.getElementById('feedbackForm');
+
+const correctionMap = {
+    "tkt": "ticket",
+    "pgr": "passenger",
+    "buss": "bus",
+    "statn": "station",
+    "wedehager": "BUSFERMATA"
+};
+
+// Smart validation logic to separate real words from spam
+function validateMessageText(text) {
+    if (!text.trim()) return false;
+
+    // Split text into individual words
+    let words = text.trim().split(/\s+/);
+    let spamDetected = false;
+
+    for (let i = 0; i < words.length; i++) {
+        let word = words[i].toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g,"");
+
+        if (word.length === 0) continue;
+
+        // Rule 1: Catch continuous single letter spam like "hhhhhh" or "ffffff"
+        const repeatingPattern = /([a-z])\1{3,}/i;
+
+        // Rule 2: Strict Gibberish Check. If a word has NO vowels at all and is long, it's spam.
+        // Real English words starting with "u" (use, up, unhappy) ALWAYS have another vowel or normal structures.
+        const hasVowel = /[aeiouy]/i.test(word);
+
+        // Rule 3: Check for extreme consonant clusters that don't exist in normal words (like "fgfff")
+        const badConsonantCluster = /[^aeiouy]{5,}/i.test(word);
+
+        if (repeatingPattern.test(word) || (!hasVowel && word.length > 3) || badConsonantCluster) {
+            spamDetected = true;
+            break;
+        }
+    }
+    return spamDetected;
+}
+
+// LIVE AUTO-CORRECTION AND MONITORING
+messageArea.addEventListener('input', function(e) {
+    let currentText = e.target.value;
+
+    // Check for spam using our smart validation functions
+    if (validateMessageText(currentText)) {
+        errorDiv.style.display = 'block';
+        messageArea.style.borderColor = 'red';
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+    } else {
+        errorDiv.style.display = 'none';
+        messageArea.style.borderColor = '';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+    }
+
+    // Auto-Correction Replacements
+    let words = currentText.split(/\s+/);
+    let changed = false;
+
+    if (currentText.endsWith(' ')) {
+        for (let i = 0; i < words.length; i++) {
+            let cleanWord = words[i].toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g,"");
+            if (correctionMap[cleanWord]) {
+                words[i] = correctionMap[cleanWord];
+                changed = true;
+            }
+        }
+        if (changed) {
+            e.target.value = words.join(' ') + ' ';
+        }
+    }
+});
+
+// INTERCEPT FORM SUBMISSION IF JUNK REMAINS
+feedbackForm.addEventListener('submit', function(e) {
+    if (validateMessageText(messageArea.value) || submitBtn.disabled) {
+        e.preventDefault();
+        errorDiv.style.display = 'block';
+        messageArea.style.borderColor = 'red';
+        return false;
+    }
+});
+</script>
+	    <!--
             <form action="{% url 'comment' %}" method="post">
                 {% csrf_token %}
                 <div class="form-group mb-3">
@@ -149,18 +284,312 @@
                 <div class="form-group mb-4">
                     <label class="form-label">Message <span class="text-danger">*</span></label>
                     <textarea name="message" class="form-control form-control-custom" rows="5" placeholder="Tell us about your experience..." required></textarea>
-                </div>
+		   
+
+<textarea>
+    id="experienceMessage" 
+    name="message" 
+    class="form-control form-control-custom" 
+    rows="5" 
+    placeholder="ell us about your experience..." 
+    required>
+</textarea>
+
+<script>
+document.getElementById('experienceMessage').addEventListener('input', function(e) {
+    // Ultimate comprehensive dictionary for all passenger and transit terms
+    const correctionMap = {
+        // --- Core Brand Auto-Updates ---
+        "wedehager": "BUSFERMATA",
+        "wede": "BUSFERMATA",
+        "fermata": "BUSFERMATA",
+        "busfermata": "BUSFERMATA",
+
+        // --- Passengers & Customers ---
+        "pgr": "passenger",
+        "psgr": "passenger",
+        "passnger": "passenger",
+        "pax": "passenger",
+        "psngrs": "passengers",
+        "cust": "customer",
+        "cstmer": "customer",
+        "peopl": "people",
+
+        // --- Tickets & Booking ---
+        "tkt": "ticket",
+        "tkts": "tickets",
+        "tickt": "ticket",
+        "tckts": "tickets",
+        "bookin": "booking",
+        "bking": "booking",
+        "resrv": "reservation",
+        "rsvpt": "reservation",
+        "seatno": "seat number",
+
+        // --- Vehicles & Travel Operations ---
+        "buss": "bus",
+        "bs": "bus",
+        "buses": "buses",
+        "drv": "driver",
+        "drvr": "driver",
+        "cond": "conductor",
+        "condctr": "conductor",
+        "platno": "plate number",
+        "plateno": "plate number",
+        "sideno": "side number",
+        "route": "route",
+        "trvl": "travel",
+        "trvler": "traveler",
+
+        // --- Stations & Terminals ---
+        "statn": "station",
+        "stn": "station",
+        "termnal": "terminal",
+        "trmnl": "terminal",
+        "stop": "bus stop",
+
+        // --- Financial, Refunds & Cancellations ---
+        "rfnd": "refund",
+        "rfnded": "refunded",
+        "bal": "balance",
+        "blnc": "balance",
+        "recovr": "recover",
+        "canc": "cancel",
+        "cncl": "cancel",
+        "cancld": "cancelled",
+        "cancele": "cancelled",
+        "paymnt": "payment",
+        "pymnt": "payment",
+        "prc": "price",
+        "mny": "money",
+
+        // --- Common Local & Digital Payment Contexts ---
+        "tele": "Telebirr",
+        "telebir": "Telebirr",
+        "cbe": "CBE",
+        "boa": "BoA",
+
+        // --- Quality & Feedback Phrasing ---
+        "thx": "thank you",
+        "tnx": "thank you",
+        "ty": "thank you",
+        "pls": "please",
+        "plz": "please",
+        "wrk": "work",
+        "goodservice": "good service",
+        "exp": "experience",
+        "exprnce": "experience",
+        "exclnt": "excellent",
+        "bad": "poor",
+        "prob": "problem",
+        "prblem": "problem",
+        "diff": "difficulty",
+
+        // --- System, Localization & Languages ---
+        "amharc": "Amharic",
+        "orom": "Afaan Oromoo",
+        "oromo": "Afaan Oromoo",
+        "tigr": "Tigrinya",
+        "tigrin": "Tigrinya",
+        "systm": "system",
+        "app": "application"
+    };
+
+    let currentText = e.target.value;
+    let words = currentText.split(/\s+/);
+    let changed = false;
+
+    // Trigger word correction dynamically when spacebar is pressed
+    if (currentText.endsWith(' ')) {
+        for (let i = 0; i < words.length; i++) {
+            // Remove punctuation hooks so words like "tkt," or "pgr." translate cleanly
+            let cleanWord = words[i].toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g,"");
+            
+            if (correctionMap[cleanWord]) {
+                // Replace misspelled text with the accurate word, preserving end punctuation if needed
+                let endsWithPunctuation = /[.,\/#!$%\^&\*;:{}=\-_`~()?"']/.test(words[i].slice(-1));
+                let punctuation = endsWithPunctuation ? words[i].slice(-1) : "";
+                
+                words[i] = correctionMap[cleanWord] + punctuation;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            // Re-render text field values cleanly
+            e.target.value = words.join(' ') + ' ';
+        }
+    }
+});
+</script>
+
+
+    <textarea 
+        id="experienceMessage" 
+        name="message" 
+        class="form-control form-control-custom" 
+        rows="5" 
+        placeholder="Tell us about your experience..." 
+        required></textarea>
+
+    <div id="errorMessage" style="color: red; font-size: 14px; margin-top: 5px; display: none;">
+        Please enter a meaningful message instead of random characters.
+    </div>
+
+<script>
+// 1. THIS PART HANDLES THE DICTIONARY CHANGES AS THEY TYPE
+document.getElementById('experienceMessage').addEventListener('input', function(e) {
+    const correctionMap = {
+      "wedehager": "BUSFERMATA",
+        "wede": "BUSFERMATA",
+        "fermata": "BUSFERMATA",
+        "busfermata": "BUSFERMATA",
+
+        // --- Passengers & Customers ---
+        "pgr": "passenger",
+        "psgr": "passenger",
+        "passnger": "passenger",
+        "pax": "passenger",
+        "psngrs": "passengers",
+        "cust": "customer",
+        "cstmer": "customer",
+        "peopl": "people",
+
+        // --- Tickets & Booking ---
+        "tkt": "ticket",
+        "tkts": "tickets",
+        "tickt": "ticket",
+        "tckts": "tickets",
+        "bookin": "booking",
+        "bking": "booking",
+        "resrv": "reservation",
+        "rsvpt": "reservation",
+        "seatno": "seat number",
+
+        // --- Vehicles & Travel Operations ---
+        "buss": "bus",
+        "bs": "bus",
+        "buses": "buses",
+        "drv": "driver",
+        "drvr": "driver",
+        "cond": "conductor",
+        "condctr": "conductor",
+        "platno": "plate number",
+        "plateno": "plate number",
+        "sideno": "side number",
+        "route": "route",
+        "trvl": "travel",
+        "trvler": "traveler",
+
+        // --- Stations & Terminals ---
+        "statn": "station",
+        "stn": "station",
+        "termnal": "terminal",
+        "trmnl": "terminal",
+        "stop": "bus stop",
+
+        // --- Financial, Refunds & Cancellations ---
+        "rfnd": "refund",
+        "rfnded": "refunded",
+        "bal": "balance",
+        "blnc": "balance",
+        "recovr": "recover",
+        "canc": "cancel",
+        "cncl": "cancel",
+        "cancld": "cancelled",
+        "cancele": "cancelled",
+        "paymnt": "payment",
+        "pymnt": "payment",
+        "prc": "price",
+        "mny": "money",
+
+        // --- Common Local & Digital Payment Contexts ---
+        "tele": "Telebirr",
+        "telebir": "Telebirr",
+        "cbe": "CBE",
+        "boa": "BoA",
+
+        // --- Quality & Feedback Phrasing ---
+        "thx": "thank you",
+        "tnx": "thank you",
+        "ty": "thank you",
+        "pls": "please",
+        "plz": "please",
+        "wrk": "work",
+        "goodservice": "good service",
+        "exp": "experience",
+        "exprnce": "experience",
+        "exclnt": "excellent",
+        "bad": "poor",
+        "prob": "problem",
+        "prblem": "problem",
+        "diff": "difficulty",
+
+        // --- System, Localization & Languages ---
+        "amharc": "Amharic",
+        "orom": "Afaan Oromoo",
+        "oromo": "Afaan Oromoo",
+        "tigr": "Tigrinya",
+        "tigrin": "Tigrinya",
+        "systm": "system",
+        "app": "application"
+    };
+
+    let currentText = e.target.value;
+    let words = currentText.split(/\s+/);
+    let changed = false;
+
+    if (currentText.endsWith(' ')) {
+        for (let i = 0; i < words.length; i++) {
+            let cleanWord = words[i].toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g,"");
+            if (correctionMap[cleanWord]) {
+                words[i] = correctionMap[cleanWord];
+                changed = true;
+            }
+        }
+        if (changed) {
+            e.target.value = words.join(' ') + ' ';
+        }
+    }
+});
+
+// 2. THIS PART BLOCKS GIBBERISH WHEN THEY TRY TO SEND
+document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+    const messageInput = document.getElementById('experienceMessage').value;
+    const errorDiv = document.getElementById('errorMessage');
+
+    // Rule: If a single word has more than 5 consonants in a row, it's probably gibberish
+    const gibberishPattern = /[^aeiouy\s]{6,}/i;
+
+    if (gibberishPattern.test(messageInput)) {
+        e.preventDefault(); // Stop the form from submitting to Django
+        errorDiv.style.display = 'block'; // Show error message
+        document.getElementById('experienceMessage').style.borderColor = 'red';
+    } else {
+        errorDiv.style.display = 'none';
+    }
+});
+</script>
+
+
+
+		</div>
 
                 <button type="submit" class="btn-submit-comment shadow-sm">Send Feedback</button>
             </form>
+	    -->
+
+
+
+
         </div>
     </div>
 </div>
 
 <footer class="footer-main">
     <div class="container">
-        <h3 class="mb-4" style="font-weight: 800;">Wedehager Transport Tech</h3>
-        <p class="opacity-50">© 2026 Wedehager • Feedback System</p>
+        <h3 class="mb-4" style="font-weight: 800;">Busfermata Digital Technology</h3>
+        <p class="opacity-50">© 2026 Busfermata • Feedback System</p>
         <div class="mt-4">
             <i class="fab fa-facebook mx-3"></i>
             <i class="fab fa-telegram mx-3"></i>

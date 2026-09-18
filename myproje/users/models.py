@@ -17,6 +17,7 @@ class CustomUser(AbstractUser):
     """ Acts as the SYSTEM ADMIN """
     registration_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     phone = models.CharField(max_length=50, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)  # <-- Added City field
     registered_time = models.DateTimeField(auto_now_add=True)
 
 
@@ -150,7 +151,16 @@ class Ticket(models.Model):
 
         # 3. Generate QR Code (only if not already there)
         if not self.qr_code:
-            qr_data = f"PNR: {self.pnr}\nPassenger: {self.firstname} {self.lastname}\nSeat: {self.no_seat}"
+            #qr_data = f"PNR: {self.pnr}\nPassenger: {self.firstname} {self.lastname}\nSeat: {self.no_seat}"
+            qr_data = (
+            f"--- BUSFERMATA DIGITAL TICKET ---\n"
+            f"PNR Reference: {self.pnr}\n"
+            f"Passenger: {self.firstname} {self.lastname}\n"
+            f"Route Path: {self.depcity.upper()} ➔ {self.descity.upper()}\n"
+            f"Departure Date: {self.date}\n"
+            f"Seat Allocation: {self.no_seat}\n"
+            f"---------------------------------"
+            )
             qr = qrcode.QRCode(version=1, box_size=5, border=2)
             qr.add_data(qr_data)
             qr.make(fit=True)

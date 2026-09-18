@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Safaricom Payment | Wedehager</title>
+    <title>Safaricom Payment | Busfermata</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -20,7 +20,7 @@
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; margin: 0; }
 
-        /* --- WEDEHAGER HEADER (MATCHING INDEX.HTML) --- */
+        /* --- Busfermata HEADER (MATCHING INDEX.HTML) --- */
         .top-bar { background: var(--brand-dark); color: white; padding: 8px 0; font-size: 13px; }
         .top-bar a { color: var(--brand-gold); font-weight: 700; text-decoration: none; }
         
@@ -70,6 +70,13 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -84,10 +91,10 @@
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="brand-area">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Wedehager Logo">
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
             <div>
-                <span class="brand-text">Wedehager</span>
-                <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
+            <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
             </div>
         </a>
 
@@ -115,26 +122,40 @@
 
 <nav class="navbar-main navbar navbar-expand-lg navbar-light">
     <div class="container">
+	    <!--
         <a href="{% url 'home' %}" class="d-flex align-items-center" style="text-decoration:none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" height="50" style="border: 2px solid var(--brand-navy); border-radius: 8px;">
+            <img src="../static/images/l.jpeg" height="50" style="border: 2px solid var(--brand-navy); border-radius: 8px;">
             <div class="ml-2 text-left">
-                <div style="font-weight:800; color:var(--brand-navy); font-size:20px; line-height:1;">WEDEHAGER</div>
+                <div style="font-weight:800; color:var(--brand-navy); font-size:20px; line-height:1;">Busfermata</div>
                 <div style="font-weight:800; color:var(--brand-gold); font-size:9px; letter-spacing:1.2px;">TRANSPORT TECHNOLOGY</div>
             </div>
         </a>
+	-->
+	<a href="{% url 'home' %}" class="brand-area">
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
+            <div>
+        <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
+            </div>
+        </a>
 
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#wedehagerNavbar">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#BusfermataNavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="wedehagerNavbar">
+        <div class="collapse navbar-collapse" id="BusfermataNavbar">
             <ul class="navbar-nav ml-auto align-items-center">
                 <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'home' %}">Home</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'book' %}">Book</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'get_ticket' %}">My Ticket</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'about' %}">About us</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-intl" href="{% url 'comment' %}">Feedback</a></li>
-                <li class="nav-item ml-lg-3"><a class="nav-link nav-link-intl btn-login-intl" href="{% url 'login' %}">Login</a></li>
+		<!-- <li class="nav-item ml-lg-3"><a class="nav-link nav-link-intl btn-login-intl" href="{% url 'login' %}">Login</a></li>-->
+		<li class="nav-item ml-lg-3">
+    <a class="nav-link nav-link-intl px-4 rounded-pill border"
+       style="background-color: var(--brand-gold) !important; color: var(--brand-navy) !important; font-weight: 800;"
+       href="{% url 'book' %}">Book Now</a>
+</li>
             </ul>
         </div>
     </div>
@@ -188,8 +209,8 @@
 
 <footer class="footer-main">
     <div class="container">
-        <h5 class="font-weight-bold mb-3">Wedehager Transport Tech</h5>
-        <p class="mb-0">© 2026 Wedehager • National Travel Solutions</p>
+        <h5 class="font-weight-bold mb-3">Busfermata Digital Technology</h5>
+        <p class="mb-0">© 2026 Busfermata • National Travel Solutions</p>
     </div>
 </footer>
 

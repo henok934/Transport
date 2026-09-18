@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Wedehager | Ethiopia's Premier Transport Network</title>
+    <title>Busfermata | Ethiopia's Premier Transport Network</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
@@ -165,6 +165,13 @@
         html { margin-top: 0px !important; } 
         .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
+<style>
+.brand-logo {
+    border: none !important;      /* Removes the black border */
+    box-shadow: none !important;  /* Removes any surrounding shadow if present */
+    border-radius: 0;             /* Resets the rounded corners if necessary */
+}
+</style>
 </head>
 <body>
 
@@ -180,10 +187,11 @@
 <nav class="navbar-main">
     <div class="container d-flex align-items-center justify-content-between">
         <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="../static/images/photo_2026-01-31_09-14-55.jpg" class="brand-logo" alt="Wedehager Logo">
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
             <div class="ml-3">
-                <span class="brand-text">Wedehager</span>
-                <span class="brand-tagline">TRANSPORT TECHNOLOGY</span>
+                <span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span>
+                <br/>
+                <h3 class="brand-tagline" style="color: #007A78 !important; font-weight: bold !important; display: inline; margin: 0; padding: 0;">Digital Technology</h3>
             </div>
         </a>
 
@@ -302,7 +310,7 @@
 </section>
 <footer class="footer-main">
     <div class="container">
-        <h2 class="font-weight-bold mb-4">Wedehager Transport Tech</h2>
+        <h2 class="font-weight-bold mb-4">Busfermata Digital Technology</h2>
         <p style="color: var(--brand-gold); font-weight: 700; font-size: 1.2rem;">Seamlessly Connecting Ethiopia</p>
         <div class="social-icons my-4">
             <i class="fab fa-facebook-f mx-3" style="font-size: 20px;"></i>
@@ -310,7 +318,7 @@
             <i class="fab fa-instagram mx-3" style="font-size: 20px;"></i>
         </div>
         <hr style="border-color: rgba(255,255,255,0.1); width: 60%; margin: 30px auto;">
-        <p class="opacity-50 small">© 2026 Wedehager Transport • All Rights Reserved</p>
+        <p class="opacity-50 small">© 2026 Busfermata Digital Tech • All Rights Reserved</p>
     </div>
 </footer>
 <script src="../static/js/jquery-3.2.1.min.js"></script>
