@@ -21,6 +21,18 @@ class CustomUser(AbstractUser):
     registered_time = models.DateTimeField(auto_now_add=True)
 
 
+class Pasenger(models.Model):
+    registration_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    registered_time = models.DateTimeField(auto_now_add=True)
+    first_name = models.CharField(max_length=50, null=True, blank=True)
+    last_name = models.CharField(max_length=50, null=True, blank=True)
+    password = models.CharField(max_length=128)
+    age = models.CharField(max_length=50, null=True, blank=True) # Company Name
+    email = models.EmailField(null=True, blank=True)
+    phone = models.CharField(max_length=50, null=True, blank=True)
+    gender = models.CharField(max_length=20, null=True, blank=True)
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
 
 class Sc(models.Model):
     """ SHARE COMPANY Admin """

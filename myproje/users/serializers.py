@@ -111,12 +111,46 @@ class BusSerializer(serializers.ModelSerializer):
 """
 
 
+"""
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'phone', 'password', 'city', 'first_name', 'last_name']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
+"""
+
+from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import get_user_model
+from .models import CustomUser, Worker, Sc, Pasenger
+User = get_user_model()
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'gender',
+            'phone',
+            'city',
+            'password'
+        ]
+        extra_kwargs = {'password': {'write_only': True}}
+    def validate_phone(self, phone_input):
+        if (
+            Worker.objects.filter(phone=phone_input).exists() or
+            Sc.objects.filter(phone=phone_input).exists() or
+            Pasenger.objects.filter(phone=phone_input).exists() or
+            User.objects.filter(phone=phone_input).exists()
+        ):
+            raise serializers.ValidationError("This phone number is already registered across the system.")
+        return phone_input
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)

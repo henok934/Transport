@@ -1,6 +1,6 @@
 from django.urls import path
 from .import views
-from .views import Workerdelet,Special_activates,Subspecific,SubshowTicketsViewss,SpecialDeleteTickets, SpecialDeleteTicketsView, SpecialDeleteTicket, SpecialBuschange, Special_route_DeleteViews, Special_route, Special_active, BusDeleteViews, Recover_balanceView, CancelTicketView, ProfileView, LogoutView, DeleteTicketViews, TicketBookingViews, DeleteTicketsView, SeeView, Changepassenger, Activates, Activate, TicketBookingViews, Books, Totalballance,  Specific, Serviceupdate, MyBus, ServicInsertView, UpdateTicketViews, ScDeleteViews, Scchange,  Sce, SelView, MyRoute, BusInsertView, ShowTicketsViewss,ScInsertViews, BusInsertViews, Safaricompassword, ForgotPasswordView, Boapassword, Cbepassword, Awashpassword, Telebirrpassword, ShowTicketsViews,TelebirrPaymentView, SafariPaymentView, AwashPaymentView, CbePaymentView, BoaPaymentView, ProcessPaymentView, SelectView,ChangesBusView, ChangePasswordView, ChangeBusesViews, DeleteTickets, BusUpdateViewss, CommentDeleteViews, WorkerDeleteViews, RouteDeleteViews, CityDeleteViews, About, AdminDeleteViews, LoginView, HomeViews, BookView, GetTicketViews, CommentsView,  CityInsertView, RoutesInsertView, UrRegisterView, Workers, TicketInfoView, SelectBusView, Buse, Com, Rout, Use, Drivers, RouteView, SelectBusView, SelectView, ChangePasswordView, CommentsView, SelectBusView,  RouteView
+from .views import Workerdelet,Special_activates,reset_success_view, VerifyOTPAndResetPasswordView, passenger_register,Subspecific,SubshowTicketsViewss,SpecialDeleteTickets, SpecialDeleteTicketsView, SpecialDeleteTicket, SpecialBuschange, Special_route_DeleteViews, Special_route, Special_active, BusDeleteViews, Recover_balanceView, CancelTicketView, ProfileView, LogoutView, DeleteTicketViews, TicketBookingViews, DeleteTicketsView, SeeView, Changepassenger, Activates, Activate, TicketBookingViews, Books, Totalballance,  Specific, Serviceupdate, MyBus, ServicInsertView, UpdateTicketViews, ScDeleteViews, Scchange,  Sce, SelView, MyRoute, BusInsertView, ShowTicketsViewss,ScInsertViews, BusInsertViews, Safaricompassword, ForgotPasswordView, Boapassword, Cbepassword, Awashpassword, Telebirrpassword, ShowTicketsViews,TelebirrPaymentView, SafariPaymentView, AwashPaymentView, CbePaymentView, BoaPaymentView, ProcessPaymentView, SelectView,ChangesBusView, ChangePasswordView, ChangeBusesViews, DeleteTickets, BusUpdateViewss, CommentDeleteViews, WorkerDeleteViews, RouteDeleteViews, CityDeleteViews, About, AdminDeleteViews, LoginView, HomeViews, BookView, GetTicketViews, CommentsView,  CityInsertView, RoutesInsertView, UrRegisterView, Workers, TicketInfoView, SelectBusView, Buse, Com, Rout, Use, Drivers, RouteView, SelectBusView, SelectView, ChangePasswordView, CommentsView, SelectBusView,  RouteView
 from django.views.generic import RedirectView
 from django.urls import path
 from rest_framework import permissions
@@ -11,13 +11,18 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('about/', About.as_view(), name='about'),
+    path('reset-success/', reset_success_view, name='reset_success'),
     path('cancel-ticket/', CancelTicketView.as_view(), name='cancel_ticket'),
     path('recover/', Recover_balanceView.as_view(), name='recover'),
     path('api/about/', About.as_view(), name='api_about'),  # Updated to 'api/about/'
     path('Select/', SelectView.as_view(), name='Select'),
+    path('reset-password/verify/', VerifyOTPAndResetPasswordView.as_view(), name='verify_otp_reset'),
     path('Sel/', SelView.as_view(), name='Sel'), # Unique name
     path('api/Sel/', SelView.as_view(), name='sel_api'), # Unique name    
     path('see/', SeeView.as_view(), name='see'),
+    path('my-tickets/', views.my_tickets_view, name='my_tickets'),
+    path('passenger_register/', views.passenger_register, name='passenger_register'),
+    path('api/passenger/register/', views.passenger_register, name='api_passenger_register'),
     path('api/see/', SeeView.as_view(), name='api_see'),
     path('updatebus/', BusUpdateViewss.as_view(), name='updatebus'),
     path('special_active/', Special_active.as_view(), name='special_active'),

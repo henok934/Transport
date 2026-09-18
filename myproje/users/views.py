@@ -1229,6 +1229,7 @@ class GetTicketViews(APIView):
                 return Response({'error': 'No booked tickets found for this travel'}, status=status.HTTP_404_NOT_FOUND)
 
 
+"""
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -1368,7 +1369,557 @@ class LoginView(APIView):
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/login.html', {'error': error_message, 'buschanges_count': buschanges_count})
         return Response({'error': error_message}, status=status.HTTP_401_UNAUTHORIZED)
+"""
 
+
+
+
+
+"""
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Buschange, Route, Sc, Ticket, Worker, Pasenger
+class LoginView(APIView):
+    def get_buschanges_count(self):
+        cache_key = "buschanges_count"
+        count = cache.get(cache_key)
+        if count is None:
+            count = Buschange.objects.count()
+            cache.set(cache_key, count, timeout=300)
+        return count
+
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+
+        return phone
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": settings.TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context)
+        return Response(context, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+
+        # 1. Phone Normalization
+        raw_phone = request.data.get("phone", "").strip() or request.data.get("username", "").strip()
+        phone = self.normalize_phone(raw_phone)
+
+        password = str(request.data.get("password", "")).strip()
+        captcha_response = request.data.get("cf-turnstile-response")
+
+        if not captcha_response:
+            return self.handle_login_error(buschanges_count, request, "Security Verification Required: Missing token.")
+
+        # 2. Real Client IP Extraction
+        client_ip = self.get_client_ip(request)
+        verify_data = {
+            "secret": settings.TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            captcha_verify = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=2.0
+            )
+            result = captcha_verify.json()
+
+            # success=False ከሆነ ቀጥታ አቁሞ የደህንነት ስህተቱን ይመልሳል
+            if not result.get("success"):
+                return self.handle_login_error(buschanges_count, request, "Security Verification Failed.")
+        except requests.exceptions.RequestException:
+            return self.handle_login_error(buschanges_count, request, "Verification Gateway Timeout.")
+
+        if not phone:
+            return self.handle_login_error(buschanges_count, request, "Phone number is required.")
+
+        # 4. Account-Based Lockout Check
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 30
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 30 - elapsed)
+
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                f"Too many failed login attempts! Please wait {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds
+            )
+
+        # 1. PASSENGER CHECK
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["passenger_id"] = passenger.id
+                request.session["phone"] = passenger.phone
+                request.session["name"] = f"{passenger.first_name} {passenger.last_name}"
+                request.session.modified = True
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # 2. WORKER CHECK
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["worker_id"] = worker.id
+                request.session["phone"] = worker.phone
+                request.session.modified = True
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+        try:
+            sc_user = Sc.objects.get(phone=phone)
+            if check_password(password, sc_user.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["sc_id"] = sc_user.id
+                request.session["phone"] = sc_user.phone
+                request.session.modified = True
+                return render(request, "users/rooteeess.html", {"company": sc_user})
+        except Sc.DoesNotExist:
+            pass
+
+        # 4. CUSTOM USER CHECK
+        user_response = self.handle_user_login(phone, password, buschanges_count, request, account_lockout_key)
+        if user_response:
+            return user_response
+
+        # Failed Attempt Track
+        is_now_locked = self.track_failed_attempt(account_lockout_key, phone)
+        if is_now_locked:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "3 failed attempts. The page is locked for 30 seconds!",
+                remaining_seconds=30
+            )
+
+        return self.handle_login_error(buschanges_count, request, "Invalid phone number or password!")
+
+    def handle_user_login(self, phone, password, buschanges_count, request, lockout_key):
+        User = get_user_model()
+        actual_username = phone
+        try:
+            user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+            if user_obj:
+                actual_username = user_obj.username
+        except Exception:
+            pass
+
+        user = authenticate(request, username=actual_username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            self.clear_security_flags(lockout_key, phone)
+            request.session.cycle_key()
+            request.session["user_id"] = user.id
+            request.session["phone"] = getattr(user, "phone", phone)
+            request.session.modified = True
+            return render(request, "users/profile.html", {"user": user, "buschanges_count": buschanges_count})
+
+        return None
+
+    def track_failed_attempt(self, lockout_key, phone):
+        attempt_key = f"attempts_{lockout_key}"
+        current_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, current_attempts, timeout=60)
+
+        if current_attempts >= 3:
+            cache.set(lockout_key, True, timeout=30)
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=30)
+            cache.delete(attempt_key)
+            return True
+        return False
+    def clear_security_flags(self, lockout_key, phone):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{lockout_key}")
+        cache.delete(f"lockout_time_{phone}")
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": settings.TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
+        return Response(context, status=status.HTTP_401_UNAUTHORIZED)
+"""
+
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Buschange, Route, Sc, Ticket, Worker, Pasenger
+
+# Direct Turnstile Keys configured right here
+TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA"
+
+class LoginView(APIView):
+    def get_buschanges_count(self):
+        cache_key = "buschanges_count"
+        count = cache.get(cache_key)
+        if count is None:
+            count = Buschange.objects.count()
+            cache.set(cache_key, count, timeout=300)
+        return count
+
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+
+        return phone
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context)
+        return Response(context, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+
+        # 1. Phone Normalization
+        raw_phone = request.data.get("phone", "").strip() or request.data.get("username", "").strip()
+        phone = self.normalize_phone(raw_phone)
+
+        password = str(request.data.get("password", "")).strip()
+        captcha_response = request.data.get("cf-turnstile-response")
+
+        if not captcha_response:
+            return self.handle_login_error(buschanges_count, request, "Security Verification Required: Missing token.")
+
+        # 2. Real Client IP Extraction
+        client_ip = self.get_client_ip(request)
+        verify_data = {
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            captcha_verify = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=2.0
+            )
+            result = captcha_verify.json()
+
+            if not result.get("success"):
+                return self.handle_login_error(buschanges_count, request, "Security Verification Failed.")
+        except requests.exceptions.RequestException:
+            return self.handle_login_error(buschanges_count, request, "Verification Gateway Timeout.")
+
+        if not phone:
+            return self.handle_login_error(buschanges_count, request, "Phone number is required.")
+
+        # 4. Account-Based Lockout Check
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 30
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 30 - elapsed)
+
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                f"Too many failed login attempts! Please wait {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds
+            )
+
+        # 1. PASSENGER CHECK
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["passenger_id"] = passenger.id
+                request.session["phone"] = passenger.phone
+                request.session["name"] = f"{passenger.first_name} {passenger.last_name}"
+                request.session.modified = True
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # 2. WORKER CHECK
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["worker_id"] = worker.id
+                request.session["phone"] = worker.phone
+                request.session.modified = True
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+
+        # 3. SC CHECK
+        try:
+            sc_user = Sc.objects.get(phone=phone)
+            if check_password(password, sc_user.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["sc_id"] = sc_user.id
+                request.session["phone"] = sc_user.phone
+                request.session.modified = True
+                return render(request, "users/rooteeess.html", {"company": sc_user})
+        except Sc.DoesNotExist:
+            pass
+
+        # 4. CUSTOM USER CHECK
+        user_response = self.handle_user_login(phone, password, buschanges_count, request, account_lockout_key)
+        if user_response:
+            return user_response
+
+        # Failed Attempt Track
+        is_now_locked = self.track_failed_attempt(account_lockout_key, phone)
+        if is_now_locked:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "3 failed attempts. The page is locked for 30 seconds!",
+                remaining_seconds=30
+            )
+
+        return self.handle_login_error(buschanges_count, request, "Invalid phone number or password!")
+
+    def handle_user_login(self, phone, password, buschanges_count, request, lockout_key):
+        User = get_user_model()
+        actual_username = phone
+        try:
+            user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+            if user_obj:
+                actual_username = user_obj.username
+        except Exception:
+            pass
+
+        user = authenticate(request, username=actual_username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            self.clear_security_flags(lockout_key, phone)
+            request.session.cycle_key()
+            request.session["user_id"] = user.id
+            request.session["phone"] = getattr(user, "phone", phone)
+            request.session.modified = True
+            return render(request, "users/profile.html", {"user": user, "buschanges_count": buschanges_count})
+
+        return None
+
+    def track_failed_attempt(self, lockout_key, phone):
+        attempt_key = f"attempts_{lockout_key}"
+        current_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, current_attempts, timeout=60)
+
+        if current_attempts >= 3:
+            cache.set(lockout_key, True, timeout=30)
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=30)
+            cache.delete(attempt_key)
+            return True
+        return False
+
+    def clear_security_flags(self, lockout_key, phone):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{lockout_key}")
+        cache.delete(f"lockout_time_{phone}")
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
+        return Response(context, status=status.HTTP_401_UNAUTHORIZED)
+
+import json
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+from .models import Pasenger, Worker, Sc
+User = get_user_model()
+def passenger_register(request):
+    if request.method == 'POST':
+        try:
+            # ከ JavaScript በ JSON የመጣውን መረጃ ማንበብ
+            data = json.loads(request.body)
+
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            phone = data.get('phone')
+            gender = data.get('gender')
+            age = data.get('age')
+            password = data.get('password')
+            confirm_password = data.get('confirm_password')
+
+            # የይለፍ ቃል ማረጋገጫ (Validation)
+            if password != confirm_password:
+                return JsonResponse({'detail': 'Passwords do not match. Please try again.'}, status=400)
+
+            # የስልክ ቁጥር መደጋገም ማረጋገጫ (Cross-Model Validation)
+            if phone and (
+                Pasenger.objects.filter(phone=phone).exists() or
+                Worker.objects.filter(phone=phone).exists() or
+                Sc.objects.filter(phone=phone).exists() or
+                User.objects.filter(phone=phone).exists()
+            ):
+                return JsonResponse({'detail': 'This phone number is already registered across the system.'}, status=400)
+            # አዲስ Passenger መፍጠር
+            passenger = Pasenger(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                gender=gender,
+                age=age
+            )
+            # Password Encrypt አድርጎ ማስቀመጥ
+            passenger.set_password(password)
+            passenger.save()
+            # ለ JavaScript ስኬታማ መልስ መስጠት (Status 201)
+            return JsonResponse({'message': 'Registration successful! Please log in.'}, status=201)
+        except Exception as e:
+            return JsonResponse({'detail': str(e)}, status=400)
+    # GET Request ከሆነ HTML ፔጁን ማሳየት
+    return render(request, 'users/passenger_register.html')
+
+
+import random
+import string
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Pasenger, Ticket
+def generate_pnr():
+    """ለእያንዳንዱ ትኬት ልዩ የሆነ PNR ጀነሬት ለማድረግ"""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+def my_tickets_view(request):
+    passenger_phone = request.session.get("phone")
+
+    if not passenger_phone:
+        return redirect("login") # Login ካላደረገ ወደ Login ይመራዋል
+
+    try:
+        passenger = Pasenger.objects.get(phone=passenger_phone)
+    except Pasenger.DoesNotExist:
+        return redirect("login")
+
+    # አዲስ ትኬት ፎርም ሲሞላ (POST Request)
+    if request.method == "POST":
+        Ticket.objects.create(
+            pnr=generate_pnr(),
+            firstname=request.POST.get("firstname"),
+            lastname=request.POST.get("lastname"),
+            phone=passenger_phone, # ከ Session ላይ የተገኘው ስልክ ቁጥር
+            depcity=request.POST.get("depcity"),
+            descity=request.POST.get("descity"),
+            date=request.POST.get("date"),
+            email=request.POST.get("email"),
+            gender=request.POST.get("gender"),
+            passenger_type=request.POST.get("passenger_type", "Adult"),
+            no_seat=request.POST.get("no_seat"),
+            price=request.POST.get("price"),
+            side_no=request.POST.get("side_no"),
+            plate_no=request.POST.get("plate_no"),
+            username=passenger.first_name,
+            is_paid=True
+        )
+        messages.success(request, "ትኬቱ በስኬት ተቆርጧል!")
+        return redirect("my_tickets")
+
+    # በዚሁ Phone number Book የተደረጉ ትኬቶችን በሙሉ መፈለግ
+    tickets = Ticket.objects.filter(phone=passenger_phone).order_by('-booked_time')
+
+    context = {
+        "passenger": passenger,
+        "tickets": tickets
+    }
+    return render(request, "users/pass.html", context)
+
+def print_ticket_view(request, ticket_id):
+    """ትኬት Print ለማድረግ የሚያገለግል View"""
+    ticket = get_object_or_404(Ticket, ticket_id=ticket_id)
+    return render(request, "users/ticket_print.html", {"ticket": ticket})
 
 
 from django.db.models import Sum, FloatField
@@ -2517,6 +3068,13 @@ class Workers(APIView):
             # Business Logic: Uniqueness checks
             if Worker.objects.filter(username=username_input).exists():
                 context['error'] = 'Registry Conflict: System username already exists.'
+            elif (
+                Worker.objects.filter(phone=phone_input).exists() or
+                Sc.objects.filter(phone=phone_input).exists() or
+                Pasenger.objects.filter(phone=phone_input).exists() or
+                User.objects.filter(phone=phone_input).exists()
+            ):
+                context['error'] = 'Registry Conflict: Contact phone number already exists.'
             elif Worker.objects.filter(phone=phone_input).exists():
                 context['error'] = 'Registry Conflict: Contact phone number already exists.'
             
@@ -3308,71 +3866,157 @@ class Special_route(generics.GenericAPIView):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import random
+import requests
+from django.shortcuts import render, redirect
+from django.core.cache import cache
+from django.contrib.auth.hashers import make_password
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from .models import Pasenger
+def send_sms_otp(phone_number, otp_code):
+    """
+    AfroMessage API ተጠቅሞ ወደ ኢትዮጵያ ስልኮች እውነተኛ OTP SMS ይልካል
+    """
+    formatted_phone = phone_number.strip()
+
+    # 09... ወይም 07... ወደ 2519... / 2517... መቀየር
+    if formatted_phone.startswith('0'):
+        formatted_phone = '251' + formatted_phone[1:]
+
+    # AfroMessage API Token
+    api_token = "eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiN291UWhIbnpXRnhnM284cGZFeDdpSmtnRDJlNnNKY0wiLCJleHAiOjE5NDcyNDg0MDUsImlhdCI6MTc4OTQ4MjAwNSwianRpIjoiNDZmZWQzM2ItNGI1OC00NzlkLTlmZWUtMGIzZGI5ODk1ZjBlIn0.DyNHLfjztR6TOWVfUPmbdGb6HMieCCCCn1NQQMhj6fc"
+    #api_token = os.environ.get("AFROMESSAGE_API_TOKEN", "")
+    identifier_id = ""
+    sender_name = ""
+
+    message_text = f"Busfermata verification OTP code is: {otp_code}"
+    url = "https://api.afromessage.com/api/send"
+
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "to": formatted_phone,
+        "message": message_text
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+
+        if response.status_code == 200:
+            res_data = response.json()
+            if res_data.get("acknowledge") == "success":
+                print(f"[AfroMessage] SMS sent successfully to {formatted_phone}")
+                return True
+            else:
+                print(f"[AfroMessage Error Response] {res_data}")
+                return False
+        else:
+            print(f"[AfroMessage HTTP Error {response.status_code}] {response.text}")
+            return False
+
+    except Exception as e:
+        print(f"[AfroMessage Exception] {e}")
+        return False
+
+@extend_schema(tags=['Authentication'])
+class ForgotPasswordView(APIView):
+    @extend_schema(summary="Get forgot password page")
+    def get(self, request):
+        return render(request, 'users/forgot_password.html')
+    @extend_schema(summary="Request OTP code via phone number")
+    def post(self, request):
+        phone = request.data.get('phone', '').strip()
+        if not phone:
+            return self._handle_response(request, {"error": "እባክዎን የስልክ ቁጥር ያስገቡ።"}, status.HTTP_400_BAD_REQUEST)
+        # 1. በ Pasenger Model ውስጥ ስልክ ቁጥሩን መፈለግ
+        passenger = Pasenger.objects.filter(phone=phone).first()
+        if not passenger:
+            return self._handle_response(request, {"error": "በዚህ የስልክ ቁጥር የተመዘገበ አካውንት አልተገኘም።"}, status.HTTP_404_NOT_FOUND)
+        # 2. 6-Digit OTP ማመንጨት እና Cache ላይ ለ5 ደቂቃ (300 ሰከንድ) ማስቀመጥ
+        otp = str(random.randint(100000, 999999))
+        cache_key = f"reset_otp_{phone}"
+        cache.set(cache_key, {"otp": otp, "passenger_id": passenger.id}, timeout=300)
+
+        # 3. SMS መላክ
+        if send_sms_otp(phone, otp):
+            context = {
+                "message": f"የማረጋገጫ ኮድ (OTP) ወደ {phone} ተልኳል።",
+                "phone": phone,
+                "otp_sent": True
+            }
+            return self._handle_response(request, context, status.HTTP_200_OK)
+
+        return self._handle_response(request, {"error": "SMS መላክ አልተቻለም። እባክዎን ደግመው ይሞክሩ።"}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def _handle_response(self, request, context, status_code):
+        if 'text/html' in request.META.get('HTTP_ACCEPT', '') or request.content_type == 'application/x-www-form-urlencoded':
+            return render(request, 'users/forgot_password.html', context, status=status_code)
+        return Response(context, status=status_code)
+
+
+class VerifyOTPAndResetPasswordView(APIView):
+
+    @extend_schema(summary="Get OTP verification page")
+    def get(self, request):
+        phone = request.GET.get('phone', '').strip()
+        return render(request, 'users/forgot_password.html', {'phone': phone, 'otp_sent': True})
+
+    @extend_schema(summary="Verify OTP and Set New Password")
+    def post(self, request):
+        phone = request.data.get('phone', '').strip()
+        user_otp = request.data.get('otp', '').strip()
+        new_password = request.data.get('new_password', '').strip()
+
+        # HTML ወይም JSON መሆኑን ለመለየት
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '') or request.content_type == 'application/x-www-form-urlencoded'
+
+        if not phone or not user_otp or not new_password:
+            err = "ሁሉንም አስፈላጊ መረጃዎች ያስገቡ።"
+            if is_html:
+                return render(request, 'users/forgot_password.html', {'error': err, 'phone': phone, 'otp_sent': True}, status=400)
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Cache ላይ የተቀመጠውን OTP መፈተሽ
+        cache_key = f"reset_otp_{phone}"
+        cached_data = cache.get(cache_key)
+
+        if not cached_data or str(cached_data.get("otp")) != user_otp:
+            err = "የስህተት ወይም ጊዜው ያለፈበት (Expired) OTP ኮድ ነው።"
+            if is_html:
+                return render(request, 'users/forgot_password.html', {'error': err, 'phone': phone, 'otp_sent': True}, status=400)
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        # Pasenger በመታወቂያው መፈለግ
+        passenger_id = cached_data.get("passenger_id")
+        passenger = Pasenger.objects.filter(id=passenger_id).first()
+
+        if not passenger:
+            err = "ተጓዡ አልተገኘም።"
+            if is_html:
+                return render(request, 'users/forgot_password.html', {'error': err, 'phone': phone, 'otp_sent': True}, status=404)
+            return Response({"error": err}, status=status.HTTP_404_NOT_FOUND)
+
+        # ፓስወርዱን ቀይሮ ማስቀመጥ
+        passenger.set_password(new_password)
+        passenger.save()
+        # የተጠቀሙበትን Cache ማጥፋት
+        cache.delete(cache_key)
+        # Browser ከሆነ ወደ Success Page Redirect ያደርጋል
+        if is_html:
+            return redirect('reset_success')
+        return Response({"message": "ፓስወርድዎ በስኬት ተቀይሯል። አሁን መግባት ይችላሉ።"}, status=status.HTTP_200_OK)
+def reset_success_view(request):
+    return render(request, 'users/reset_success.html')
+
+
+
+"""
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -3435,6 +4079,8 @@ class ForgotPasswordView(APIView):
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/forgot_password.html', context)
         return Response(context, status=status_code)
+"""
+
 
 
 
@@ -9680,6 +10326,7 @@ class ScInsertViews(generics.GenericAPIView):
             side = serializer.validated_data.get('side', '')
             username = serializer.validated_data.get('username')
             email = serializer.validated_data.get('email')
+            phone = serializer.validated_data.get('phone')
             level = serializer.validated_data.get('level')
 
             # Business Logic: Uniqueness checks & category verification
@@ -9703,6 +10350,14 @@ class ScInsertViews(generics.GenericAPIView):
 
             elif email and Sc.objects.filter(email__iexact=email).exists():
                 context['error'] = 'Official Email is already registered.'
+            elif phone and (
+                Sc.objects.filter(phone=phone).exists() or
+                Worker.objects.filter(phone=phone).exists() or
+                Pasenger.objects.filter(phone=phone).exists() or
+                CustomUser.objects.filter(phone=phone).exists()
+                ):
+                    context['error'] = 'Phone number is already registered across the system.'
+
 
             # If any custom validation rule appended an error to the context template dictionary
             if 'error' in context:
@@ -10123,7 +10778,8 @@ def change_password(request):
 
 
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode
