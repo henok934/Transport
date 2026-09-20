@@ -70,6 +70,16 @@ MIDDLEWARE = [
 
 # Content Security Policy Settings (CSP)
 # --- አዲሱ የ CSP 4.0+ ውቅር ---
+# Content Security Policy Settings (CSP)
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'img-src': ("'self'", 'data:', 'https:'),
+        'script-src': ("'self'", 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'),
+        'style-src': ("'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'),
+    }
+}
+"""
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
         'default-src': ("'self'",),
@@ -78,7 +88,7 @@ CONTENT_SECURITY_POLICY = {
         'style-src': ("'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'),
     }
 }
-
+"""
 ROOT_URLCONF = 'myproje.urls'
 
 TEMPLATES = [
