@@ -16,11 +16,7 @@ DEBUG = True
 X_FRAME_OPTIONS = 'DENY'
 
 # X-Content-Type-Options (MIME-sniffing ለመከላከል)
-SECURE_CONTENT_TYPE_NOSNIFF = True
 # Strict-Transport-Security (HTTPSን ለማስገደድ - ለRender live ሰርቨር)
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
 # Referrer Policy
 REFERRER_POLICY = 'same-origin'
 
@@ -36,8 +32,6 @@ SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
-
-
 ALLOWED_HOSTS = [
     'fermataa-3ooq.onrender.com',
     'wedehagertransport.onrender.com',
@@ -48,12 +42,7 @@ ALLOWED_HOSTS = [
 # Security Headers for Production/Audit
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 3600
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
 
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [
@@ -361,15 +350,6 @@ TEMPLATES = [
         },
     },
 ]
-
-SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
-CSRF_COOKIE_SECURE = True  # CSRF cookie is only sent over HTTPS
-SECURE_BROWSER_XSS_FILTER = True  # Enable browser's XSS filtering
-SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent content type sniffing
-SECURE_HSTS_SECONDS = 3600  # Enable HTTP Strict Transport Security (HSTS)
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Include subdomains in HSTS
-SECURE_HSTS_PRELOAD = True  # Enable HSTS preload
-
 
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
