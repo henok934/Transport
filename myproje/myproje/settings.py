@@ -13,7 +13,7 @@ DEBUG = True
 #ALLOWED_HOSTS = ['fermataa.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
 #CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 # X-Frame-Options (Clickjacking እንዳይኖር)
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+X_FRAME_OPTIONS = 'DENY'
 
 # X-Content-Type-Options (MIME-sniffing ለመከላከል)
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -25,14 +25,6 @@ SECURE_HSTS_PRELOAD = True
 REFERRER_POLICY = 'same-origin'
 
 
-# settings.py
-
-# 1. Clickjacking ጥቃትን ለመከላከል (X-Frame-Options)
-X_FRAME_OPTIONS = 'SAMEORIGIN'
-
-# 2. MIME-sniffing ጥቃትን ለመከላከል (X-Content-Type-Options)
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
 # 3. የብሮውዘር XSS ማጣሪያ
 SECURE_BROWSER_XSS_FILTER = True
 # 4. ኤችቲቲፒኤስን (HTTPS) በጥብቅ ለማስገደድ (HSTS - ለRender live ሰርቨር)
@@ -40,7 +32,6 @@ SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 # 5. ሪፈረር ፖሊሲ (Referrer Policy)
-REFERRER_POLICY = 'same-origin'
 # 6. የኩኪዎች ደህንነት (Session/Cookie Security)
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -85,7 +76,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'csp.middleware.CSPMiddleware', # <-- ይህንን እዚህ ጋር ጨምር
+    'csp.middleware.CSPMiddleware', # <-- እዚህ ጋር መኖሩን አረጋግጥ
     'whitenoise.middleware.WhiteNoiseMiddleware', # For static files on Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware', # Placed before Common
@@ -99,8 +90,9 @@ MIDDLEWARE = [
 
 # Content Security Policy Settings
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_SCRIPT_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'", "data:", "https:")
 
 """
 MIDDLEWARE = [
