@@ -6,8 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 2. SECURITY SETTINGS (Production Grade)
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
-DEBUG = True
-
+# settings.py ውስጥ
+DEBUG = False  # <-- ወደ False ይለውጡት
 ALLOWED_HOSTS = [
     'fermataa-3ooq.onrender.com',
     'wedehagertransport.onrender.com',
