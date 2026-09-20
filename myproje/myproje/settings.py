@@ -4,34 +4,10 @@ from pathlib import Path
 # 1. BASE DIRECTORY DEFINED FIRST
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 2. SECURITY SETTINGS...
+# 2. SECURITY SETTINGS (Production Grade)
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 DEBUG = True
 
-#ALLOWED_HOSTS = ['*']
-
-#ALLOWED_HOSTS = ['fermataa.onrender.com', 'wedehagertransport.onrender.com', 'localhost', '127.0.0.1']
-#CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
-# X-Frame-Options (Clickjacking እንዳይኖር)
-X_FRAME_OPTIONS = 'DENY'
-
-# X-Content-Type-Options (MIME-sniffing ለመከላከል)
-# Strict-Transport-Security (HTTPSን ለማስገደድ - ለRender live ሰርቨር)
-# Referrer Policy
-REFERRER_POLICY = 'same-origin'
-
-
-# 3. የብሮውዘር XSS ማጣሪያ
-SECURE_BROWSER_XSS_FILTER = True
-# 4. ኤችቲቲፒኤስን (HTTPS) በጥብቅ ለማስገደድ (HSTS - ለRender live ሰርቨር)
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-# 5. ሪፈረር ፖሊሲ (Referrer Policy)
-# 6. የኩኪዎች ደህንነት (Session/Cookie Security)
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
 ALLOWED_HOSTS = [
     'fermataa-3ooq.onrender.com',
     'wedehagertransport.onrender.com',
@@ -39,10 +15,24 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1'
 ]
-# Security Headers for Production/Audit
+
+# Security Headers
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+
+# Strict Transport Security (HSTS) - 1 Year
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+REFERRER_POLICY = 'same-origin'
+
+# Cookie Security
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_HTTPONLY = True
+
 
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [
@@ -65,10 +55,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'csp.middleware.CSPMiddleware', # <-- እዚህ ጋር መኖሩን አረጋግጥ
-    'whitenoise.middleware.WhiteNoiseMiddleware', # For static files on Render
+    'csp.middleware.CSPMiddleware', # <-- CSP Middleware በትክክል ተቀምጧል
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', # Placed before Common
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -77,28 +67,14 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
 ]
 
-# Content Security Policy Settings
+# Content Security Policy Settings (CSP)
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_SCRIPT_SRC = ("'self'",)
 CSP_IMG_SRC = ("'self'", "data:", "https:")
 
-"""
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # For static files on Render
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', # Placed before Common
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'axes.middleware.AxesMiddleware',
-]
-"""
-
 ROOT_URLCONF = 'myproje.urls'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -117,8 +93,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproje.wsgi.application'
 
-# 4. DATABASE (PostgreSQL)
-
+# 4. DATABASE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -126,39 +101,13 @@ DATABASES = {
     }
 }
 
-
-"""
-import os
-import dj_database_url
-# Default fallback database setup for local testing on your computer
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'my_app_db',
-        'USER': 'data',
-        'PASSWORD': 'Teklu@934',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-
-# Dynamic live configuration override for Render Cloud
-if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        ssl_require=True
-    )
-
-"""
-
-
 # 5. AUTHENTICATION & USERS
 AUTH_USER_MODEL = 'users.CustomUser'
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-AXES_ENABLED = False # Disable for local testing if needed
+AXES_ENABLED = False
 
 # 6. EMAIL SETTINGS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -169,7 +118,7 @@ EMAIL_HOST_USER = 'teklemariammossie1@gmail.com'
 EMAIL_HOST_PASSWORD = 'xbbdaymgoqapntds'
 DEFAULT_FROM_EMAIL = 'teklemariammossie697@gmail.com'
 
-# 7. STATIC & MEDIA FILES (Critical for QR Codes)
+# 7. STATIC & MEDIA FILES
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'users/static')]
@@ -181,21 +130,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # 8. CORS & CSRF
 CORS_ALLOW_ALL_ORIGINS = True
 
-#CSRF_TRUSTED_ORIGINS = ['https://m-k4xk.onrender.com']
-
 CSRF_TRUSTED_ORIGINS = [
     'https://wedehagertransport.onrender.com',
     'https://fermataa-3ooq.onrender.com',
 ]
-
-"""
-CSRF_TRUSTED_ORIGINS = [
-    'https://wedehagertransport.onrender.com',
-    'https://busfermata.onrender.com'
-]
-"""
-
-#CSRF_TRUSTED_ORIGINS = ['https://wedehagertransport.onrender.com']
 
 # 9. INTERNATIONALIZATION
 LANGUAGE_CODE = 'en-us'
@@ -204,226 +142,10 @@ USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 REST_FRAMEWORK = {
-    # This line is REQUIRED for the docs to load
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
 }
-
-
-
-"""
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/minute',  # Unauthenticated users: 10 per minute
-        'user': '1000/day'    # Logged in users: 1000 per day
-    }
-}
-"""
-
-
-"""
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '5/minute',  # This makes it very easy to test
-    }
-}
-# Optional but recommended for professional documentation
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Wedehager API',
-    'DESCRIPTION': 'Bus Management System API Documentation',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-}
-"""
-
-
-
-"""
-from pathlib import Path
-import os
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
-
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
-X_FRAME_OPTIONS = 'DENY'
-
-
-DEBUG = True
-ALLOWED_HOSTS = ['*']
-
-AUTH_USER_MODEL = 'users.CustomUser'
-
-CSRF_FAILURE_VIEW = 'users.views.custom_csrf_failure_view'
-CSRF_TRUSTED_ORIGINS = [
-    'https://m-k4xk.onrender.com',
-]
-# Add this line to your settings.py
-AXES_ENABLED = False
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'teklemariammossie1@gmail.com'
-#EMAIL_HOST_PASSWORD = 'xtpjeyhiobtcvldb'
-DEFAULT_FROM_EMAIL = 'teklemariammossie697@gmail.com'
-EMAIL_HOST_PASSWORD = 'xbbdaymgoqapntds'
-#DEFAULT_FROM_EMAIL = 'teklemariammossie1@gmail.com'
-
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    #'users.apps.YourAppConfig',
-    'users',
-    'axes',
-    'rest_framework',
-    'drf_yasg',
-    'corsheaders',
-    'drf_spectacular',
-]
-
-
-
-#SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 1209600  # Two weeks in seconds
-
-
-AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesStandaloneBackend',  # Use AxesStandaloneBackend
-    'django.contrib.auth.backends.ModelBackend',  # Keep the default backend
-]
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',  # Ensure this is right after SecurityMiddleware
-    'django.middleware.common.CommonMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'axes.middleware.AxesMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-]
-
-ROOT_URLCONF = 'myproje.urls'
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'users/templates')],
-        'APP_DIRS': True,  # This should be True to look for templates in app directories
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
-# WSGI application
-WSGI_APPLICATION = 'myproje.wsgi.application'
-
-#DATABASES = {
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-X_FRAME_OPTIONS = 'DENY'
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'my_app_db',
-        'USER': 'data',
-        'PASSWORD': 'Teklu@934',
-        'HOST': 'localhost',  
-        'PORT': '5432',  
-    }
-}
-
-CORS_ALLOW_ALL_ORIGINS = True
-
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
-
-
-AUTH_USER_MODEL = 'users.CustomUser'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'users/static',
-]
-from pathlib import Path
-import os
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-import os
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # For static files
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# Password validators
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Africa/Addis_Ababa'
-USE_I18N = True
-USE_TZ = True
-"""
