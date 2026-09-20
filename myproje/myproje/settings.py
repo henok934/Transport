@@ -69,10 +69,15 @@ MIDDLEWARE = [
 ]
 
 # Content Security Policy Settings (CSP)
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
-CSP_SCRIPT_SRC = ("'self'",)
-CSP_IMG_SRC = ("'self'", "data:", "https:")
+# --- አዲሱ የ CSP 4.0+ ውቅር ---
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'img-src': ("'self'", 'data:', 'https:'),
+        'script-src': ("'self'",),
+        'style-src': ("'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'),
+    }
+}
 
 ROOT_URLCONF = 'myproje.urls'
 
