@@ -16,6 +16,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1'
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Security Headers
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -48,7 +49,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
     'axes',
-    
+    'csp',    
     # Your Apps
     'users',
 ]
