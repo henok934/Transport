@@ -56,7 +56,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'csp.middleware.CSPMiddleware', # <-- CSP Middleware በትክክል ተቀምጧል
+#    'csp.middleware.CSPMiddleware', # <-- CSP Middleware በትክክል ተቀምጧል
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -78,6 +78,13 @@ PERMISSIONS_POLICY = {
     "camera": [],
     "microphone": [],
 }
+
+"""
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # ወይም የስታቲክ አቃፊህ የሚገኝበት ትክክለኛ መንገድ
+]
+"""
 
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
