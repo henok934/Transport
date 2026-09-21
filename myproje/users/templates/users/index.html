@@ -3,7 +3,6 @@
 <html lang="en">
 <head>
     <link rel="icon" type="image/jpeg" href="{% static 'images/l.jpeg' %}">
-    <link rel="icon" type="image/jpeg" href="{% static 'images/l.jpeg' %}">
     <title>Busfermata | Ethiopia's Digital Transport Network</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,7 +25,7 @@
             --brand-dark: #0f172a;
             --text-main: #1e293b;
             
-            /* Modern International Cyan Accent System */
+            /* Enhanced Vibrant Cyan & Navy Color System */
             --cyan-primary: #06b6d4;
             --cyan-glow: #00f2fe;
             --cyan-dark: #0891b2;
@@ -106,7 +105,7 @@
         /* --- HERO BANNER --- */
         .hero-wrapper {
             height: 42vh;
-            background: linear-gradient(180deg, rgba(0, 38, 77, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%), 
+            background: linear-gradient(180deg, rgba(0, 38, 77, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%), 
                         url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2000&q=80') center 40%/cover no-repeat;
             position: relative;
             display: flex; 
@@ -126,7 +125,7 @@
         }
 
         .hero-badge {
-            background: rgba(6, 182, 212, 0.25);
+            background: rgba(6, 182, 212, 0.3);
             border: 1px solid var(--cyan-primary);
             color: #ffffff;
             padding: 6px 16px;
@@ -191,7 +190,7 @@
             transition: all 0.3s ease; 
         }
         
-        .input-field i { color: #64748b; margin-right: 12px; font-size: 16px; }
+        .input-field i { color: var(--cyan-dark); margin-right: 12px; font-size: 16px; }
         .input-field input { border: none; background: transparent; width: 100%; outline: none; font-weight: 700; color: var(--brand-dark); font-size: 14px; }
         
         .input-field:focus-within,
@@ -327,64 +326,128 @@
         }
         .date-chip.active .day-name, .date-chip.active .day-num { color: white; }
 
-        /* FEATURE CARDS (WITH DIVERSE BUS COLOURS) */
+        /* FEATURE CARDS */
         .feature-card {
-            background: white; 
-            border-radius: 16px; 
+            background: #ffffff;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
             height: 100%;
-            border: 2px solid #f1f5f9; 
-            transition: all 0.3s ease;
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between;
+            display: flex;
+            flex-direction: column;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 22px 45px rgba(6, 182, 212, 0.18);
+            border-color: var(--cyan-primary);
+        }
+        .feature-card-img-wrapper {
+            overflow: hidden;
+            position: relative;
+            height: 220px;
         }
         .feature-card-img {
-            height: 180px;
             width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-bottom: 3px solid var(--cyan-primary);
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .feature-card:hover .feature-card-img {
+            transform: scale(1.08);
         }
         .feature-card-body {
-            padding: 24px;
+            padding: 32px 24px 28px;
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
         }
-        .feature-card:hover { 
-            transform: translateY(-6px); 
-            border-color: var(--cyan-primary); 
-            box-shadow: 0 15px 35px rgba(6, 182, 212, 0.15); 
+        .feature-card-body h3 {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--brand-navy);
+            margin-top: 6px;
+            margin-bottom: 12px;
         }
-        .feature-icon-box {
-            width: 48px; height: 48px; border-radius: 12px;
-            background: var(--cyan-light-bg); color: var(--cyan-dark);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; margin-bottom: 15px;
+        .feature-card-body p {
+            color: #475569;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
         }
-        .feature-card h3 { font-weight: 800; color: var(--brand-navy); font-size: 18px; margin-bottom: 10px; }
-        .feature-card p { color: #64748b; font-size: 13.5px; line-height: 1.6; margin: 0; }
 
-        .region-card { 
-            background: white; border-top: 4px solid var(--cyan-primary); 
-            padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.04); height: 100%; 
+        /* REGION CARDS */
+        .region-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-top: 4px solid var(--cyan-primary);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
         }
-        .region-name { font-weight: 800; font-size: 18px; color: var(--brand-navy); margin-bottom: 15px; display: block; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
-        .city-item { display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 14px; }
+        .region-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 35px rgba(6, 182, 212, 0.15);
+            border-color: var(--cyan-primary);
+        }
+        .region-name {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: var(--cyan-dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+            text-transform: uppercase;
+        }
+        .city-item {
+            display: block;
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            font-weight: 500;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+        .city-item:hover {
+            background-color: var(--cyan-primary);
+            color: #ffffff;
+            transform: translateX(6px);
+        }
 
         .footer-main { background: var(--brand-dark); color: white; padding: 60px 0 30px; margin-top: 80px; text-align: center; border-top: 4px solid var(--cyan-primary); }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(6, 182, 212, 0.3);
+            transform: scale(0);
+            animation: ripple-effect 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple-effect {
+            to { transform: scale(4); opacity: 0; }
+        }
 
         @media (max-width: 991px) {
             .navbar-collapse { background: white; margin-top: 15px; padding: 20px; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
             .booking-form { flex-wrap: wrap; }
-            .input-group-custom, .swap-col, .btn-search-col {
-                width: 100%;
-                flex: 1 0 100%;
-            }
-            .swap-btn {
-                margin-top: 0;
-                transform: rotate(90deg);
-                align-self: center;
-            }
-            .swap-btn:hover { transform: rotate(270deg); }
+            .input-group-custom, .swap-col, .btn-search-col { width: 100%; flex: 1 0 100%; }
+            .swap-btn { margin-top: 0; transform: rotate(90deg); align-self: center; }
             .btn-search { width: 100%; margin-top: 10px; }
             #ethiopian-date-badge { position: static; }
         }
@@ -399,10 +462,12 @@
         <a href="{% url 'login' %}"><i class="fas fa-lock mr-1"></i> STAFF PORTAL</a>
     </div>
 </div>
+
+<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-light navbar-main">
     <div class="container">
         <a href="{% url 'home' %}" class="brand-area">
-            <img src="{% static 'images/l.jpeg' %}" class="brand-logo" alt="Busfermata Logo">
+            <img src="{% static 'images/fer.jpg' %}" class="brand-logo" alt="Busfermata Logo">
             <div>
                 <span class="brand-text">BUSFERMATA</span>
                 <span class="brand-tagline">DIGITAL TECHNOLOGY</span>
@@ -414,7 +479,7 @@
 
         <div class="collapse navbar-collapse" id="navPortal">
             <ul class="navbar-nav ml-auto align-items-lg-center">
-		<li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'get_ticket' %}">My Ticket</a></li>
 
                 <li class="nav-item dropdown">
@@ -435,79 +500,6 @@
                     </a>
                 </li>
             </ul>
-
-
-
-	    
-<!--
-<ul class="flex flex-col lg:flex-row lg:items-center lg:space-x-3 space-y-2 lg:space-y-0">
-  <li>
-    <a href="{% url 'about' %}"
-       class="relative inline-flex items-center px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-slate-700 transition-all duration-300 ease-in-out hover:text-cyan-600 focus:outline-none group active:scale-95 rounded-lg">
-      <span class="relative z-10">About Us</span>
-      
-      <span class="absolute bottom-1 left-1/2 h-[3px] w-0 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-500 via-teal-400 to-cyan-600 transition-all duration-300 ease-out group-hover:w-3/4 group-active:w-3/4"></span>
-      
-      <span class="absolute inset-0 -z-0 scale-75 rounded-lg bg-cyan-500/10 opacity-0 transition-all duration-200 ease-out group-active:scale-100 group-active:opacity-100"></span>
-    </a>
-  </li>
-  <li>
-    <a href="{% url 'get_ticket' %}"
-       class="relative inline-flex items-center px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-slate-700 transition-all duration-300 ease-in-out hover:text-cyan-600 focus:outline-none group active:scale-95 rounded-lg">
-      <span class="relative z-10">My Ticket</span>
-     
-      <span class="absolute bottom-1 left-1/2 h-[3px] w-0 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-500 via-teal-400 to-cyan-600 transition-all duration-300 ease-out group-hover:w-3/4 group-active:w-3/4"></span>
-      
-      <span class="absolute inset-0 -z-0 scale-75 rounded-lg bg-cyan-500/10 opacity-0 transition-all duration-200 ease-out group-active:scale-100 group-active:opacity-100"></span>
-    </a>
-  </li>
-  <li class="relative group">
-    <button type="button"
-            id="langDrop"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-            class="inline-flex items-center space-x-2 px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-slate-700 hover:text-cyan-600 focus:outline-none transition-all duration-300 active:scale-95 rounded-lg hover:bg-slate-100/80">
-      <i class="fas fa-globe text-cyan-600 text-sm transition-transform duration-300 group-hover:rotate-45"></i>
-      <span id="currentLang">English</span>
-      <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-300 group-hover:rotate-180"></i>
-    </button>
-    <div class="dropdown-menu dropdown-menu-right absolute right-0 mt-2 w-48 rounded-xl bg-white p-2 shadow-2xl ring-1 ring-black/5 border border-slate-100 transition-all duration-300 ease-out">
-      <button class="dropdown-item flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-bold text-slate-700 transition-all duration-200 hover:bg-cyan-50 hover:text-cyan-600 active:scale-95" onclick="changeLanguage('en', 'English')">
-        <span>English</span>
-        <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">EN</span>
-      </button>
-      <button class="dropdown-item flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-bold text-slate-700 transition-all duration-200 hover:bg-cyan-50 hover:text-cyan-600 active:scale-95" onclick="changeLanguage('am', 'አማርኛ')">
-        <span>አማርኛ</span>
-        <span class="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600">AM</span>
-      </button>
-      <button class="dropdown-item flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-bold text-slate-700 transition-all duration-200 hover:bg-cyan-50 hover:text-cyan-600 active:scale-95" onclick="changeLanguage('om', 'Afaan Oromoo')">
-        <span>Afaan Oromoo</span>
-        <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">OR</span>
-      </button>
-      <button class="dropdown-item flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-bold text-slate-700 transition-all duration-200 hover:bg-cyan-50 hover:text-cyan-600 active:scale-95" onclick="changeLanguage('ti', 'ትግርኛ')">
-        <span>ትግርኛ</span>
-        <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">TI</span>
-      </button>
-    </div>
-  </li>
-
- 
-  <li class="lg:ml-2">
-    <a href="{% url 'book' %}"
-       class="relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 px-6 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-cyan-500/25 transition-all duration-300 ease-out hover:from-cyan-600 hover:to-cyan-700 hover:shadow-lg hover:shadow-cyan-500/40 hover:-translate-y-0.5 active:scale-95 active:translate-y-0">
-   
-      <span class="absolute inset-0 h-full w-full -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"></span>
-      <span class="relative z-10 flex items-center space-x-2">
-        <i class="fas fa-ticket-alt text-xs"></i>
-        <span>Book Now</span>
-      </span>
-    </a>
-  </li>
-
-</ul>
--->
-
         </div>
     </div>
 </nav>
@@ -524,6 +516,7 @@
     </div>
 {% endif %}
 
+<!-- HERO BANNER -->
 <section class="hero-wrapper">
     <div class="hero-content">
         <span class="hero-badge"><i class="fas fa-bus mr-1"></i> Fast & Secure Ticketing</span>
@@ -531,6 +524,8 @@
         <p style="font-size: 1.1rem; font-weight: 500; opacity: 0.95;">Fast, Reliable & Modern Cross-Country Digital Network</p>
     </div>
 </section>
+
+<!-- BOOKING CONTAINER -->
 <div class="container">
     <div class="booking-container">
         <form action="{% url 'book' %}" method="post" class="booking-form" onsubmit="return validateForm()">
@@ -551,6 +546,7 @@
                     </datalist>
                 </div>
             </div>
+
             <div class="swap-col">
                 <button type="button" class="swap-btn" onclick="swapCities()" title="Swap Departure and Destination">
                     <i class="fas fa-right-left"></i>
@@ -593,140 +589,20 @@
                     <input type="hidden" name="passengers" id="passengers-input" value="1">
                 </div>
             </div>
+
             <div class="btn-search-col">
                 <button type="submit" class="btn-search"><i class="fas fa-magnifying-glass mr-2"></i>SEARCH TRAVEL</button>
             </div>
         </form>
+
         <div style="border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 25px;">
             <label style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block;">Select Upcoming Travel Date</label>
             <div class="date-strip-container" id="dateStrip"></div>
         </div>
     </div>
 </div>
-<style>
-  :root {
-    --brand-navy: #00264d;
-    --cyan-primary: #06b6d4;
-    --cyan-dark: #0e7490;
-  }
 
-  /* Feature Card Container Styling */
-  .feature-card {
-    background: #ffffff;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Hover Animations */
-  .feature-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 22px 45px rgba(6, 182, 212, 0.18);
-    border-color: var(--cyan-primary);
-  }
-
-  /* Click / Active State Motion */
-  .feature-card:active {
-    transform: scale(0.97);
-  }
-
-  .feature-card.active {
-    border: 2px solid var(--cyan-primary);
-    box-shadow: 0 15px 35px rgba(6, 182, 212, 0.3);
-  }
-
-  /* Card Image Styling & Zoom Effect */
-  .feature-card-img-wrapper {
-    overflow: hidden;
-    position: relative;
-    height: 220px;
-  }
-
-  .feature-card-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-  }
-
-  .feature-card:hover .feature-card-img {
-    transform: scale(1.08);
-  }
-
-  /* Card Content Area */
-  .feature-card-body {
-    padding: 32px 24px 28px;
-    position: relative;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    background: #ffffff;
-  }
-
-  /* Floating Floating Icon Box */
-  .feature-icon-box {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.35rem;
-    position: absolute;
-    top: -28px;
-    left: 24px;
-    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.35);
-    transition: transform 0.3s ease;
-  }
-
-  .feature-card:hover .feature-icon-box {
-    transform: rotate(6deg) scale(1.1);
-  }
-
-  .feature-card-body h3 {
-    font-weight: 800;
-    font-size: 1.25rem;
-    color: var(--brand-navy);
-    margin-top: 6px;
-    margin-bottom: 12px;
-  }
-
-  .feature-card-body p {
-    color: #475569;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  /* Interactive Ripple Effect */
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(6, 182, 212, 0.3);
-    transform: scale(0);
-    animation: ripple-effect 0.6s linear;
-    pointer-events: none;
-  }
-
-  @keyframes ripple-effect {
-    to {
-      transform: scale(4);
-      opacity: 0;
-    }
-  }
-</style>
-
-<!-- SECTION CONTENT -->
+<!-- FEATURE CARDS SECTION -->
 <section class="container" style="margin-top: 80px;">
   <div class="text-center mb-5">
     <h2 style="font-weight: 800; color: var(--brand-navy); font-size: 32px;">Seamless Travel Across Ethiopia</h2>
@@ -734,26 +610,22 @@
   </div>
 
   <div class="row">
-    <!-- Card 1 -->
     <div class="col-md-4 mb-4">
       <div class="feature-card" onclick="createCardRipple(event, this)">
         <div class="feature-card-img-wrapper">
-          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Blue and Green Modern Coach" class="feature-card-img">
+          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Digital E-Ticketing" class="feature-card-img">
         </div>
         <div class="feature-card-body">
-		<!--<div class="feature-icon-box"><i class="fas fa-qrcode"></i></div>-->
-
           <h3>Digital E-Ticketing</h3>
           <p>Instant digital ticket generation with automated QR verification. Access your bookings anytime via mobile device.</p>
         </div>
       </div>
     </div>
 
-    <!-- Card 2 -->
     <div class="col-md-4 mb-4">
       <div class="feature-card" onclick="createCardRipple(event, this)">
         <div class="feature-card-img-wrapper">
-          <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=800&q=80" alt="Night Express Bus" class="feature-card-img">
+          <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=800&q=80" alt="Verified Terminals" class="feature-card-img">
         </div>
         <div class="feature-card-body">
           <h3>Verified Terminals</h3>
@@ -762,11 +634,10 @@
       </div>
     </div>
 
-    <!-- Card 3 -->
     <div class="col-md-4 mb-4">
       <div class="feature-card" onclick="createCardRipple(event, this)">
         <div class="feature-card-img-wrapper">
-          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Modern Travel Fleet" class="feature-card-img">
+          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Instant Mobile Booking" class="feature-card-img">
         </div>
         <div class="feature-card-body">
           <h3>Instant Mobile Booking</h3>
@@ -777,31 +648,7 @@
   </div>
 </section>
 
-<!-- INTERACTION SCRIPT -->
-<script>
-  function createCardRipple(event, element) {
-    document.querySelectorAll('.feature-card').forEach(card => card.classList.remove('active'));
-    element.classList.add('active');
-
-    const circle = document.createElement('span');
-    const diameter = Math.max(element.clientWidth, element.clientHeight);
-    const radius = diameter / 2;
-
-    const rect = element.getBoundingClientRect();
-    circle.style.width = circle.style.height = `${diameter}px`;
-    circle.style.left = `${event.clientX - rect.left - radius}px`;
-    circle.style.top = `${event.clientY - rect.top - radius}px`;
-    circle.classList.add('ripple');
-
-    const existingRipple = element.querySelector('.ripple');
-    if (existingRipple) {
-      existingRipple.remove();
-    }
-
-    element.appendChild(circle);
-  }
-</script>
-
+<!-- REGIONS SECTION -->
 <section class="container py-4">
   <div class="row">
     <div class="col-md-3 mb-4">
@@ -842,117 +689,6 @@
   </div>
 </section>
 
-<script>
-  function createRipple(event, element) {
-    // Active class toggle
-    document.querySelectorAll('.region-card').forEach(card => card.classList.remove('active'));
-    element.classList.add('active');
-
-    // Ripple effect calculation
-    const circle = document.createElement('span');
-    const diameter = Math.max(element.clientWidth, element.clientHeight);
-    const radius = diameter / 2;
-
-    const rect = element.getBoundingClientRect();
-    circle.style.width = circle.style.height = `${diameter}px`;
-    circle.style.left = `${event.clientX - rect.left - radius}px`;
-    circle.style.top = `${event.clientY - rect.top - radius}px`;
-    circle.classList.add('ripple');
-
-    const ripple = element.getElementsByClassName('ripple')[0];
-    if (ripple) {
-      ripple.remove();
-    }
-
-    element.appendChild(circle);
-  }
-</script>
-<style>
-  /* Base Modern Card Styling */
-  .region-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Hover Motion */
-  .region-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.12);
-    border-color: #0d6efd;
-  }
-
-  /* Click / Active State Motion */
-  .region-card:active {
-    transform: scale(0.97);
-  }
-
-  .region-card.active {
-    border: 2px solid #0d6efd;
-    background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    box-shadow: 0 12px 30px rgba(13, 110, 253, 0.2);
-  }
-
-  /* Region Title Styling */
-  .region-name {
-    display: block;
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    color: #0d6efd;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e9ecef;
-    text-transform: uppercase;
-  }
-
-  /* City Items Styling & Stagger Motion */
-  .city-item {
-    display: block;
-    padding: 0.6rem 1rem;
-    margin-bottom: 0.5rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    font-weight: 500;
-    color: #495057;
-    transition: all 0.3s ease;
-  }
-
-  .city-item:last-child {
-    margin-bottom: 0;
-  }
-
-  .city-item:hover {
-    background-color: #0d6efd;
-    color: #ffffff;
-    transform: translateX(6px);
-  }
-
-  /* Ripple Wave Effect on Click */
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(13, 110, 253, 0.3);
-    transform: scale(0);
-    animation: ripple-effect 0.6s linear;
-    pointer-events: none;
-  }
-
-  @keyframes ripple-effect {
-    to {
-      transform: scale(4);
-      opacity: 0;
-    }
-  }
-</style>
-
 <!-- FOOTER -->
 <footer class="footer-main">
     <div class="container">
@@ -966,6 +702,7 @@
     </div>
 </footer>
 
+<!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
@@ -1198,6 +935,46 @@ function validateForm() {
         return false;
     }
     return true;
+}
+
+function createCardRipple(event, element) {
+    document.querySelectorAll('.feature-card').forEach(card => card.classList.remove('active'));
+    element.classList.add('active');
+
+    const circle = document.createElement('span');
+    const diameter = Math.max(element.clientWidth, element.clientHeight);
+    const radius = diameter / 2;
+    const rect = element.getBoundingClientRect();
+    
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${event.clientX - rect.left - radius}px`;
+    circle.style.top = `${event.clientY - rect.top - radius}px`;
+    circle.classList.add('ripple');
+
+    const existingRipple = element.querySelector('.ripple');
+    if (existingRipple) existingRipple.remove();
+
+    element.appendChild(circle);
+}
+
+function createRipple(event, element) {
+    document.querySelectorAll('.region-card').forEach(card => card.classList.remove('active'));
+    element.classList.add('active');
+
+    const circle = document.createElement('span');
+    const diameter = Math.max(element.clientWidth, element.clientHeight);
+    const radius = diameter / 2;
+    const rect = element.getBoundingClientRect();
+
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${event.clientX - rect.left - radius}px`;
+    circle.style.top = `${event.clientY - rect.top - radius}px`;
+    circle.classList.add('ripple');
+
+    const ripple = element.getElementsByClassName('ripple')[0];
+    if (ripple) ripple.remove();
+
+    element.appendChild(circle);
 }
 </script>
 

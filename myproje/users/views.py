@@ -1916,10 +1916,19 @@ def my_tickets_view(request):
     }
     return render(request, "users/pass.html", context)
 
+"""
 def print_ticket_view(request, ticket_id):
-    """ትኬት Print ለማድረግ የሚያገለግል View"""
+    ticket = get_object_or_404(Ticket, ticket_id=ticket_id)
+    retuimport random
+"""
+
+def print_ticket_view(request, ticket_id):
     ticket = get_object_or_404(Ticket, ticket_id=ticket_id)
     return render(request, "users/ticket_print.html", {"ticket": ticket})
+
+
+
+
 
 
 from django.db.models import Sum, FloatField
@@ -3711,18 +3720,6 @@ class BusInsertView(generics.GenericAPIView):
         else:
             context['errors'] = str(error)
         return render(request, 'users/Businsert.html', context)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 import uuid
