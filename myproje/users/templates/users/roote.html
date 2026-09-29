@@ -222,7 +222,7 @@
 <div class="listing-wrapper">
     <div class="step-container">
         <div class="step active"><i class="fas fa-bus"></i> 1. Select Bus</div>
-        <div class="step pending"><i class="fas fa-couch"></i> 2. Choose Seat</div>
+        <div class="step pending"><i class="fas fa-couch"></i> 2. Choose Seat fill form</div>
         <div class="step pending"><i class="fas fa-credit-card"></i> 3. Payment</div>
 	        <div class="step pending"><i class="fas fa-credit-card"></i> 4. print / Download</div>
     </div>
@@ -407,10 +407,9 @@
                         {% csrf_token %}
                         <input type="hidden" name="depcity" value="{{ item.route.depcity }}">
                         <input type="hidden" name="descity" value="{{ item.route.descity }}">
-                        <input type="hidden" name="price" value="{{ item.route.price }}">
+			<input type="hidden" name="route_id" value="{{ item.route.id }}">
                         <input type="hidden" name="date" value="{{ item.route.date }}">
                         <input type="hidden" name="plate_no" value="{{ item.route.plate_no }}">
-
                         <button type="submit" class="btn-select {% if not item.route.is_active or item.remaining_seats <= 0 %}btn-disabled{% endif %}"
                                 {% if not item.route.is_active or item.remaining_seats <= 0 %}disabled{% endif %}>
                             {% if item.route.is_active and item.remaining_seats > 0 %}
@@ -544,99 +543,6 @@
     border: 1px solid #f59e0b; /* Gold border */
 }
 </style>
-
-
-
-
-    <!--
-    <div class="booking-card">
-        <table class="table-intl">
-            <thead>
-                <tr>
-                    <th style="width: 60px;">No.</th>
-                    <th>Route & Bus Details</th>
-                    <th>Bus Level</th>
-                    <th>Departure Date</th>
-                    <th>Ticket Price</th>
-                    <th>Availability</th>
-                    <th style="width: 160px; text-align: center;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in routes %}
-                <tr>
-                    <td style="font-weight: 700; color: #94a3b8; font-size: 14px;">
-                        {{ forloop.counter | stringformat:"02d" }}.
-                    </td>
-                    
-                    <td>
-                        <div class="city-box mb-2">
-                            <span>{{ item.route.depcity }}</span>
-                            <i class="fas fa-long-arrow-alt-right mx-2" style="color: #64748b; font-size: 14px;"></i>
-                            <span>{{ item.route.descity }}</span>
-                        </div>
-                        <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
-                            <span class="bus-badge">
-                                <i class="fas fa-bus" style="font-size: 11px;"></i> {{ item.name }}
-                            </span>
-                            <span class="plate-badge">
-                                <i class="fas fa-id-card"></i> {{ item.route.plate_no }}
-                            </span>
-                        </div>
-                    </td>
-                    <td><span class="level-badge">{{ item.levels }}</span></td>
-                    
-                    <td>
-                        <div style="font-weight: 700; color: #334155; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="far fa-calendar-alt text-muted"></i> {{ item.route.date }}
-                        </div>
-                    </td>
-                    
-                    <td>
-                        <div class="price-tag">
-                            {{ item.route.price }} <span class="price-currency">ETB</span>
-                        </div>
-                    </td>
-                    
-                    <td>
-                        {% if item.remaining_seats > 0 and item.route.is_active %}
-                        <div class="seat-badge">
-                            <span class="spinner-grow spinner-grow-sm text-warning" style="width: 8px; height: 8px; animation-duration: 1.2s;" role="status"></span>
-                            <i class="fas fa-users"></i> {{ item.remaining_seats }} It remains
-                        </div>
-                        {% else %}
-                        <div class="seat-badge none">
-                            <i class="fas fa-times-circle"></i> Sold Out
-                        </div>
-                        {% endif %}
-                    </td>
-                      <td>
-                        <form action="{% url 'Select' %}" method="post" style="margin: 0;">
-                            {% csrf_token %}
-                            <input type="hidden" name="depcity" value="{{ item.route.depcity }}">
-                            <input type="hidden" name="descity" value="{{ item.route.descity }}">
-                            <input type="hidden" name="price" value="{{ item.route.price }}">
-                            <input type="hidden" name="date" value="{{ item.route.date }}">
-                            <input type="hidden" name="plate_no" value="{{ item.route.plate_no }}">
-
-                            <button type="submit" class="btn-select {% if not item.route.is_active or item.remaining_seats <= 0 %}btn-disabled{% endif %}"
-                                    {% if not item.route.is_active or item.remaining_seats <= 0 %}disabled{% endif %}>
-                                {% if item.route.is_active and item.remaining_seats > 0 %}
-                                    Select <i class="fas fa-chevron-right ml-1" style="font-size: 10px;"></i>
-                                {% else %}
-                                    Sold Out
-                                {% endif %}
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
--->
-
 
 <footer style="background: var(--brand-navy); color: white; padding: 60px 0 30px; margin-top: 80px; text-align: center;">
     <div class="container">

@@ -23,6 +23,49 @@ from .serializers import (
 def custom_csrf_failure_view(request, reason=""):
     return render(request, 'users/csrf_failure.html', {'reason': reason})
 
+
+
+"""
+from rest_framework.views import APIView
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from .models import CustomUser, Buschange
+from drf_spectacular.utils import extend_schema
+from .serializers import UserProfileSerializer
+class ProfileView(APIView):
+    @extend_schema(responses=UserProfileSerializer)
+    def get(self, request):
+        # 1. Retrieve the user ID from the session
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+
+        # 2. SECURITY CHECK: If no session exists, redirect to login
+        if not user_id:
+            return render(request, 'users/login.html', {
+                'error': 'Please login to access your Busfermata profile.',
+                'buschanges_count': buschanges_count
+            })
+
+        try:
+            # 3. Fetch the specific user
+            user = CustomUser.objects.get(id=user_id)
+
+            # 4. Render the profile page with the user data
+            return render(request, 'users/profile.html', {
+                'user': user,
+                'buschanges_count': buschanges_count
+            })
+            
+        except CustomUser.DoesNotExist:
+            # 5. Handle case where session has an ID but user was deleted
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'User account not found.',
+                'buschanges_count': buschanges_count
+            })
+"""
+
+
 from rest_framework.views import APIView
 from django.shortcuts import render, redirect
 from .models import CustomUser, Buschange # Import your custom user and stats models
@@ -1590,6 +1633,245 @@ class LoginView(APIView):
         return Response(context, status=status.HTTP_401_UNAUTHORIZED)
 """
 
+
+
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Buschange, Route, Sc, Ticket, Worker, Pasenger
+# Direct Turnstile Keys configured right here
+TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA"
+class LoginView(APIView):
+    def get_buschanges_count(self):
+        cache_key = "buschanges_count"
+        count = cache.get(cache_key)
+        if count is None:
+            count = Buschange.objects.count()
+            cache.set(cache_key, count, timeout=300)
+        return count
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+
+        return phone
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context)
+        return Response(context, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+        client_ip = self.get_client_ip(request)
+
+        # 🛡️ 4. RATE LIMITING CHECK (በ IP አማካኝነት በአጭር ጊዜ ውስጥ የሚደረጉ ጥያቄዎችን መገደብ)
+        rate_limit_key = f"login_ratelimit_{client_ip}"
+        request_count = cache.get(rate_limit_key, 0)
+        if request_count >= 10:  # በአጭር ጊዜ ውስጥ ከ 10 በላይ ጥያቄ ከጠየቀ
+            return self.handle_login_error(
+                buschanges_count, 
+                request, 
+                "Too many requests from your IP. Please try again in a minute.",
+                remaining_seconds=60
+            )
+        cache.set(rate_limit_key, request_count + 1, timeout=60)
+
+        # 1. Phone Normalization
+        raw_phone = request.data.get("phone", "").strip() or request.data.get("username", "").strip()
+        phone = self.normalize_phone(raw_phone)
+
+        password = str(request.data.get("password", "")).strip()
+        captcha_response = request.data.get("cf-turnstile-response")
+
+        if not captcha_response:
+            return self.handle_login_error(buschanges_count, request, "Security Verification Required: Missing token.")
+
+        # 2. Real Client IP Extraction for Turnstile
+        verify_data = {
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            captcha_verify = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=2.0
+            )
+            result = captcha_verify.json()
+
+            if not result.get("success"):
+                return self.handle_login_error(buschanges_count, request, "Security Verification Failed.")
+        except requests.exceptions.RequestException:
+            return self.handle_login_error(buschanges_count, request, "Verification Gateway Timeout.")
+
+        if not phone:
+            return self.handle_login_error(buschanges_count, request, "Phone number is required.")
+
+        # 4. Account-Based Lockout Check
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+        
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 30
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 30 - elapsed)
+
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                f"Too many failed login attempts! Please wait {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds
+            )
+
+        # 1. PASSENGER CHECK
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["passenger_id"] = passenger.id
+                request.session["phone"] = passenger.phone
+                request.session["name"] = f"{passenger.first_name} {passenger.last_name}"
+                request.session.modified = True
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # 2. WORKER CHECK
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["worker_id"] = worker.id
+                request.session["phone"] = worker.phone
+                request.session.modified = True
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+
+        # 3. SC CHECK
+        try:
+            sc_user = Sc.objects.get(phone=phone)
+            if check_password(password, sc_user.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["sc_id"] = sc_user.id
+                request.session["phone"] = sc_user.phone
+                request.session.modified = True
+                return render(request, "users/rooteeess.html", {"company": sc_user})
+        except Sc.DoesNotExist:
+            pass
+
+        # 4. CUSTOM USER CHECK
+        user_response = self.handle_user_login(phone, password, buschanges_count, request, account_lockout_key)
+        if user_response:
+            return user_response
+
+        # Failed Attempt Track
+        is_now_locked = self.track_failed_attempt(account_lockout_key, phone)
+        if is_now_locked:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "3 failed attempts. The page is locked for 30 seconds!",
+                remaining_seconds=30
+            )
+
+        return self.handle_login_error(buschanges_count, request, "Invalid phone number or password!")
+
+    def handle_user_login(self, phone, password, buschanges_count, request, lockout_key):
+        User = get_user_model()
+        actual_username = phone
+        try:
+            user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+            if user_obj:
+                actual_username = user_obj.username
+        except Exception:
+            pass
+
+        user = authenticate(request, username=actual_username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            self.clear_security_flags(lockout_key, phone)
+            request.session.cycle_key()
+            request.session["user_id"] = user.id
+            request.session["phone"] = getattr(user, "phone", phone)
+            request.session.modified = True
+            return render(request, "users/profile.html", {"user": user, "buschanges_count": buschanges_count})
+
+        return None
+
+    def track_failed_attempt(self, lockout_key, phone):
+        attempt_key = f"attempts_{lockout_key}"
+        current_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, current_attempts, timeout=60)
+
+        if current_attempts >= 3:
+            cache.set(lockout_key, True, timeout=30)
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=30)
+            cache.delete(attempt_key)
+            return True
+        return False
+
+    def clear_security_flags(self, lockout_key, phone):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{lockout_key}")
+        cache.delete(f"lockout_time_{phone}")
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
+        return Response(context, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+
+
+
+
+
+
+"""
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login as auth_login, get_user_model
@@ -1605,7 +1887,6 @@ from .models import Buschange, Route, Sc, Ticket, Worker, Pasenger
 # Direct Turnstile Keys configured right here
 TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
 TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA"
-
 class LoginView(APIView):
     def get_buschanges_count(self):
         cache_key = "buschanges_count"
@@ -1810,7 +2091,15 @@ class LoginView(APIView):
         if "text/html" in request.META.get("HTTP_ACCEPT", ""):
             return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
         return Response(context, status=status.HTTP_401_UNAUTHORIZED)
+"""
 
+
+
+
+
+
+
+"""
 import json
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -1863,6 +2152,156 @@ def passenger_register(request):
             return JsonResponse({'detail': str(e)}, status=400)
     # GET Request ከሆነ HTML ፔጁን ማሳየት
     return render(request, 'users/passenger_register.html')
+"""
+
+import json
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+from django.core.cache import cache  # <-- 1. ለሬት ሊሚቲንግ የሚያስፈልገው ካሽ ተጨምሯል
+from .models import Pasenger, Worker, Sc
+User = get_user_model()
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+def passenger_register(request):
+    if request.method == 'POST':
+        try:
+            # 2. 🛡️ RATE LIMITING CHECK (በአንድ አይፒ አድራሻ በደቂቃ ከ 5 ጊዜ በላይ እንዳይሞከር መገደብ)
+            client_ip = get_client_ip(request)
+            rate_limit_key = f"register_limit_{client_ip}"
+            attempts = cache.get(rate_limit_key, 0)
+            
+            if attempts >= 5:
+                return JsonResponse(
+                    {'detail': 'Too many registration attempts. Please try again after a few minutes.'}, 
+                    status=429
+                )
+            
+            # ሙከራውን በአንድ (1) እንጨምራለን (ለ 60 ሰከንድ ቆይታ ይኖረዋል)
+            cache.set(rate_limit_key, attempts + 1, timeout=60)
+
+            # ከ JavaScript በ JSON የመጣውን መረጃ ማንበብ
+            data = json.loads(request.body)
+
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            phone = data.get('phone')
+            gender = data.get('gender')
+            age = data.get('age')
+            password = data.get('password')
+            confirm_password = data.get('confirm_password')
+
+            # የይለፍ ቃል ማረጋገጫ (Validation)
+            if password != confirm_password:
+                return JsonResponse({'detail': 'Passwords do not match. Please try again.'}, status=400)
+
+            # የስልክ ቁጥር መደጋገም ማረጋገጫ (Cross-Model Validation)
+            if phone and (
+                Pasenger.objects.filter(phone=phone).exists() or
+                Worker.objects.filter(phone=phone).exists() or
+                Sc.objects.filter(phone=phone).exists() or
+                User.objects.filter(phone=phone).exists()
+            ):
+                # 🛡️ FIX: የትኛው ቁጥር እንዳለ እንዳይታወቅ ጄኔሪክ (Generic) መልእክት መስጠት
+                return JsonResponse({'detail': 'Registration failed. Please check your information or try logging in.'}, status=400)
+
+            # አዲስ Passenger መፍጠር
+            passenger = Pasenger(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                gender=gender,
+                age=age
+            )
+            # Password Encrypt አድርጎ ማስቀመጥ
+            passenger.set_password(password)
+            passenger.save()
+            
+            # ለ JavaScript ስኬታማ መልስ መስጠት (Status 201)
+            return JsonResponse({'message': 'Registration successful! Please log in.'}, status=201)
+            
+        except Exception as e:
+            # 🛡️ FIX: የሲስተሙን ውስጣዊ ስህተት (Internal Error) በግልጽ ላለማሳየት ጄኔሪክ መልእክት መጠቀም
+            return JsonResponse({'detail': 'An error occurred during registration. Please try again.'}, status=400)
+            
+    # GET Request ከሆነ HTML ፔጁን ማሳየት
+    return render(request, 'users/passenger_register.html')
+
+
+
+
+
+
+
+"""
+import json
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+from .models import Pasenger, Worker, Sc
+User = get_user_model()
+def passenger_register(request):
+    if request.method == 'POST':
+        try:
+            # ከ JavaScript በ JSON የመጣውን መረጃ ማንበብ
+            data = json.loads(request.body)
+
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            phone = data.get('phone')
+            gender = data.get('gender')
+            age = data.get('age')
+            password = data.get('password')
+            confirm_password = data.get('confirm_password')
+
+            # የይለፍ ቃል ማረጋገጫ (Validation)
+            if password != confirm_password:
+                return JsonResponse({'detail': 'Passwords do not match. Please try again.'}, status=400)
+
+            # የስልክ ቁጥር መደጋገም ማረጋገጫ (Cross-Model Validation)
+            if phone and (
+                Pasenger.objects.filter(phone=phone).exists() or
+                Worker.objects.filter(phone=phone).exists() or
+                Sc.objects.filter(phone=phone).exists() or
+                User.objects.filter(phone=phone).exists()
+            ):
+                # 🛡️ FIX: የትኛው ቁጥር እንዳለ እንዳይታወቅ ጄኔሪክ (Generic) መልእክት መስጠት
+                return JsonResponse({'detail': 'Registration failed. Please check your information or try logging in.'}, status=400)
+
+            # አዲስ Passenger መፍጠር
+            passenger = Pasenger(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                gender=gender,
+                age=age
+            )
+            # Password Encrypt አድርጎ ማስቀመጥ
+            passenger.set_password(password)
+            passenger.save()
+            
+            # ለ JavaScript ስኬታማ መልስ መስጠት (Status 201)
+            return JsonResponse({'message': 'Registration successful! Please log in.'}, status=201)
+            
+        except Exception as e:
+            # 🛡️ FIX: የሲስተሙን ውስጣዊ ስህተት (Internal Error) በግልጽ ላለማሳየት ጄኔሪክ መልእክት መጠቀም
+            return JsonResponse({'detail': 'An error occurred during registration. Please try again.'}, status=400)
+    # GET Request ከሆነ HTML ፔጁን ማሳየት
+    return render(request, 'users/passenger_register.html')
+"""
+
 
 
 import random
@@ -2979,6 +3418,135 @@ class BusUpdateViewss(APIView):
 
 
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render, redirect
+from drf_spectacular.utils import extend_schema
+from .models import Worker, City, Buschange, CustomUser
+from .serializers import WorkerSerializer
+
+@extend_schema(tags=['Bus & Driver Management'])
+class Workers(APIView):
+    serializer_class = WorkerSerializer
+
+    def get(self, request, *args, **kwargs):
+        # 1. INITIAL SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Unauthorized! Please login to access Worker management.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION (Master Admin Clearance)
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count,
+                        'error': 'Security Protocol: Master Admin clearance required for personnel registration.'
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. AUTHORIZED DATA FETCH
+        if is_html:
+            des = City.objects.all()
+            return render(request, 'users/worker.html', {
+                'des': des,
+                'buschanges_count': buschanges_count,
+                'username': current_user.username
+            })
+
+        workers = Worker.objects.all()
+        serializer = WorkerSerializer(workers, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        # 1. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        des = City.objects.all()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. DATA VALIDATION & REGISTRY LOGIC
+        serializer = WorkerSerializer(data=request.data)
+        context = {
+            'des': des,
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        }
+
+        if serializer.is_valid():
+            username_input = serializer.validated_data.get('username')
+            phone_input = serializer.validated_data.get('phone')
+
+            # 🛡️ FIX: የተጠቃሚ ስም ወይም ስልክ ቁጥር መኖሩን ለየብቻ ሳይሆን በአንድ አጠቃላይ መልእክት መገደብ
+            if (
+                Worker.objects.filter(username=username_input).exists() or
+                Worker.objects.filter(phone=phone_input).exists() or
+                Sc.objects.filter(phone=phone_input).exists() or
+                Pasenger.objects.filter(phone=phone_input).exists() or
+                User.objects.filter(phone=phone_input).exists()
+            ):
+                context['error'] = 'Registration failed. Please check your information and try again.'
+
+            if 'error' in context:
+                if is_html:
+                    return render(request, 'users/worker.html', context)
+                return Response({'error': context['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 4. SAVE & SUCCESS RESPONSE
+            serializer.save()
+            context['success'] = 'Personnel Registry: Worker initialized successfully.'
+
+            if is_html:
+                return render(request, 'users/worker.html', context)
+            return Response({'success': context['success']}, status=status.HTTP_201_CREATED)
+
+        # 5. HANDLE VALIDATION ERRORS
+        context['error'] = 'Invalid data provided. Please check your inputs.'
+        if is_html:
+            return render(request, 'users/worker.html', context)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+"""
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -3104,7 +3672,7 @@ class Workers(APIView):
         if is_html:
             return render(request, 'users/worker.html', context)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+"""
 
 
 from rest_framework.views import APIView
@@ -4270,10 +4838,222 @@ class AgentBookingViews(APIView):
                     return render(request, 'users/payment.html', context)
                 else:
                     return render(request, 'users/myticket.html', context)
-
             serializer = TicketSerializer(tickets, many=True)
             return Response({'message': 'Booking successful.', 'tickets': serializer.data}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+
+
+
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render
+from django.db import transaction
+from django.db.models import Q, Sum, FloatField
+from django.db.models.functions import Cast
+from django.utils import timezone
+from django.conf import settings
+from drf_spectacular.utils import extend_schema
+from .models import Ticket, City, Bus, Route, Worker, Sc  # Sc ሞዴል እንዳለዎት ታይቷል
+from .serializers import TicketSerializer, RouteSerializer
+@extend_schema(tags=['Booking & Tickets'])
+class TicketBookingViews(APIView):
+    serializer_class = TicketSerializer
+    def get_user_from_session(self, request):
+        user_id = request.session.get('worker_id')
+        if user_id:
+            try:
+                return Worker.objects.get(id=user_id)
+            except Worker.DoesNotExist:
+                return None
+        return None
+    def get_daily_total(self, username):
+        today = timezone.now().date()
+        total = Ticket.objects.filter(
+            username=username,
+            booked_time__date=today
+        ).annotate(
+            price_as_float=Cast('price', FloatField())
+        ).aggregate(total=Sum('price_as_float'))['total'] or 0
+        return total
+    def get(self, request):
+        des = City.objects.all()
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/ticket.html', {'des': des})
+        return Response({'cities': [city.depcity for city in des]})
+    def post(self, request):
+        # 1. Retrieve Data Lists (price[] ከደንበኛ መቀበል ቀርቷል)
+        firstnames = request.data.getlist('firstname[]')
+        emails = request.data.getlist('email[]')
+        genders = request.data.getlist('gender[]')
+        passenger_types = request.data.getlist('passenger_type[]')
+        lastnames = request.data.getlist('lastname[]')
+        phones = request.data.getlist('phone[]')
+        side_nos = request.data.getlist('side_no[]')
+        plate_nos = request.data.getlist('plate_no[]')
+        usernames = request.data.getlist('username[]')
+        dates = request.data.getlist('date[]')
+        no_seats = request.data.getlist('no_seat[]')
+        depcitys = request.data.getlist('depcity[]')
+        descitys = request.data.getlist('descity[]')
+        prs = request.data.getlist('pr[]')
+        das = request.data.getlist('da[]')
+        min_length = min(
+            len(firstnames), len(lastnames), len(emails), len(genders),
+            len(phones), len(side_nos), len(plate_nos),
+            len(depcitys), len(descitys), len(dates), len(no_seats), len(passenger_types)
+        )
+        used_seats = set()
+        tickets = []
+        verified_prices = []  # ከዳታቤዝ የሚመጡ ትክክለኛ ዋጋዎችን ለመያዝ
+        fname = ""
+        lname = ""
+        level = "Standard"
+        bus_name = "Operator Name"
+        try:
+            with transaction.atomic():
+                for i in range(min_length):
+                    current_seat = no_seats[i]
+                    current_date = dates[i]
+                    alt_date = das[i] if i < len(das) else None
+                    dep = depcitys[i]
+                    des = descitys[i]
+                    plate = plate_nos[i]
+                    current_user = usernames[i] if i < len(usernames) else ""
+                    # --- ROUTE & BUS VALIDATION ---
+                    routes = Route.objects.filter(depcity=dep, descity=des, date=current_date, plate_no=plate)
+                    bus = Bus.objects.filter(plate_no=plate).first()
+                    if not routes.exists():
+                        return Response({'error': f'Route not found for {plate}'}, status=404)
+                    if not bus:
+                        return Response({'error': f'Bus {plate} not found'}, status=404)
+                    # --- SECURITY: FETCH PRICE FROM DATABASE ---
+                    selected_route = routes.first()
+                    current_price = float(selected_route.price)
+                    verified_prices.append(current_price)
+                    bus_name = bus.name if bus else "Operator Name"
+                    total_seats = int(bus.no_seats)
+                    booked_in_db = Ticket.objects.filter(depcity=dep, descity=des, date=current_date, plate_no=plate).values_list('no_seat', flat=True)
+                    booked_seats_list = list(set(int(s) for s in booked_in_db if s))
+                    unbooked_seats = [s for s in range(1, total_seats + 1) if s not in booked_seats_list]
+                    error_context = {
+                        'des': City.objects.all(),
+                        'routes': RouteSerializer(routes, many=True).data,
+                        'levels': bus.level,
+                        'remaining_seats': total_seats - len(booked_seats_list),
+                        'unbooked_seats': unbooked_seats,
+                        'booked_seats': booked_seats_list,
+                        'all_seats': list(range(1, total_seats + 1)),
+                    }
+                    # --- VALIDATION: SEAT SELECTION ---
+                    seat_is_taken = current_seat in used_seats or int(current_seat) in booked_seats_list
+                    if seat_is_taken:
+                        error_msg = f'Seat {current_seat} already selected.'
+                        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                            error_context['error'] = error_msg
+                            if current_user:
+                                error_context['username'] = current_user
+                                error_context['total_today'] = self.get_daily_total(current_user)
+                                return render(request, 'users/booker.html', error_context, status=400)
+                            else:
+                                return render(request, 'users/ticket.html', error_context, status=400)
+                        return Response({'error': error_msg}, status=400)
+                    passenger_query = Ticket.objects.filter(
+                        firstname=firstnames[i],
+                        lastname=lastnames[i],
+                        depcity=dep,
+                        descity=des
+                    )
+                    already_booked_both = passenger_query.filter(
+                        Q(date=current_date) & Q(date=alt_date)
+                    ).exists()
+                    already_booked_single = passenger_query.filter(
+                        Q(date=current_date)
+                    ).exists()
+                    if already_booked_both or already_booked_single:
+                        alt_date_str = f" and {alt_date}" if alt_date and alt_date != 'None' else ""
+                        error_msg = f"Person already booked: {firstnames[i]} {lastnames[i]} for {current_date}{alt_date_str}."
+                        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                            error_context['error'] = error_msg
+                            if current_user:
+                                error_context['username'] = current_user
+                                error_context['total_today'] = self.get_daily_total(current_user)
+                                return render(request, 'users/booker.html', error_context, status=400)
+                            else:
+                                return render(request, 'users/ticket.html', error_context, status=400)
+                        return Response({'error': error_msg}, status=400)
+                    used_seats.add(current_seat)
+                    level = bus.level if bus else "Standard"
+                    validated_data = {
+                        'firstname': firstnames[i],
+                        'lastname': lastnames[i],
+                        'phone': phones[i],
+                        'price': current_price,  # 👈 ከዳታቤዝ የተረጋገጠው ዋጋ ይመዘገባል
+                        'side_no': side_nos[i],
+                        'plate_no': plate,
+                        'date': current_date,
+                        'email': emails[i],
+                        'gender': genders[i],
+                        'passenger_type': passenger_types[i],
+                        'depcity': dep,
+                        'descity': des,
+                        'username': current_user,
+                        'no_seat': current_seat,
+                    }
+                    ticket_instance = Ticket.objects.create(**validated_data)
+                    tickets.append(ticket_instance)
+                    if current_user:
+                        worker = Worker.objects.filter(username=current_user).first()
+                        if worker:
+                            fname = worker.fname
+                            lname = worker.lname
+
+                if prs:
+                    for i in range(min_length):
+                        if i < len(das):
+                            Ticket.objects.filter(
+                                firstname=firstnames[i],
+                                lastname=lastnames[i],
+                                date=das[i],
+                                depcity=depcitys[i],
+                                descity=descitys[i]
+                            ).delete()
+                # 2. Total Price Calculation based on database prices
+                total_price_base = sum(verified_prices)
+                total_prs = sum(float(p) for p in prs if p) if prs else 0.0
+                if total_prs > total_price_base:
+                    total_price = total_prs - total_price_base
+                    is_recovery = True
+                else:
+                    total_price = total_price_base - total_prs
+                    is_recovery = False
+                # --- RENDER DESK FOR WEB OR REST RESPONSE ---
+                if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                    sc_record = Sc.objects.filter(name=bus_name, level=level).first()
+                    company_logo = sc_record.logo.url if sc_record and sc_record.logo else None
+                    context = {
+                        'success': 'Ticket(s) processed successfully!',
+                        'tickets': tickets,
+                        'total_price': total_price,
+                        'level': level,
+                        'name': bus_name,
+                        'fname': fname,
+                        'company_logo': company_logo,
+                        'lname': lname
+                    }
+                    if is_recovery:
+                        return render(request, 'users/recover.html', context)
+                    if not usernames or not usernames[0]:
+                        return render(request, 'users/payment.html', context)
+                    else:
+                        return render(request, 'users/myticket.html', context)
+                serializer = TicketSerializer(tickets, many=True)
+                return Response({'message': 'Booking successful.', 'tickets': serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -4291,11 +5071,7 @@ class AgentBookingViews(APIView):
 
 
 
-
-
-
-
-
+"""
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -4518,8 +5294,7 @@ class TicketBookingViews(APIView):
             return Response({'message': 'Booking successful.', 'tickets': serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+"""
 
 
 
@@ -7069,7 +7844,7 @@ class UpdateTicketViews(APIView):
 
 
 
-
+"""
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7077,10 +7852,8 @@ from django.shortcuts import render
 from .models import Buschange, Route, Bus, Ticket, City
 from .serializers import RouteSerializer, SelectRequestSerializer, SelectResponseSerializer
 from drf_spectacular.utils import extend_schema
-
 class SelectView(APIView):
     serializer_class = SelectRequestSerializer
-
     @extend_schema(summary="Get bus changes count")
     def get(self, request):
         buschanges_count = Buschange.objects.count()
@@ -7111,17 +7884,14 @@ class SelectView(APIView):
                     'error': error_message
                 })
             return Response({'error': error_message}, status=status.HTTP_404_NOT_FOUND)
-
         bus = Bus.objects.filter(plate_no=plate_no).first()
         if not bus:
             return Response({'error': 'Bus not found'}, status=status.HTTP_404_NOT_FOUND)
         levels = bus.level
         total_seats = int(bus.no_seats)
-
         booked_tickets = Ticket.objects.filter(
             depcity=depcity, descity=descity, date=date, plate_no=plate_no
         ).values_list('no_seat', flat=True)
-
         booked_seats = list(set(int(seat) for seat in booked_tickets if seat))
         booked_seat_count = len(booked_seats)
         remaining_seats = total_seats - booked_seat_count
@@ -7135,7 +7905,6 @@ class SelectView(APIView):
                     'buschanges_count': buschanges_count
                 })
             return Response({'error': 'This Bus is Full!'}, status=status.HTTP_400_BAD_REQUEST)
-
         serialized_routes = RouteSerializer(routes, many=True).data
         response_data = {
             'routes': serialized_routes,
@@ -7145,12 +7914,104 @@ class SelectView(APIView):
             'booked_seats': booked_seats,
             'all_seats': list(range(1, total_seats + 1))
         }
-
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/ticket.html', response_data)
-
         return Response(response_data, status=status.HTTP_200_OK)
+"""
 
+from datetime import datetime
+from django.shortcuts import render
+from django.utils import timezone
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import City, Route, Bus, Ticket, Buschange
+from .serializers import RouteSerializer, SelectRequestSerializer, SelectResponseSerializer
+
+class SelectView(APIView):
+    serializer_class = SelectRequestSerializer
+
+    @extend_schema(summary="Get bus changes count")
+    def get(self, request):
+        buschanges_count = Buschange.objects.count()
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/roote.html', {'buschanges_count': buschanges_count})
+        return Response({'buschanges_count': buschanges_count}, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=SelectRequestSerializer,
+        responses={200: SelectResponseSerializer},
+        summary="Lookup seats for a specific route"
+    )
+    def post(self, request):
+        # 1. ከ Form ወይም Request መረጃዎችን መቀበል (route_id ን ጨምሮ)
+        route_id = request.data.get('route_id')
+        plate_no = request.data.get('plate_no')
+        depcity = request.data.get('depcity')
+        descity = request.data.get('descity')
+        date = request.data.get('date')
+
+        buschanges_count = Buschange.objects.count()
+
+        # 2. route_id ካለ በ ID ይፈልጋል፤ ካልሆነ ደግሞ በሌሎቹ መረጃዎች ከዳታቤዝ ያወጣል
+        if route_id:
+            routes = Route.objects.filter(id=route_id)
+        else:
+            routes = Route.objects.filter(depcity=depcity, descity=descity, date=date, plate_no=plate_no)
+
+        if not routes.exists():
+            error_message = "There is no Travel for this information!"
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                return render(request, 'users/tickets.html', {
+                    'des': City.objects.all(),
+                    'buschanges_count': buschanges_count,
+                    'error': error_message
+                })
+            return Response({'error': error_message}, status=status.HTTP_404_NOT_FOUND)
+
+        # ከዳታቤዝ የተገኘውን ትክክለኛ የጉዞ መረጃ መውሰድ
+        selected_route = routes.first()
+        plate_no = selected_route.plate_no
+        depcity = selected_route.depcity
+        descity = selected_route.descity
+        date = selected_route.date
+
+        bus = Bus.objects.filter(plate_no=plate_no).first()
+        if not bus:
+            return Response({'error': 'Bus not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        levels = bus.level
+        total_seats = int(bus.no_seats)
+
+        booked_tickets = Ticket.objects.filter(
+            depcity=depcity, descity=descity, date=date, plate_no=plate_no
+        ).values_list('no_seat', flat=True)
+        booked_seats = list(set(int(seat) for seat in booked_tickets if seat))
+        booked_seat_count = len(booked_seats)
+        remaining_seats = total_seats - booked_seat_count
+        unbooked_seats = [seat for seat in range(1, total_seats + 1) if seat not in booked_seats]
+        if remaining_seats <= 0:
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                return render(request, 'users/roote.html', {
+                    'error': 'This Bus is Full!',
+                    'levels': levels,
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'This Bus is Full!'}, status=status.HTTP_400_BAD_REQUEST)
+        # 3. የቲኬት ዋጋው በቀጥታ ከዳታቤዝ ሞዴል (selected_route.price) ስለሚወሰድ አጥቂው Inspect አድርጎ ዋጋ መቀየር አይችልም!
+        serialized_routes = RouteSerializer(routes, many=True).data
+        response_data = {
+            'routes': serialized_routes,
+            'levels': levels,
+            'remaining_seats': remaining_seats,
+            'unbooked_seats': unbooked_seats,
+            'booked_seats': booked_seats,
+            'all_seats': list(range(1, total_seats + 1))
+        }
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/ticket.html', response_data)
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 
@@ -8508,12 +9369,129 @@ class CommentDeleteViews(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import render, redirect
 from drf_spectacular.utils import extend_schema
 
+# Ensure these models and your serializer are correctly imported
+from .models import Buschange, CustomUser, City, Bus
+from .serializers import UserSerializer
+
+class UrRegisterView(APIView):
+    serializer_class = UserSerializer
+
+    @extend_schema(summary="Show registration page")
+    def get(self, request, *args, **kwargs):
+        # 1. INITIAL SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Unauthorized! Please login to access user registration.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            # Restriction: Only 'henok' can authorize new account creation
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count,
+                        'error': 'Security Protocol: Master Admin clearance required to register new users.'
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. AUTHORIZED: Setup and return context data for template rendering
+        context = {
+            'dep': City.objects.all(),
+            'des': City.objects.all(),
+            'bus': Bus.objects.all(),
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        }
+        return render(request, 'users/register.html', context)
+
+    @extend_schema(
+        summary="Register a new user",
+        request=UserSerializer,
+        responses={201: UserSerializer}
+    )
+    def post(self, request, *args, **kwargs):
+        # 1. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please re-authenticate.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. DATA VALIDATION & REGISTRATION
+        serializer = UserSerializer(data=request.data)
+        context = {
+            'dep': City.objects.all(),
+            'des': City.objects.all(),
+            'bus': Bus.objects.all(),
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        }
+
+        if serializer.is_valid():
+            serializer.save()
+            context['success'] = 'User Account initialized successfully in the master registry.'
+            if is_html:
+                return render(request, 'users/register.html', context)
+            return Response({'success': context['success']}, status=status.HTTP_201_CREATED)
+
+        # 4. HANDLE VALIDATION ERRORS (🛡️ FIX: Generic Error Message)
+        context['error'] = 'Registration failed. Please check your information and try again.'
+        if is_html:
+            return render(request, 'users/register.html', context)
+        return Response({'error': 'Registration failed. Please check your input data.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+"""
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render, redirect
+from drf_spectacular.utils import extend_schema
 # Ensure these models and your serializer are correctly imported
 from .models import Buschange, CustomUser, City, Bus  
 from .serializers import UserSerializer
@@ -8617,7 +9595,7 @@ class UrRegisterView(APIView):
         if is_html:
             return render(request, 'users/register.html', context)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
+"""
 
 
 from django.utils import timezone
@@ -10229,8 +11207,138 @@ class ServicInsertView(generics.GenericAPIView):
 
 
 
+from django.shortcuts import render, redirect
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Sc, Buschange, CustomUser, Worker, Pasenger
+from .serializers import scSerializer
+
+class ScInsertViews(generics.GenericAPIView):
+    queryset = Sc.objects.all()
+    serializer_class = scSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        # 1. INITIAL SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+        
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Unauthorized! Please login to access the Registry.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count,
+                        'error': 'Security Protocol: Master Admin clearance required to register new entities.'
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. AUTHORIZED: Render entry form
+        return render(request, 'users/scc.html', {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        })
+
+    def post(self, request, *args, **kwargs):
+        # 1. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. DATA VALIDATION
+        serializer = self.get_serializer(data=request.data)
+        context = {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        }
+
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            side = serializer.validated_data.get('side', '')
+            username = serializer.validated_data.get('username')
+            email = serializer.validated_data.get('email')
+            phone = serializer.validated_data.get('phone')
+            level = serializer.validated_data.get('level')
+
+            # 🛡️ FIX: Business Logic Uniqueness checks with Generic Error Messages
+            if (
+                (level in ['1st', '2nd', '3rd'] and Sc.objects.filter(name__iexact=name, level__in=['1st', '2nd', '3rd']).exists()) or
+                (level == 'Special Bus' and Sc.objects.filter(name__iexact=name, level='Special Bus').exists()) or
+                (side and any(
+                    set(s.strip().lower() for s in side.split('/') if s.strip()) &
+                    set(es.strip().lower() for es in existing_side.split('/') if es.strip())
+                    for existing_side in Sc.objects.values_list('side', flat=True) if existing_side
+                )) or
+                Sc.objects.filter(username__iexact=username).exists() or
+                (email and Sc.objects.filter(email__iexact=email).exists()) or
+                (phone and (
+                    Sc.objects.filter(phone=phone).exists() or
+                    Worker.objects.filter(phone=phone).exists() or
+                    Pasenger.objects.filter(phone=phone).exists() or
+                    CustomUser.objects.filter(phone=phone).exists()
+                ))
+            ):
+                context['error'] = 'Registration failed. Please check your information and try again.'
+
+            if 'error' in context:
+                if is_html:
+                    return render(request, 'users/scc.html', context)
+                return Response({'error': context['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 4. SAVE & RESPONSE
+            serializer.save()
+            context['success'] = 'Share Company Registered successfully.'
+            if is_html:
+                return render(request, 'users/scc.html', context)
+            return Response({'success': context['success']}, status=status.HTTP_201_CREATED)
+
+        # 5. HANDLE SERIALIZER ERRORS (🛡️ FIX: Generic Error Message)
+        context['error'] = 'Registration failed. Please check your input data.'
+        if is_html:
+            return render(request, 'users/scc.html', context)
+        return Response({'error': 'Registration failed. Please check your input data.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+"""
 from django.shortcuts import render, redirect
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -10374,7 +11482,7 @@ class ScInsertViews(generics.GenericAPIView):
         if is_html:
             return render(request, 'users/scc.html', context)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+"""
 
     
 

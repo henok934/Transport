@@ -16,6 +16,24 @@ ALLOWED_HOSTS = [
     '127.0.0.1'
 ]
 
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,  # የይለፍ ቃሉ ቢያንስ 8 ቁጥሮች/ፊደላት መሆን አለበት
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Security Headers
 X_FRAME_OPTIONS = 'DENY'
@@ -56,7 +74,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-#    'csp.middleware.CSPMiddleware', # <-- CSP Middleware በትክክል ተቀምጧል
+    'csp.middleware.CSPMiddleware', # <-- CSP Middleware በትክክል ተቀምጧል
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -67,7 +85,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
 ]
-
 
 
 # Content Security Policy Settings (CSP)
@@ -85,13 +102,16 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',  # ወይም የስታቲክ አቃፊህ የሚገኝበት ትክክለኛ መንገድ
 ]
 """
-
+# Content Security Policy Settings (CSP)
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
-        'default-src': ("'self'",),
+        'default-src': ("'self'", 'https:', 'data:'),
         'img-src': ("'self'", 'data:', 'https:'),
-        'script-src': ("'self'",),
-        'style-src': ("'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'),
+        'script-src': ("'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://code.jquery.com', 'https://stackpath.bootstrapcdn.com', 'https://translate.google.com', 'https://translate.googleapis.com', 'https://challenges.cloudflare.com', 'https://*.cloudflare.com'),
+        'style-src': ("'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com', 'https://stackpath.bootstrapcdn.com'),
+        'font-src': ("'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'),
+        'connect-src': ("'self'", 'https://challenges.cloudflare.com', 'https://*.cloudflare.com', 'https://translate.googleapis.com'),
+        'frame-src': ("'self'", 'https://challenges.cloudflare.com', 'https://*.cloudflare.com', 'https://translate.google.com'),
     }
 }
 
@@ -129,8 +149,9 @@ AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-AXES_ENABLED = False
 
+#AXES_ENABLED = False
+AXES_ENABLED = True
 # 6. EMAIL SETTINGS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -150,13 +171,17 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # 8. CORS & CSRF
-CORS_ALLOW_ALL_ORIGINS = True
+#CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOW_ALL_ORIGINS = False
 CSRF_TRUSTED_ORIGINS = [
     'https://wedehagertransport.onrender.com',
     'https://fermataa-3ooq.onrender.com',
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    'https://wedehagertransport.onrender.com',
+    'https://fermataa-3ooq.onrender.com',
+]
 # 9. INTERNATIONALIZATION
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Africa/Addis_Ababa'

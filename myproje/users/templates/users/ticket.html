@@ -84,78 +84,25 @@
             border-radius: 8px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.15);
             border-left: 5px solid #e74c3c;
-            z-index: 9999; /* Higher z-index to stay on top */
+            z-index: 9999;
             min-width: 300px;
             animation: slideIn 0.3s ease-out;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Content Layout */
-        .toast-content {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .toast-icon {
-            color: #e74c3c;
-            font-size: 24px;
-        }
-
-        .toast-message {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .toast-title {
-            font-weight: 700;
-            color: #333;
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .toast-desc {
-            color: #666;
-            font-size: 13px;
-            margin-top: 2px;
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            color: #ccc;
-            cursor: pointer;
-            font-size: 18px;
-            margin-left: auto;
-            padding: 0;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
+        .toast-content { display: flex; align-items: center; gap: 15px; }
+        .toast-icon { color: #e74c3c; font-size: 24px; }
+        .toast-message { display: flex; flex-direction: column; }
+        .toast-title { font-weight: 700; color: #333; font-size: 14px; margin: 0; }
+        .toast-desc { color: #666; font-size: 13px; margin-top: 2px; }
+        .toast-close { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; margin-left: auto; padding: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .toast-close:hover { color: #333; }
 
-        /* Progress Bar Animation */
         .toast-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            width: 100%;
-            background: #eee;
-            border-bottom-right-radius: 8px;
-            overflow: hidden;
+            position: absolute; bottom: 0; left: 0; height: 3px; width: 100%; background: #eee; border-bottom-right-radius: 8px; overflow: hidden;
         }
-
         .toast-progress::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #e74c3c;
-            animation: progress 5s linear forwards;
+            content: ''; position: absolute; left: 0; width: 100%; height: 100%; background: #e74c3c; animation: progress 5s linear forwards;
         }
 
         @keyframes slideIn {
@@ -167,44 +114,25 @@
             from { width: 100%; }
             to { width: 0%; }
         }
-        /* --- HIDE GOOGLE UI --- */ 
-        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
-        body { top: 0px !important; position: static !important; } 
-        html { margin-top: 0px !important; } 
-        .goog-text-highlight { background: none !important; box-shadow: none !important; }
     </style>
-<style>
-.brand-logo {
-    border: none !important;      /* Removes the black border */
-    box-shadow: none !important;  /* Removes any surrounding shadow if present */
-    border-radius: 0;             /* Resets the rounded corners if necessary */
-}
-</style>
+    <style>
+        .brand-logo { border: none !important; box-shadow: none !important; border-radius: 0; }
+    </style>
 </head>
 <body>
 <script>
 function closeError() {
     const errorToast = document.getElementById('djangoError');
     if (errorToast) {
-        // Smooth fade out
         errorToast.style.opacity = '0';
         errorToast.style.transform = 'translateX(20px)';
         errorToast.style.transition = '0.3s all ease';
-        
-        // Remove from layout after animation
-        setTimeout(() => {
-            errorToast.style.display = 'none';
-        }, 300);
+        setTimeout(() => { errorToast.style.display = 'none'; }, 300);
     }
 }
-
-// Auto-close logic
 document.addEventListener('DOMContentLoaded', function() {
     const toast = document.getElementById('djangoError');
-    if (toast) {
-        // Automatically close after 5 seconds
-        setTimeout(closeError, 5000);
-    }
+    if (toast) { setTimeout(closeError, 5000); }
 });
 </script>
 
@@ -224,25 +152,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <nav class="navbar-main navbar navbar-expand-lg">
     <div class="container">
- <a href="{% url 'home' %}" class="brand-area">
+        <a href="{% url 'home' %}" class="brand-area d-flex align-items-center" style="text-decoration:none">
             <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
             <div>
-        <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
-        <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
+                <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
+                <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
             </div>
         </a>
-	<!--    
-        <a href="{% url 'home' %}" class="d-flex align-items-center" style="text-decoration:none">
-            <div class="brand-logo-box">
-                <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
-            </div>
-            <div>
-                <span class="brand-text-main">Busfermata</span>
-                <span class="brand-tag">TRANSPORT TECHNOLOGY</span>
-            </div>
-        </a>
-	-->
-
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar">
             <span class="navbar-toggler-icon"><i class="fas fa-bars" style="color:var(--brand-navy)"></i></span>
@@ -254,17 +170,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 <li class="nav-item"><a class="nav-link nav-link-custom" href="{% url 'get_ticket' %}">My Ticket</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-custom" href="{% url 'about' %}">About Us</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-custom" href="#">Feedback</a></li>
-		<!-- <li class="nav-item ml-lg-3"><a class="nav-link nav-link-custom login-pill" href="{% url 'login' %}">Login</a></li>-->
-		<li class="nav-item ml-lg-3">
-    <a class="nav-link nav-link-intl px-4 rounded-pill border"
-       style="background-color: var(--brand-gold) !important; color: var(--brand-navy) !important; font-weight: 800;"
-       href="{% url 'book' %}">Book Now</a>
-
+                <li class="nav-item ml-lg-3">
+                    <a class="nav-link nav-link-intl px-4 rounded-pill border"
+                       style="background-color: var(--brand-gold) !important; color: var(--brand-navy) !important; font-weight: 800;"
+                       href="{% url 'book' %}">Book Now</a>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
-
 <div class="container my-5">
     {% for route in routes %}
     <div class="trip-summary shadow d-flex justify-content-between align-items-center">
@@ -282,20 +196,18 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="h5 mb-0 font-weight-bold">{{ route.date }}</span>
         </div>
     </div>
-
     <form action="{% url 'ticket' %}" method="post" id="search_form_1">
         {% csrf_token %}
         <div id="passenger-container">
-            <div class="passenger-card shadow-sm border-0">
+            <!-- ✅ SECURE CHANGE: input ጠፍቶ data-price ተጠቀመ (ለሒሳብ ማሰያ ብቻ) -->
+            <div class="passenger-card shadow-sm border-0" data-price="{{ route.price|default:'0' }}">
                 <h6 class="font-weight-bold mb-4" style="color:var(--brand-navy)"><i class="fas fa-user-circle mr-2"></i>PASSENGER DETAILS</h6>
-                <input type="hidden" name="price[]" class="individual-price" value="{{ route.price|default:'0' }}">
                 <input type="hidden" name="side_no[]" value="{{ route.side_no }}">
                 <input type="hidden" name="plate_no[]" value="{{ route.plate_no }}">
                 <input type="hidden" name="date[]" value="{{ route.date }}">
                 <input type="hidden" name="depcity[]" value="{{ route.depcity }}">
                 <input type="hidden" name="descity[]" value="{{ route.descity }}">
-                <input type="hidden" name="username[]" value="{{ username }}">
-                
+                <input type="hidden" name="username[]" value="{{ username }}">               
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="small font-weight-bold">First Name <span class="text-danger">*</span></label>
@@ -310,7 +222,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="tel" name="phone[]" class="form-control form-control-intl" maxlength="10" placeholder="09..." required>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="small font-weight-bold">Gender <span class="text-danger">*</span></label>
@@ -329,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </select>
                     </div>
                 </div>
-               <div class="row">
+                <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="small font-weight-bold">Email Address <span class="text-danger">*</span></label>
                         <input type="email" name="email[]" class="form-control form-control-intl" required>
@@ -421,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         clone.querySelectorAll('input:not([type="hidden"])').forEach(i => i.value = '');
         clone.querySelector('select[name="no_seat[]"]').innerHTML = '<option value="" disabled selected>Select seat from map...</option>';
         
-        // Ensure dropdown selections are reset for cloned items
         clone.querySelectorAll('select').forEach(select => {
             select.selectedIndex = 0;
         });
@@ -434,9 +344,13 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateTotal();
     });
 
+    // ✅ SECURE CHANGE: calculateTotal ከ input ፋንታ ዲቪው ላይ ባለው data-price ይሠራል
     function calculateTotal() {
         let total = 0;
-        document.querySelectorAll('.individual-price').forEach(p => total += parseFloat(p.value));
+        document.querySelectorAll('.passenger-card').forEach(card => {
+            let price = parseFloat(card.getAttribute('data-price')) || 0;
+            total += price;
+        });
         document.getElementById('totalDisplay').innerText = total.toFixed(2);
     }
 </script>

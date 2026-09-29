@@ -20,7 +20,6 @@ urlpatterns = [
     path('Sel/', SelView.as_view(), name='Sel'), # Unique name
     path('api/Sel/', SelView.as_view(), name='sel_api'), # Unique name    
     path('see/', SeeView.as_view(), name='see'),
-    #path('my-tickets/', views.my_tickets_view, name='my_tickets'),
     path('ticket/print/<uuid:ticket_id>/', views.print_ticket_view, name='print_ticket'),
     path('my-tickets/', views.my_tickets_view, name='my_tickets'),
     path('passenger_register/', views.passenger_register, name='passenger_register'),
@@ -178,7 +177,7 @@ urlpatterns = [
     path('custom_csrf_failure_view/', views.custom_csrf_failure_view, name='custom_csrf_failure_view'),
     
     path('login/', LoginView.as_view(), name='login'),
-    #path('api/login/', LoginView.as_view(), name='api_login'),
+    
 
     path('ticket/', TicketBookingViews.as_view(), name='ticket'),
     path('agentbooking/', TicketBookingViews.as_view(), name='agentbooking'),

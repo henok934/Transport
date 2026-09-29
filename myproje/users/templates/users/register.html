@@ -103,6 +103,22 @@
             transform: translateY(-2px);
         }
 
+        /* Password strength indicator styles */
+        .password-strength-indicator {
+            height: 6px;
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
         /* --- FOOTER --- */
         .footer-main { 
             background: var(--brand-navy); 
@@ -120,9 +136,9 @@
     </style>
     <style>
         .brand-logo {
-            border: none !important;      /* Removes the black border */
-            box-shadow: none !important;  /* Removes any surrounding shadow if present */
-            border-radius: 0;             /* Resets the rounded corners if necessary */
+            border: none !important;      
+            box-shadow: none !important;  
+            border-radius: 0;             
         }
     </style>
 </head>
@@ -238,7 +254,11 @@
                         </div>
                         <div class="col-md-6 form-group">
                             <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control form-control-modern" maxlength="30" required>
+                            <input type="password" id="password" name="password" class="form-control form-control-modern" maxlength="30" required>
+                            <div class="password-strength-indicator">
+                                <div id="strengthBar" class="password-strength-bar"></div>
+                            </div>
+                            <small id="strengthText" class="form-text text-muted font-weight-bold mt-1" style="font-size: 11px;">Min 8 chars, uppercase, lowercase, number & symbol</small>
                         </div>
                     </div>
 
@@ -258,9 +278,6 @@
                         </div>
                     </div>
 
-                    <!-- ========================================== -->
-                    <!-- ADDED: ASSIGN TERMINAL (CITY) ROW          -->
-                    <!-- ========================================== -->
                     <div class="row">
                         <div class="col-md-6 form-group">
                             <label class="form-label">Assign Terminal (City)</label>
@@ -274,7 +291,6 @@
                             </select>
                         </div>
                     </div>
-                    <!-- ========================================== -->
 
                     <div class="form-group">
                         <label class="form-label">Email Address</label>
@@ -339,11 +355,61 @@ function validateEmail(input) {
     }
 }
 
-// AJAX Submission
+// Password Strength Validation Live Checker
+const passwordInput = document.getElementById('password');
+const strengthBar = document.getElementById('strengthBar');
+const strengthText = document.getElementById('strengthText');
+
+passwordInput.addEventListener('input', function() {
+    const val = passwordInput.value;
+    let strength = 0;
+
+    if (val.length >= 8) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+    if (val.length === 0) {
+        strengthBar.style.width = '0%';
+        strengthText.innerText = 'Min 8 chars, uppercase, lowercase, number & symbol';
+        strengthText.style.color = '#6c757d';
+    } else if (strength <= 2) {
+        strengthBar.style.width = '33%';
+        strengthBar.style.backgroundColor = '#ef4444'; // Weak
+        strengthText.innerText = 'Weak Password (Not Allowed)';
+        strengthText.style.color = '#ef4444';
+    } else if (strength === 3) {
+        strengthBar.style.width = '66%';
+        strengthBar.style.backgroundColor = '#f59e0b'; // Medium
+        strengthText.innerText = 'Medium Password (Needs to be Stronger)';
+        strengthText.style.color = '#f59e0b';
+    } else {
+        strengthBar.style.width = '100%';
+        strengthBar.style.backgroundColor = '#10b981'; // Strong
+        strengthText.innerText = 'Strong Password';
+        strengthText.style.color = '#10b981';
+    }
+});
+
+// AJAX Submission with Password Strength Guard
 document.getElementById('reg_form').addEventListener('submit', async function(event) {
     event.preventDefault();
-    const formData = new FormData(this);
+    
+    const password = passwordInput.value;
     const msgBox = document.getElementById('response_message');
+
+    let strengthCount = 0;
+    if (password.length >= 8) strengthCount++;
+    if (/[A-Z]/.test(password)) strengthCount++;
+    if (/[0-9]/.test(password)) strengthCount++;
+    if (/[^A-Za-z0-9]/.test(password)) strengthCount++;
+
+    if (strengthCount < 4 || password.length < 8) {
+        msgBox.innerHTML = '<div class="alert alert-danger"><b>Password is too weak. Please use at least 8 characters with uppercase, lowercase, numbers, and symbols.</b></div>';
+        return;
+    }
+
+    const formData = new FormData(this);
     msgBox.innerHTML = '<div class="alert alert-info">Processing...</div>';
 
     try {
@@ -357,6 +423,9 @@ document.getElementById('reg_form').addEventListener('submit', async function(ev
         if (response.ok) {
             msgBox.innerHTML = `<div class="alert alert-success"><b>${data.success || 'Success!'}</b> ✔</div>`;
             this.reset();
+            strengthBar.style.width = '0%';
+            strengthText.innerText = 'Min 8 chars, uppercase, lowercase, number & symbol';
+            strengthText.style.color = '#6c757d';
         } else {
             msgBox.innerHTML = `<div class="alert alert-danger"><b>${data.error || 'Registration failed'}</b></div>`;
         }
