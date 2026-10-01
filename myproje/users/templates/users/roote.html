@@ -410,6 +410,7 @@
 			<input type="hidden" name="route_id" value="{{ item.route.id }}">
                         <input type="hidden" name="date" value="{{ item.route.date }}">
                         <input type="hidden" name="plate_no" value="{{ item.route.plate_no }}">
+			<input type="hidden" name="passengers" value="{{ passengers }}">
                         <button type="submit" class="btn-select {% if not item.route.is_active or item.remaining_seats <= 0 %}btn-disabled{% endif %}"
                                 {% if not item.route.is_active or item.remaining_seats <= 0 %}disabled{% endif %}>
                             {% if item.route.is_active and item.remaining_seats > 0 %}

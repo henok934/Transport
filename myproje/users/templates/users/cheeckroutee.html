@@ -3,17 +3,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/jpeg" href="{% static 'images/l.jpeg' %}">
-    <link rel="icon" type="image/jpeg" href="{% static 'images/l.jpeg' %}">
-    <title>Busfermata | Ethiopia's Digital Transport Network</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Busfermata | Ethiopia's Digital Transport Network</title>
+
+    <!-- Favicon (አንድ ጊዜ ብቻ) -->
     <link rel="icon" type="image/jpeg" href="{% static 'images/l.jpeg' %}">
+
     <!-- Typography & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Bootstrap 4 CDN (ለቅርፅ እና ላያውት አስፈላጊ) -->
+    <!-- Bootstrap 4 CSS (ከ Local Static ወይም CDN) -->
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/bootstrap4/bootstrap.min.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
     <style>
@@ -72,7 +74,7 @@
         }
 
         .brand-logo { 
-            height: 60px !important; 
+            height: 50px !important; 
             width: auto; 
             margin-right: 15px; 
             transition: transform 0.3s ease;
@@ -81,7 +83,7 @@
         .brand-text { 
             font-weight: 800; 
             color: var(--brand-navy); 
-            font-size: 26px; 
+            font-size: 24px; 
             text-transform: uppercase; 
             line-height: 1; 
             letter-spacing: -0.5px;
@@ -107,8 +109,8 @@
 
         /* --- HERO SECTION --- */
         .hero-wrapper {
-            height: 48vh;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(0, 38, 77, 0.7) 100%), url('{% static "images/home_slider.jpg" %}');
+            height: 40vh;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(0, 38, 77, 0.8) 100%), url('{% static "images/home_slider.jpg" %}');
             background-size: cover; 
             background-position: center;
             background-repeat: no-repeat;
@@ -239,7 +241,9 @@
         .region-card { 
             background: white; border-top: 4px solid var(--cyan-primary); 
             padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.04); height: 100%; 
+            transition: all 0.3s ease;
         }
+        .region-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
         .region-name { font-weight: 800; font-size: 16px; color: var(--brand-navy); margin-bottom: 12px; display: block; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
         .city-item { display: block; margin-bottom: 6px; font-weight: 600; color: #475569; font-size: 13px; }
 
@@ -273,7 +277,7 @@
                 <span class="brand-tagline">DIGITAL TECHNOLOGY</span>
             </div>
         </a>
-        <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navPortal">
+        <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navPortal" aria-controls="navPortal" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -288,10 +292,10 @@
                         <i class="fas fa-globe mr-1" style="color:var(--cyan-dark);"></i> <span id="currentLang">English</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right shadow-lg border-0 rounded-lg p-2" aria-labelledby="langDrop">
-                        <button class="dropdown-item rounded py-2" onclick="changeLanguage('en', 'English')">English <small class="text-muted float-right">EN</small></button>
-                        <button class="dropdown-item rounded py-2" onclick="changeLanguage('am', 'አማርኛ')">አማርኛ <small class="text-success float-right">AM</small></button>
-                        <button class="dropdown-item rounded py-2" onclick="changeLanguage('om', 'Afaan Oromoo')">Afaan Oromoo <small class="text-muted float-right">OR</small></button>
-                        <button class="dropdown-item rounded py-2" onclick="changeLanguage('ti', 'ትግርኛ')">ትግርኛ <small class="text-muted float-right">TI</small></button>
+                        <button type="button" class="dropdown-item rounded py-2" onclick="changeLanguage('en', 'English')">English <small class="text-muted float-right">EN</small></button>
+                        <button type="button" class="dropdown-item rounded py-2" onclick="changeLanguage('am', 'አማርኛ')">አማርኛ <small class="text-success float-right">AM</small></button>
+                        <button type="button" class="dropdown-item rounded py-2" onclick="changeLanguage('om', 'Afaan Oromoo')">Afaan Oromoo <small class="text-muted float-right">OR</small></button>
+                        <button type="button" class="dropdown-item rounded py-2" onclick="changeLanguage('ti', 'ትግርኛ')">ትግርኛ <small class="text-muted float-right">TI</small></button>
                     </div>
                 </li>
             </ul>
@@ -313,7 +317,7 @@
 
 <!-- HERO SECTION -->
 <section class="hero-wrapper">
-    <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 8px;">The Pride of Ethiopian Transit</h1>
+    <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 8px;">The Pride of Ethiopian Transit</h1>
     <p style="font-size: 1.1rem; font-weight: 500; opacity: 0.95;">Fast, Reliable & Modern Cross-Country Ticketing</p>
 </section>
 
@@ -412,11 +416,11 @@
     </div>
 
     <div class="row">
-        <!-- Card 1: Walia Bus -->
+        <!-- Card 1 -->
         <div class="col-md-4 mb-4">
             <div class="feature-card">
                 <div class="card-image-holder">
-		      <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Blue and Green Modern Coach" class="feature-card-img">
+                    <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="E-Ticketing">
                     <span class="card-badge"><i class="fas fa-qrcode" style="color:var(--cyan-glow);"></i> E-Ticketing</span>
                 </div>
                 <div class="card-text-block">
@@ -426,12 +430,11 @@
             </div>
         </div>
 
-        <!-- Card 2: FM Bus -->
+        <!-- Card 2 -->
         <div class="col-md-4 mb-4">
-            <div class="feature-card" style="border-color: var(--cyan-primary);">
+            <div class="feature-card">
                 <div class="card-image-holder">
-                      <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Modern Travel Fleet" class="feature-card-img">
-
+                    <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Verified Routes">
                     <span class="card-badge"><i class="fas fa-shield-alt" style="color:var(--cyan-glow);"></i> Verified Routes</span>
                 </div>
                 <div class="card-text-block">
@@ -441,11 +444,11 @@
             </div>
         </div>
 
-        <!-- Card 3: Golden Dragon -->
+        <!-- Card 3 -->
         <div class="col-md-4 mb-4">
             <div class="feature-card">
                 <div class="card-image-holder">
-                   <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Blue and Green Modern Coach" class="feature-card-img">
+                    <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80" alt="Instant Mobile Booking">
                     <span class="card-badge"><i class="fas fa-mobile-alt" style="color:var(--cyan-glow);"></i> Instant Booking</span>
                 </div>
                 <div class="card-text-block">
@@ -457,27 +460,11 @@
     </div>
 </section>
 
-
-<!--
-<section class="container" style="margin-top: 60px;">
-    <div class="text-center mb-5">
-        <h2 style="font-weight: 800; color: var(--brand-navy); font-size: 28px;">Primary Routes</h2>
-        <p class="text-muted">Direct Regional Transport Connections</p>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-3 mb-4"><div class="region-card"><span class="region-name">NORTHERN</span><span class="city-item">Bahir Dar</span><span class="city-item">Gonder</span><span class="city-item">Mekele</span></div></div>
-        <div class="col-md-3 mb-4"><div class="region-card"><span class="region-name">SOUTHERN</span><span class="city-item">Hawassa</span><span class="city-item">Arba Minch</span><span class="city-item">Dilla</span></div></div>
-        <div class="col-md-3 mb-4"><div class="region-card"><span class="region-name">WESTERN</span><span class="city-item">Jimma</span><span class="city-item">Nekemte</span><span class="city-item">Gambela</span></div></div>
-        <div class="col-md-3 mb-4"><div class="region-card"><span class="region-name">EASTERN</span><span class="city-item">Dire Dawa</span><span class="city-item">Harar</span><span class="city-item">Jigjiga</span></div></div>
-    </div>
-</section>
--->
-
+<!-- REGIONAL ROUTES SECTION -->
 <section class="container py-4">
   <div class="row">
     <div class="col-md-3 mb-4">
-      <div class="region-card" onclick="createRipple(event, this)">
+      <div class="region-card">
         <span class="region-name">NORTHERN</span>
         <span class="city-item">Bahir Dar</span>
         <span class="city-item">Gonder</span>
@@ -486,7 +473,7 @@
     </div>
 
     <div class="col-md-3 mb-4">
-      <div class="region-card" onclick="createRipple(event, this)">
+      <div class="region-card">
         <span class="region-name">SOUTHERN</span>
         <span class="city-item">Hawassa</span>
         <span class="city-item">Arba Minch</span>
@@ -495,15 +482,16 @@
     </div>
 
     <div class="col-md-3 mb-4">
-      <div class="region-card" onclick="createRipple(event, this)">
+      <div class="region-card">
         <span class="region-name">WESTERN</span>
         <span class="city-item">Jimma</span>
         <span class="city-item">Nekemte</span>
         <span class="city-item">Gambela</span>
       </div>
     </div>
- <div class="col-md-3 mb-4">
-      <div class="region-card" onclick="createRipple(event, this)">
+
+    <div class="col-md-3 mb-4">
+      <div class="region-card">
         <span class="region-name">EASTERN</span>
         <span class="city-item">Dire Dawa</span>
         <span class="city-item">Harar</span>
@@ -512,115 +500,6 @@
     </div>
   </div>
 </section>
-<style>
-  /* Base Modern Card Styling */
-  .region-card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Hover Motion */
-  .region-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.12);
-    border-color: #0d6efd;
-  }
-
-  /* Click / Active State Motion */
-  .region-card:active {
-    transform: scale(0.97);
-  }
-
-  .region-card.active {
-    border: 2px solid #0d6efd;
-    background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    box-shadow: 0 12px 30px rgba(13, 110, 253, 0.2);
-  }
-
-/* Region Title Styling */
-  .region-name {
-    display: block;
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    color: #0d6efd;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e9ecef;
-    text-transform: uppercase;
-  }
-
-  /* City Items Styling & Stagger Motion */
-  .city-item {
-    display: block;
-    padding: 0.6rem 1rem;
-    margin-bottom: 0.5rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    font-weight: 500;
-    color: #495057;
-    transition: all 0.3s ease;
-  }
-
-  .city-item:last-child {
-    margin-bottom: 0;
-  }
-
-  .city-item:hover {
-    background-color: #0d6efd;
-    color: #ffffff;
-    transform: translateX(6px);
-  }
-/* Ripple Wave Effect on Click */
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(13, 110, 253, 0.3);
-    transform: scale(0);
-    animation: ripple-effect 0.6s linear;
-    pointer-events: none;
-  }
-
-  @keyframes ripple-effect {
-    to {
-      transform: scale(4);
-      opacity: 0;
-    }
-  }
-</style>
-
-
-<script>
-  function createCardRipple(event, element) {
-    document.querySelectorAll('.feature-card').forEach(card => card.classList.remove('active'));
-    element.classList.add('active');
-
-    const circle = document.createElement('span');
-    const diameter = Math.max(element.clientWidth, element.clientHeight);
-    const radius = diameter / 2;
-
-    const rect = element.getBoundingClientRect();
-    circle.style.width = circle.style.height = `${diameter}px`;
-    circle.style.left = `${event.clientX - rect.left - radius}px`;
-    circle.style.top = `${event.clientY - rect.top - radius}px`;
-    circle.classList.add('ripple');
-
-    const existingRipple = element.querySelector('.ripple');
-    if (existingRipple) {
-      existingRipple.remove();
-    }
-
-    element.appendChild(circle);
-  }
-</script>
 
 <footer class="footer-main">
     <div class="container">
@@ -634,7 +513,7 @@
     </div>
 </footer>
 
-<!-- BOOTSTRAP 4 & JQUERY JS DEPENDENCIES -->
+<!-- JS DEPENDENCIES -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>

@@ -1,15 +1,13 @@
-{% load i18n %}
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Passenger Details | Busfermata Digital Technology</title>
+    <title>Passenger Details | Busfermata Luxury Travel</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="{% static 'styles/bootstrap4/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="../static/styles/bootstrap4/bootstrap.min.css">
 
     <style>
         :root {
@@ -28,14 +26,20 @@
             background: #ffffff; padding: 10px 0; border-bottom: 5px solid var(--brand-gold);
             box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
         }
-        .brand-logo { height: 50px !important; width: auto; border-radius: 5px; border: none !important; box-shadow: none !important; }
+        .brand-logo-box {
+            background: white; padding: 4px; border-radius: 10px; border: 2.5px solid var(--brand-navy);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand-logo { height: 50px !important; width: auto; border-radius: 5px; }
         .brand-text-main { font-weight: 800; color: var(--brand-navy); font-size: 22px; text-transform: uppercase; line-height: 1; margin-left: 10px; }
+        .brand-tag { color: var(--brand-gold); font-weight: 800; font-size: 9px; letter-spacing: 1.2px; display: block; margin-left: 10px; }
         
         .nav-link-custom {
             color: var(--brand-navy) !important; font-weight: 700; font-size: 13px; text-transform: uppercase;
             padding: 10px 15px !important; transition: 0.3s;
         }
         .nav-link-custom:hover { color: var(--primary) !important; }
+        .login-pill { background: var(--brand-navy); color: white !important; border-radius: 8px; padding: 8px 20px !important; }
 
         /* --- TRIP SUMMARY --- */
         .trip-summary { background: var(--brand-navy); color: white; padding: 18px; border-radius: 12px; margin-bottom: 25px; }
@@ -44,13 +48,7 @@
         .passenger-card { background: #fff; border-radius: 15px; padding: 25px; margin-bottom: 20px; border: 1px solid #e2e8f0; position: relative; }
         .form-control-intl { height: 48px; border-radius: 10px; font-weight: 600; border: 2px solid #e2e8f0; background: #f8fafc; }
         .cap-input { text-transform: capitalize; }
-        .remove-x { 
-            position: absolute; top: 20px; right: 20px; color: #ef4444; cursor: pointer; 
-            border: none; background: #fef2f2; width: 34px; height: 34px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold;
-            transition: 0.2s ease;
-        }
-        .remove-x:hover { background: #fee2e2; color: #dc2626; }
+        .remove-x { position: absolute; top: 15px; right: 20px; color: #ef4444; cursor: pointer; border: none; background: none; font-size: 20px; }
 
         /* --- SCROLLABLE SEAT MODAL --- */
         .seat-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
@@ -63,49 +61,65 @@
         .seat-rect { 
             height: 42px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; 
-            transition: 0.2s ease;
         }
         .seat-rect i { font-size: 14px; color: #94a3b8; }
-        .seat-rect.selected { background: var(--selected) !important; color: white !important; border-color: var(--selected) !important; }
-        .seat-rect.selected i { color: white !important; }
+        .seat-rect.selected { background: var(--selected); color: white; border-color: var(--selected); }
         .seat-rect.booked { background: #f1f5f9; cursor: not-allowed; opacity: 0.5; border: none; color: #ef4444; }
 
-        /* በሌላ ፎርም የተመረጠ ወንበር ዲዛይን (Dark Blue / Navy) */
-        .seat-rect.selected-other {
-            background: var(--brand-navy) !important;
-            color: white !important;
-            border-color: var(--brand-navy) !important;
-            cursor: not-allowed !important;
-        }
-        .seat-rect.selected-other i {
-            color: var(--brand-gold) !important;
-        }
-
         .footer-dark { background: var(--brand-navy); color: white; padding: 40px 0; text-align: center; }
-
-        /* --- TOAST ERROR STYLE --- */
+        /* --- HIDE GOOGLE UI --- */ 
+        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
+        body { top: 0px !important; position: static !important; } 
+        html { margin-top: 0px !important; } 
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+    </style>
+    <style>
+        /* Toast Container */
         .intl-error-toast {
-            position: fixed; top: 20px; right: 20px; background: #fff; padding: 15px 20px;
-            border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); border-left: 5px solid #e74c3c;
-            z-index: 9999; min-width: 300px; animation: slideIn 0.3s ease-out;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            border-left: 5px solid #e74c3c;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .toast-content { display: flex; align-items: center; gap: 15px; }
         .toast-icon { color: #e74c3c; font-size: 24px; }
         .toast-message { display: flex; flex-direction: column; }
         .toast-title { font-weight: 700; color: #333; font-size: 14px; margin: 0; }
         .toast-desc { color: #666; font-size: 13px; margin-top: 2px; }
-        .toast-close { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; margin-left: auto; padding: 0; }
+        .toast-close { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; margin-left: auto; padding: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .toast-close:hover { color: #333; }
 
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-progress {
+            position: absolute; bottom: 0; left: 0; height: 3px; width: 100%; background: #eee; border-bottom-right-radius: 8px; overflow: hidden;
+        }
+        .toast-progress::after {
+            content: ''; position: absolute; left: 0; width: 100%; height: 100%; background: #e74c3c; animation: progress 5s linear forwards;
+        }
 
-        /* --- HIDE GOOGLE UI --- */ 
-        .goog-te-banner-frame, .goog-te-banner, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; } 
-        body { top: 0px !important; position: static !important; } 
-        html { margin-top: 0px !important; } 
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+    <style>
+        .brand-logo { border: none !important; box-shadow: none !important; border-radius: 0; }
     </style>
 </head>
 <body>
-
 <script>
 function closeError() {
     const errorToast = document.getElementById('djangoError');
@@ -132,13 +146,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <button class="toast-close" onclick="closeError()"><i class="fas fa-times"></i></button>
     </div>
+    <div class="toast-progress"></div>
 </div>
 {% endif %}
 
 <nav class="navbar-main navbar navbar-expand-lg">
     <div class="container">
         <a href="{% url 'home' %}" class="brand-area d-flex align-items-center" style="text-decoration:none">
-            <img src="{% static 'images/l.jpeg' %}" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
+            <img src="../static/images/l.jpeg" class="brand-logo" alt="Busfermata Logo" style="width: 150px !important; height: 100px !important; object-fit: contain !important;">
             <div>
                 <h2><span class="brand-text" style="color: #0A3977 !important; font-weight: bold !important;">BUSFERMATA</span></h2>
                 <h6 style="color:#007A78;font-weight:bold;margin:0;padding:0">Digital Technology</h6>
@@ -164,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </nav>
-
 <div class="container my-5">
     {% for route in routes %}
     <div class="trip-summary shadow d-flex justify-content-between align-items-center">
@@ -181,28 +195,25 @@ document.addEventListener('DOMContentLoaded', function() {
             <small class="text-warning font-weight-bold d-block">TRAVEL DATE</small>
             <span class="h5 mb-0 font-weight-bold">{{ route.date }}</span>
         </div>
-        <div class="d-none d-md-block text-right">
-            <small class="text-warning font-weight-bold d-block">Number of PASSENGERS</small>
-            <!-- ✅ id="passengerCountDisplay" ታክሎበታል -->
-            <span class="h5 mb-0 font-weight-bold" id="passengerCountDisplay">{{ passengers }}</span>
+	<div class="d-none d-md-block text-right">
+            <small class="text-warning font-weight-bold d-block">Number of Passenger</small>
+            <span class="h5 mb-0 font-weight-bold">{{ passengers }}</span>
         </div>
-    </div>
 
+    </div>
     <form action="{% url 'ticket' %}" method="post" id="search_form_1">
         {% csrf_token %}
         <div id="passenger-container">
+            <!-- ✅ SECURE CHANGE: input ጠፍቶ data-price ተጠቀመ (ለሒሳብ ማሰያ ብቻ) -->
             <div class="passenger-card shadow-sm border-0" data-price="{{ route.price|default:'0' }}">
-                <h6 class="font-weight-bold mb-4 passenger-title" style="color:var(--brand-navy)">
-                    <i class="fas fa-user-circle mr-2"></i>PASSENGER 1 DETAILS
-                </h6>
+                <h6 class="font-weight-bold mb-4" style="color:var(--brand-navy)"><i class="fas fa-user-circle mr-2"></i>PASSENGER DETAILS</h6>
                 <input type="hidden" name="side_no[]" value="{{ route.side_no }}">
                 <input type="hidden" name="plate_no[]" value="{{ route.plate_no }}">
                 <input type="hidden" name="date[]" value="{{ route.date }}">
                 <input type="hidden" name="depcity[]" value="{{ route.depcity }}">
                 <input type="hidden" name="descity[]" value="{{ route.descity }}">
                 <input type="hidden" name="username[]" value="{{ username }}">               
-                
-                <div class="row">
+		<div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="small font-weight-bold">First Name <span class="text-danger">*</span></label>
                         <input type="text" name="firstname[]" class="form-control form-control-intl cap-input" oninput="handleNameInput(this)" required>
@@ -213,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="small font-weight-bold">Phone Number <span class="text-danger">*</span></label>
-                        <input type="text" name="phone[]" class="form-control form-control-intl" maxlength="10" placeholder="0911223344" pattern="^09[0-9]{8}$" inputmode="numeric" oninput="if (!this.value.startsWith('09')) { this.value = '09'; } this.value = '09' + this.value.slice(2).replace(/[^0-9]/g, ''); this.setCustomValidity('');" oninvalid="this.setCustomValidity('Please enter a valid 10-digit phone number starting with 09')" required>
+                        <input type="tel" name="phone[]" class="form-control form-control-intl" maxlength="10" placeholder="09..." required>
                     </div>
                 </div>
                 <div class="row">
@@ -295,17 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
     let activeSelect = null;
-    const MAX_PASSENGERS = 10;
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const initialCount = parseInt("{{ passengers|default:'1' }}") || 1;
-        const targetCount = Math.min(Math.max(initialCount, 1), MAX_PASSENGERS);
-
-        for (let i = 1; i < targetCount; i++) {
-            addPassengerCard();
-        }
-        updateFormState();
-    });
 
     function handleNameInput(input) {
         let val = input.value;
@@ -316,32 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function openSeatModal(el) {
         activeSelect = el;
-        
-        const selectedSeats = [];
-        document.querySelectorAll('select[name="no_seat[]"]').forEach(select => {
-            if (select !== activeSelect && select.value) {
-                selectedSeats.push(select.value);
-            }
-        });
-
-        document.querySelectorAll('.seat-rect').forEach(seat => {
-            const seatId = seat.dataset.id;
-            
-            seat.classList.remove('selected-other');
-            seat.classList.remove('selected');
-
-            if (!seat.classList.contains('booked')) {
-                seat.style.pointerEvents = 'auto';
-            }
-
-            if (selectedSeats.includes(seatId)) {
-                seat.classList.add('selected-other');
-                seat.style.pointerEvents = 'none';
-            } else if (activeSelect.value === seatId) {
-                seat.classList.add('selected');
-            }
-        });
-
         document.getElementById('seatModal').style.display = 'block';
         document.body.style.overflow = 'hidden';
     }
@@ -352,20 +326,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function confirmSeat(el) {
-        if (el.classList.contains('booked') || el.classList.contains('selected-other')) return;
+        if (el.classList.contains('booked')) return;
         activeSelect.innerHTML = `<option value="${el.dataset.id}" selected>Seat ${el.dataset.id}</option>`;
         closeModal();
     }
 
-    function addPassengerCard() {
+    document.getElementById('addBtn').addEventListener('click', function() {
         const container = document.getElementById('passenger-container');
-        const cards = container.querySelectorAll('.passenger-card');
-
-        if (cards.length >= MAX_PASSENGERS) {
-            return;
-        }
-
-        const clone = cards[0].cloneNode(true);
+        const clone = container.firstElementChild.cloneNode(true);
         clone.querySelectorAll('input:not([type="hidden"])').forEach(i => i.value = '');
         clone.querySelector('select[name="no_seat[]"]').innerHTML = '<option value="" disabled selected>Select seat from map...</option>';
         
@@ -373,56 +341,15 @@ document.addEventListener('DOMContentLoaded', function() {
             select.selectedIndex = 0;
         });
 
+        const x = document.createElement('button');
+        x.innerHTML = '&times;'; x.className = 'remove-x'; x.type = 'button';
+        x.onclick = () => { clone.remove(); calculateTotal(); };
+        clone.appendChild(x);
         container.appendChild(clone);
-        updateFormState();
-    }
-
-    document.getElementById('addBtn').addEventListener('click', addPassengerCard);
-
-    function updateFormState() {
-        const container = document.getElementById('passenger-container');
-        const cards = container.querySelectorAll('.passenger-card');
-
-        // ✅ 1. Update Trip Summary Passenger Count dynamically
-        const passengerDisplay = document.getElementById('passengerCountDisplay');
-        if (passengerDisplay) {
-            passengerDisplay.innerText = cards.length;
-        }
-
-        cards.forEach((card, index) => {
-            const titleEl = card.querySelector('.passenger-title');
-            if (titleEl) {
-                titleEl.innerHTML = `<i class="fas fa-user-circle mr-2"></i>PASSENGER ${index + 1} DETAILS`;
-            }
-
-            const existingX = card.querySelector('.remove-x');
-            if (existingX) existingX.remove();
-
-            if (cards.length > 1) {
-                const x = document.createElement('button');
-                x.innerHTML = '&times;';
-                x.className = 'remove-x';
-                x.type = 'button';
-                x.onclick = () => {
-                    if (container.querySelectorAll('.passenger-card').length > 1) {
-                        card.remove();
-                        updateFormState();
-                    }
-                };
-                card.appendChild(x);
-            }
-        });
-
-        const addBtn = document.getElementById('addBtn');
-        if (cards.length >= MAX_PASSENGERS) {
-            addBtn.style.display = 'none';
-        } else {
-            addBtn.style.display = 'inline-block';
-        }
-
         calculateTotal();
-    }
+    });
 
+    // ✅ SECURE CHANGE: calculateTotal ከ input ፋንታ ዲቪው ላይ ባለው data-price ይሠራል
     function calculateTotal() {
         let total = 0;
         document.querySelectorAll('.passenger-card').forEach(card => {
@@ -432,7 +359,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('totalDisplay').innerText = total.toFixed(2);
     }
 </script>
-
 <div id="google_translate_element" style="display:none;"></div>
 <script type="text/javascript">
 function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:"en",includedLanguages:"en,am,om,ti",autoDisplay:false},"google_translate_element")}function changeLanguage(l){localStorage.setItem("userLanguage",l);var s=document.querySelector("select.goog-te-combo");if(s){s.value=l;s.dispatchEvent(new Event("change"))}}window.addEventListener("load",function(){const l=localStorage.getItem("userLanguage");if(l&&l!=="en"){setTimeout(()=>{changeLanguage(l)},1000)}});

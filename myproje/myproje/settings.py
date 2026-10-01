@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 2. SECURITY SETTINGS (Production Grade)
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-default-secret-key')
 # settings.py ውስጥ
-DEBUG = False  # <-- ወደ False ይለውጡት
+DEBUG = True  # <-- ወደ False ይለውጡት
 ALLOWED_HOSTS = [
     'fermataa-3ooq.onrender.com',
     'wedehagertransport.onrender.com',
@@ -51,7 +51,11 @@ REFERRER_POLICY = 'same-origin'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
+# settings.py
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 1209600  # ለ 2 ሳምንት ይቆያል
+SESSION_SAVE_EVERY_REQUEST = True
 
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [
@@ -189,6 +193,52 @@ USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+"""
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    # 🔒 Brute-Force ጥቃትን ለመከላከል የታከሉ Throttling Configs
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/minute',  # ያልተመዘገበ/አውቶሜትድ ጥያቄ በደቂቃ ከ5 በላይ እንዳያልፍ ይገድባል[cite: 5]
+    }
+}
+"""
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/minute',  # 👈 ከ 5/minute ወደ 100/minute ቀይረው
+    }
+}
+
+
+"""
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [],  # 👈 በ Development ወቅት ባዶ አድርገው
+    'DEFAULT_THROTTLE_RATES': {}
+}
+"""
+
+"""
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -196,3 +246,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ],
 }
+"""
+# ==========================================
+# AXES CONFIGURATION (ለ Development የሚሆን)
+# ==========================================
+AXES_FAILURE_LIMIT = 20         # ሎጊን የመሳሳት ገደቡን ከ 3 ወደ 20 ከፍ ያደርገዋል
+AXES_COOLOFF_TIME = 0.05        # የታገደ አካውንት ከ 3 ደቂቃ በኋላ በራሱ እንዲከፈት ያደርጋል
+AXES_RESET_ON_SUCCESS = True     # ትክክለኛ የይለፍ ቃል ሲገባ የተሳሳቱ ሙከራዎችን ያጸዳል

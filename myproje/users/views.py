@@ -65,7 +65,7 @@ class ProfileView(APIView):
             })
 """
 
-
+"""
 from rest_framework.views import APIView
 from django.shortcuts import render, redirect
 from .models import CustomUser, Buschange # Import your custom user and stats models
@@ -102,7 +102,7 @@ class ProfileView(APIView):
                 'error': 'User account not found.',
                 'buschanges_count': buschanges_count
             })
-
+"""
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -139,6 +139,73 @@ class ProcessPaymentView(APIView):
                 'message': f'Please proceed with {payment_method.upper()} payment.'
             }, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid payment method selected'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+from rest_framework.views import APIView
+from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model
+from .models import Buschange, Worker, Pasenger # አስፈላጊ የሆኑትን ሞዴሎች አስገባ
+from drf_spectacular.utils import extend_schema
+from .serializers import UserProfileSerializer
+
+User = get_user_model()
+
+try:
+    from .models import Sc
+except ImportError:
+    Sc = None
+
+
+class ProfileView(APIView):
+    @extend_schema(responses=UserProfileSerializer)
+    def get(self, request):
+        buschanges_count = Buschange.objects.count()
+
+        # 1. በ Django መደበኛ Auth Login ያደረገ ከሆነ
+        if request.user.is_authenticated:
+            return render(request, 'users/profile.html', {
+                'user': request.user,
+                'buschanges_count': buschanges_count
+            })
+
+        # 2. በ Custom Session የተቀመጡትን IDዎች በሙሉ መፈተሽ
+        passenger_id = request.session.get('passenger_id')
+        worker_id = request.session.get('worker_id')
+        sc_id = request.session.get('sc_id')
+        user_id = request.session.get('user_id')
+
+        try:
+            user_obj = None
+            if passenger_id:
+                user_obj = Pasenger.objects.get(id=passenger_id)
+            elif worker_id:
+                user_obj = Worker.objects.get(id=worker_id)
+            elif sc_id and Sc:
+                user_obj = Sc.objects.get(id=sc_id)
+            elif user_id:
+                user_obj = User.objects.get(id=user_id)
+
+            # Session ካለ እና ተጠቃሚው ከተገኘ profile.html ን ያሳያል
+            if user_obj:
+                return render(request, 'users/profile.html', {
+                    'user': user_obj,
+                    'buschanges_count': buschanges_count
+                })
+
+            # የትኛውም Session ከሌለ ወደ Login ይመልሳል
+            return render(request, 'users/login.html', {
+                'error': 'Please login to access your profile.',
+                'buschanges_count': buschanges_count
+            })
+
+        except (User.DoesNotExist, Pasenger.DoesNotExist, Worker.DoesNotExist, Exception):
+            # በ Session ውስጥ ያለው ID በዳታቤዝ ውስጥ ካልተገኘ
+            request.session.flush()
+            return render(request, 'users/login.html', {
+                'error': 'User account not found. Please login again.',
+                'buschanges_count': buschanges_count
+            })
+
 
 
 
@@ -1414,10 +1481,6 @@ class LoginView(APIView):
         return Response({'error': error_message}, status=status.HTTP_401_UNAUTHORIZED)
 """
 
-
-
-
-
 """
 import requests
 from django.conf import settings
@@ -1635,6 +1698,7 @@ class LoginView(APIView):
 
 
 
+"""
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login as auth_login, get_user_model
@@ -1862,10 +1926,937 @@ class LoginView(APIView):
         if "text/html" in request.META.get("HTTP_ACCEPT", ""):
             return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
         return Response(context, status=status.HTTP_401_UNAUTHORIZED)
+"""
+
+
+
+"""
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.throttling import AnonRateThrottle
+
+try:
+    from .models import Buschange, Worker, Pasenger, Sc
+except ImportError:
+    from .models import Buschange, Worker, Pasenger
+    Sc = None
+
+TURNSTILE_SITE_KEY = getattr(settings, "TURNSTILE_SITE_KEY", "1x00000000000000000000AA")
+TURNSTILE_SECRET_KEY = getattr(settings, "TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA")
+
+
+class StrictLoginThrottle(AnonRateThrottle):
+    rate = '5/minute'
+
+
+class LoginView(APIView):
+    throttle_classes = [StrictLoginThrottle]
+
+    def get_buschanges_count(self):
+        try:
+            cache_key = "buschanges_count"
+            count = cache.get(cache_key)
+            if count is None:
+                count = Buschange.objects.count()
+                cache.set(cache_key, count, timeout=300)
+            return count
+        except Exception:
+            return 0
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
+        return ip
+
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+        return phone
+
+    def verify_turnstile_captcha(self, captcha_response, client_ip):
+        if not captcha_response:
+            return False
+
+        verify_data = {
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            res = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=3.0
+            )
+            result = res.json()
+            return result.get("success", False)
+        except Exception:
+            return False
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        return render(request, "users/login.html", context)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+        client_ip = self.get_client_ip(request)
+
+        # 🔒 Rate Limiting
+        ip_throttle_key = f"ip_login_attempts_{client_ip}"
+        ip_attempts = cache.get(ip_throttle_key, 0)
+
+        if ip_attempts >= 5:
+            return self.handle_login_error(
+                buschanges_count, request,
+                "Too many failed attempts from your IP. Blocked for 5 minutes.",
+                remaining_seconds=300, http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # 🔒 CAPTCHA
+        captcha_response = request.data.get("cf-turnstile-response") or request.POST.get("cf-turnstile-response")
+
+        if not self.verify_turnstile_captcha(captcha_response, client_ip):
+            cache.set(ip_throttle_key, ip_attempts + 1, timeout=300)
+            return self.handle_login_error(
+                buschanges_count, request,
+                "Security Verification Failed: Missing or invalid CAPTCHA token.",
+                http_status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Credentials
+        raw_phone = request.data.get("phone", "") or request.POST.get("phone", "") or request.data.get("username", "")
+        phone = self.normalize_phone(raw_phone)
+        password = str(request.data.get("password", "") or request.POST.get("password", "")).strip()
+
+        if not phone or not password:
+            return self.handle_login_error(
+                buschanges_count, request,
+                "Phone number and password are required.",
+                http_status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Lockout Check
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 300
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 300 - elapsed)
+            return self.handle_login_error(
+                buschanges_count, request,
+                f"Too many failed login attempts! Account locked for {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds, http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # 1. Passenger Check
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session.cycle_key()
+                request.session["passenger_id"] = passenger.id
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # 2. Worker Check
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session.cycle_key()
+                request.session["worker_id"] = worker.id
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+
+        # 3. Sc Check
+        if Sc:
+            try:
+                sc_user = Sc.objects.get(phone=phone)
+                if check_password(password, sc_user.password):
+                    self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                    request.session.cycle_key()
+                    request.session["sc_id"] = sc_user.id
+                    return render(request, "users/rooteeess.html", {"company": sc_user})
+            except Exception:
+                pass
+
+        # 🔒 4. Custom User Check (ValueError fix)
+        User = get_user_model()
+        user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+        if user_obj:
+            user = authenticate(request, username=user_obj.username, password=password)
+            if user is not None:
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session.cycle_key()
+
+                # 🛠️ Specify Backend explicitly here:
+                auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+                return render(request, "users/profile.html", {"user": user, "buschanges_count": buschanges_count})
+
+        # Failed Attempts Tracking
+        attempt_key = f"attempts_{phone}"
+        failed_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, failed_attempts, timeout=300)
+
+        if failed_attempts >= 3:
+            cache.set(account_lockout_key, True, timeout=300)
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=300)
+            cache.delete(attempt_key)
+            return self.handle_login_error(
+                buschanges_count, request,
+                "3 failed attempts. Account locked for 5 minutes!",
+                remaining_seconds=300, http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        return self.handle_login_error(
+            buschanges_count, request,
+            "Invalid phone number or password!",
+            http_status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    def clear_security_flags(self, lockout_key, phone, ip_throttle_key):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{phone}")
+        cache.delete(f"lockout_time_{phone}")
+        cache.delete(ip_throttle_key)
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0, http_status=status.HTTP_401_UNAUTHORIZED):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        return render(request, "users/login.html", context, status=http_status)
+"""
+
+
+
+"""
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.throttling import AnonRateThrottle
+try:
+    from .models import Buschange, Worker, Pasenger, Sc
+except ImportError:
+    from .models import Buschange, Worker, Pasenger
+    Sc = None
+
+TURNSTILE_SITE_KEY = getattr(settings, "TURNSTILE_SITE_KEY", "1x00000000000000000000AA")
+TURNSTILE_SECRET_KEY = getattr(settings, "TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA")
+
+class StrictLoginThrottle(AnonRateThrottle):
+    rate = '5/minute'
+class LoginView(APIView):
+    throttle_classes = [StrictLoginThrottle]
+
+    def get_buschanges_count(self):
+        try:
+            cache_key = "buschanges_count"
+            count = cache.get(cache_key)
+            if count is None:
+                count = Buschange.objects.count()
+                cache.set(cache_key, count, timeout=300)
+            return count
+        except Exception:
+            return 0
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
+        return ip
+
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+        return phone
+
+    def verify_turnstile_captcha(self, captcha_response, client_ip):
+        if not captcha_response:
+            return False
+
+        verify_data = {
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            res = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=3.0
+            )
+            result = res.json()
+            return result.get("success", False)
+        except Exception:
+            return False
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        return render(request, "users/login.html", context)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+        client_ip = self.get_client_ip(request)
+
+        # 🔒 Rate Limiting Check
+        ip_throttle_key = f"ip_login_attempts_{client_ip}"
+        ip_attempts = cache.get(ip_throttle_key, 0)
+
+        if ip_attempts >= 5:
+            return self.handle_login_error(
+                buschanges_count, request,
+                "Too many failed attempts from your IP. Blocked for 5 minutes.",
+                remaining_seconds=300, http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # 🔒 CAPTCHA Check
+        captcha_response = request.data.get("cf-turnstile-response") or request.POST.get("cf-turnstile-response")
+
+        if not self.verify_turnstile_captcha(captcha_response, client_ip):
+            cache.set(ip_throttle_key, ip_attempts + 1, timeout=300)
+            return self.handle_login_error(
+                buschanges_count, request,
+                "Security Verification Failed: Missing or invalid CAPTCHA token.",
+                http_status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Phone and Password
+        raw_phone = request.data.get("phone", "") or request.POST.get("phone", "") or request.data.get("username", "")
+        phone = self.normalize_phone(raw_phone)
+        password = str(request.data.get("password", "") or request.POST.get("password", "")).strip()
+
+        if not phone or not password:
+            return self.handle_login_error(
+                buschanges_count, request,
+                "Phone number and password are required.",
+                http_status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Lockout Check
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 300
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 300 - elapsed)
+            return self.handle_login_error(
+                buschanges_count, request,
+                f"Too many failed login attempts! Account locked for {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds, http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # 1. Passenger Check
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session["passenger_id"] = passenger.id
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # 2. Worker Check
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session["worker_id"] = worker.id
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+
+        # 3. Sc Check
+        if Sc:
+            try:
+                sc_user = Sc.objects.get(phone=phone)
+                if check_password(password, sc_user.password):
+                    self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                    request.session["sc_id"] = sc_user.id
+                    return render(request, "users/rooteeess.html", {"company": sc_user})
+            except Exception:
+                pass
+
+        # 4. Custom User Check
+        User = get_user_model()
+        user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+        if user_obj:
+            user = authenticate(request, username=user_obj.username, password=password)
+            if user is not None:
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return render(request, "users/profile.html", {"user": user, "buschanges_count": buschanges_count})
+
+        # Failed Attempts
+        attempt_key = f"attempts_{phone}"
+        failed_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, failed_attempts, timeout=300)
+
+        if failed_attempts >= 3:
+            cache.set(account_lockout_key, True, timeout=300)
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=300)
+            cache.delete(attempt_key)
+            return self.handle_login_error(
+                buschanges_count, request,
+                "3 failed attempts. Account locked for 5 minutes!",
+                remaining_seconds=300, http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        return self.handle_login_error(
+            buschanges_count, request,
+            "Invalid phone number or password!",
+            http_status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    def clear_security_flags(self, lockout_key, phone, ip_throttle_key):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{phone}")
+        cache.delete(f"lockout_time_{phone}")
+        cache.delete(ip_throttle_key)
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0, http_status=status.HTTP_401_UNAUTHORIZED):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        # 🛠️ Response ከማስገባታችን ይልቅ ሁልጊዜ HTML render እናደርጋለን
+        return render(request, "users/login.html", context, status=http_status)
+"""
 
 
 
 
+"""
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.throttling import AnonRateThrottle
+from .models import Buschange, Worker, Pasenger, Sc
+
+# Direct Turnstile Keys (Production ላይ ከ settings.py እንዲያነብ ይደረጋል)
+TURNSTILE_SITE_KEY = getattr(settings, "TURNSTILE_SITE_KEY", "1x00000000000000000000AA")
+TURNSTILE_SECRET_KEY = getattr(settings, "TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA")
+
+
+# 🔒 1. AUTOMATION & RATE LIMITING THROTTLE (DRF Level)
+class StrictLoginThrottle(AnonRateThrottle):
+    rate = '5/minute'  # በ1 ደቂቃ ውስጥ ከ5 ጥያቄ በላይ በራስ-ሰር 429 Too Many Requests ይሰጣል[cite: 5]
+
+
+class LoginView(APIView):
+    throttle_classes = [StrictLoginThrottle]
+
+    def get_buschanges_count(self):
+        cache_key = "buschanges_count"
+        count = cache.get(cache_key)
+        if count is None:
+            count = Buschange.objects.count()
+            cache.set(cache_key, count, timeout=300)
+        return count
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+        return phone
+
+    def verify_turnstile_captcha(self, captcha_response, client_ip):
+        if not captcha_response:
+            return False
+
+        verify_data = {
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            res = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=3.0
+            )
+            result = res.json()
+            return result.get("success", False)
+        except Exception:
+            return False
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context)
+        return Response(context, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+        client_ip = self.get_client_ip(request)
+
+        # 🔒 2. GLOBAL IP RATE LIMITING (Cache Level)
+        ip_throttle_key = f"ip_login_attempts_{client_ip}"
+        ip_attempts = cache.get(ip_throttle_key, 0)
+
+        if ip_attempts >= 5:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "Too many failed attempts from your IP. Blocked for 5 minutes.",
+                remaining_seconds=300,
+                http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # 🔒 3. STRICT CAPTCHA CHECK (ማንኛውም ጥያቄ በቅድሚያ CAPTCHA ማለፍ አለበት)
+        captcha_response = request.data.get("cf-turnstile-response") or request.data.get("g-recaptcha-response")
+
+        if not self.verify_turnstile_captcha(captcha_response, client_ip):
+            cache.set(ip_throttle_key, ip_attempts + 1, timeout=300)
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "Security Verification Failed: Missing or invalid CAPTCHA token.",
+                http_status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 4. Phone & Password Extraction
+        raw_phone = request.data.get("phone", "").strip() or request.data.get("username", "").strip()
+        phone = self.normalize_phone(raw_phone)
+        password = str(request.data.get("password", "")).strip()
+
+        if not phone or not password:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "Phone number and password are required.",
+                http_status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 🔒 5. ACCOUNT-BASED LOCKOUT CHECK
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 300
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 300 - elapsed)
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                f"Too many failed login attempts! Account locked for {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds,
+                http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        # --- AUTHENTICATION CHECKS ---
+        # A. Passenger Check
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session.cycle_key()
+                request.session["passenger_id"] = passenger.id
+                request.session["phone"] = passenger.phone
+                request.session["name"] = f"{passenger.first_name} {passenger.last_name}"
+                request.session.modified = True
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # B. Worker Check
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session.cycle_key()
+                request.session["worker_id"] = worker.id
+                request.session["phone"] = worker.phone
+                request.session.modified = True
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+
+        # C. SC Check
+        try:
+            sc_user = Sc.objects.get(phone=phone)
+            if check_password(password, sc_user.password):
+                self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+                request.session.cycle_key()
+                request.session["sc_id"] = sc_user.id
+                request.session["phone"] = sc_user.phone
+                request.session.modified = True
+                return render(request, "users/rooteeess.html", {"company": sc_user})
+        except Sc.DoesNotExist:
+            pass
+
+        # D. Custom User Check
+        User = get_user_model()
+        user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+        if user_obj and authenticate(request, username=user_obj.username, password=password):
+            self.clear_security_flags(account_lockout_key, phone, ip_throttle_key)
+            request.session.cycle_key()
+            auth_login(request, user_obj)
+            request.session["user_id"] = user_obj.id
+            request.session["phone"] = getattr(user_obj, "phone", phone)
+            request.session.modified = True
+            return render(request, "users/profile.html", {"user": user_obj, "buschanges_count": buschanges_count})
+
+        # 🔒 6. FAILED ATTEMPT TRACKING (ተሳሳተ የይለፍ ቃል ሲገባ)
+        attempt_key = f"attempts_{phone}"
+        failed_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, failed_attempts, timeout=300)
+
+        if failed_attempts >= 3:
+            cache.set(account_lockout_key, True, timeout=300)  # ለ5 ደቂቃ (300 ሰከንድ) መቆለፍ
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=300)
+            cache.delete(attempt_key)
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "3 failed attempts. Account locked for 5 minutes!",
+                remaining_seconds=300,
+                http_status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        return self.handle_login_error(
+            buschanges_count,
+            request,
+            "Invalid phone number or password!",
+            http_status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    def clear_security_flags(self, lockout_key, phone, ip_throttle_key):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{phone}")
+        cache.delete(f"lockout_time_{phone}")
+        cache.delete(ip_throttle_key)
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0, http_status=status.HTTP_401_UNAUTHORIZED):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context, status=http_status)
+        return Response(context, status=http_status)
+"""
+
+
+
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Buschange, Route, Sc, Ticket, Worker, Pasenger
+
+TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA"
+
+class LoginView(APIView):
+    throttle_classes = []  # 👈 በ DRF Throttling ምክንያት 429 ኤረር እንዳይመጣ ያደርጋል
+
+    def get_buschanges_count(self):
+        cache_key = "buschanges_count"
+        count = cache.get(cache_key)
+        if count is None:
+            count = Buschange.objects.count()
+            cache.set(cache_key, count, timeout=300)
+        return count
+
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+        return phone
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context)
+        return Response(context, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+        client_ip = self.get_client_ip(request)
+
+        # 1. IP Rate Limiting Check
+        rate_limit_key = f"login_ratelimit_{client_ip}"
+        request_count = cache.get(rate_limit_key, 0)
+        if request_count >= 10:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "Too many requests from your IP. Please try again in a minute.",
+                remaining_seconds=60
+            )
+
+        # 2. Extract Phone/Username
+        raw_phone = request.data.get("phone", "").strip() or request.data.get("username", "").strip()
+        phone = self.normalize_phone(raw_phone)
+        password = str(request.data.get("password", "")).strip()
+
+        if not phone:
+            return self.handle_login_error(buschanges_count, request, "Phone number is required.")
+
+        # 3. Account-Based Lockout Check (ከሁሉ አስቀድሞ Lock መደረጉን ማረጋገጥ)
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 30
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 30 - elapsed)
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                f"Too many failed login attempts! Please wait {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds
+            )
+
+        # IP counter ን ይጨምራል
+        cache.set(rate_limit_key, request_count + 1, timeout=60)
+
+        # 4. Turnstile Verification Check
+        captcha_response = request.data.get("cf-turnstile-response")
+        if not captcha_response:
+            return self.handle_login_error(buschanges_count, request, "Security Verification Required: Missing token.")
+
+        verify_data = {
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            captcha_verify = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=2.0
+            )
+            result = captcha_verify.json()
+            if not result.get("success"):
+                return self.handle_login_error(buschanges_count, request, "Security Verification Failed.")
+        except requests.exceptions.RequestException:
+            return self.handle_login_error(buschanges_count, request, "Verification Gateway Timeout.")
+
+        # 5. PASSENGER CHECK
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["passenger_id"] = passenger.id
+                request.session["phone"] = passenger.phone
+                request.session["name"] = f"{passenger.first_name} {passenger.last_name}"
+                request.session.modified = True
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # 6. WORKER CHECK
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["worker_id"] = worker.id
+                request.session["phone"] = worker.phone
+                request.session.modified = True
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+
+        # 7. SC CHECK
+        try:
+            sc_user = Sc.objects.get(phone=phone)
+            if check_password(password, sc_user.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["sc_id"] = sc_user.id
+                request.session["phone"] = sc_user.phone
+                request.session.modified = True
+                return render(request, "users/rooteeess.html", {"company": sc_user})
+        except Sc.DoesNotExist:
+            pass
+
+        # 8. CUSTOM USER CHECK
+        user_response = self.handle_user_login(phone, password, buschanges_count, request, account_lockout_key)
+        if user_response:
+            return user_response
+
+        # 9. FAILED ATTEMPT TRACKING (የተሳሳተ ስልክ/ይለፍ ቃል ሲገባ እዚህ ይደርሳል)
+        is_now_locked = self.track_failed_attempt(account_lockout_key, phone)
+        if is_now_locked:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "3 failed attempts. The page is locked for 30 seconds!",
+                remaining_seconds=30
+            )
+
+        return self.handle_login_error(buschanges_count, request, "Invalid phone number or password!")
+
+    def handle_user_login(self, phone, password, buschanges_count, request, lockout_key):
+        User = get_user_model()
+        actual_username = phone
+        try:
+            user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+            if user_obj:
+                actual_username = user_obj.username
+        except Exception:
+            pass
+
+        user = authenticate(request, username=actual_username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            self.clear_security_flags(lockout_key, phone)
+            request.session.cycle_key()
+            request.session["user_id"] = user.id
+            request.session["phone"] = getattr(user, "phone", phone)
+            request.session.modified = True
+            return render(request, "users/profile.html", {"user": user, "buschanges_count": buschanges_count})
+
+        return None
+
+    def track_failed_attempt(self, lockout_key, phone):
+        attempt_key = f"attempts_{lockout_key}"
+        current_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, current_attempts, timeout=300)  # የሙከራ ቁጥሩ ለ 5 ደቂቃ በካሽ ይቆያል
+
+        if current_attempts >= 3:
+            cache.set(lockout_key, True, timeout=30)
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=30)
+            cache.delete(attempt_key)
+            return True
+        return False
+
+    def clear_security_flags(self, lockout_key, phone):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{lockout_key}")
+        cache.delete(f"lockout_time_{phone}")
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
+        return Response(context, status=status.HTTP_401_UNAUTHORIZED)
 
 
 
@@ -2024,13 +3015,241 @@ class LoginView(APIView):
                 return render(request, "users/rooteeess.html", {"company": sc_user})
         except Sc.DoesNotExist:
             pass
-
         # 4. CUSTOM USER CHECK
         user_response = self.handle_user_login(phone, password, buschanges_count, request, account_lockout_key)
         if user_response:
             return user_response
-
         # Failed Attempt Track
+        is_now_locked = self.track_failed_attempt(account_lockout_key, phone)
+        if is_now_locked:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "3 failed attempts. The page is locked for 30 seconds!",
+                remaining_seconds=30
+            )
+        return self.handle_login_error(buschanges_count, request, "Invalid phone number or password!")
+
+    def handle_user_login(self, phone, password, buschanges_count, request, lockout_key):
+        User = get_user_model()
+        actual_username = phone
+        try:
+            user_obj = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+            if user_obj:
+                actual_username = user_obj.username
+        except Exception:
+            pass
+
+        user = authenticate(request, username=actual_username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            self.clear_security_flags(lockout_key, phone)
+            request.session.cycle_key()
+            request.session["user_id"] = user.id
+            request.session["phone"] = getattr(user, "phone", phone)
+            request.session.modified = True
+            return render(request, "users/profile.html", {"user": user, "buschanges_count": buschanges_count})
+        return None
+    def track_failed_attempt(self, lockout_key, phone):
+        attempt_key = f"attempts_{lockout_key}"
+        current_attempts = cache.get(attempt_key, 0) + 1
+        cache.set(attempt_key, current_attempts, timeout=60)
+
+        if current_attempts >= 3:
+            cache.set(lockout_key, True, timeout=30)
+            cache.set(f"lockout_time_{phone}", timezone.now().timestamp(), timeout=30)
+            cache.delete(attempt_key)
+            return True
+        return False
+
+    def clear_security_flags(self, lockout_key, phone):
+        cache.delete(lockout_key)
+        cache.delete(f"attempts_{lockout_key}")
+        cache.delete(f"lockout_time_{phone}")
+
+    def handle_login_error(self, buschanges_count, request, error_message, remaining_seconds=0):
+        context = {
+            "error": error_message,
+            "buschanges_count": buschanges_count,
+            "remaining_seconds": remaining_seconds,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
+        return Response(context, status=status.HTTP_401_UNAUTHORIZED)
+"""
+
+
+"""
+import requests
+from django.conf import settings
+from django.contrib.auth import authenticate, login as auth_login, get_user_model
+from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Buschange, Route, Sc, Ticket, Worker, Pasenger
+
+TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+TURNSTILE_SECRET_KEY = "1x0000000000000000000000000000000AA"
+
+class LoginView(APIView):
+    throttle_classes = []  # 👈 በ DRF Throttling ምክንያት 429 ኤረር እንዳይመጣ ያደርጋል
+
+    def get_buschanges_count(self):
+        cache_key = "buschanges_count"
+        count = cache.get(cache_key)
+        if count is None:
+            count = Buschange.objects.count()
+            cache.set(cache_key, count, timeout=300)
+        return count
+
+    def normalize_phone(self, phone_number):
+        if not phone_number:
+            return ""
+        phone = str(phone_number).strip().replace(" ", "").replace("-", "")
+        if phone.startswith("+251"):
+            phone = "0" + phone[4:]
+        elif phone.startswith("251"):
+            phone = "0" + phone[3:]
+        elif phone.startswith("7") and len(phone) == 9:
+            phone = "0" + phone
+        elif phone.startswith("9") and len(phone) == 9:
+            phone = "0" + phone
+        return phone
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def get(self, request):
+        buschanges_count = self.get_buschanges_count()
+        context = {
+            "buschanges_count": buschanges_count,
+            "turnstile_site_key": TURNSTILE_SITE_KEY
+        }
+        if "text/html" in request.META.get("HTTP_ACCEPT", ""):
+            return render(request, "users/login.html", context)
+        return Response(context, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        buschanges_count = self.get_buschanges_count()
+        client_ip = self.get_client_ip(request)
+
+        # 1. IP Rate Limiting Check
+        rate_limit_key = f"login_ratelimit_{client_ip}"
+        request_count = cache.get(rate_limit_key, 0)
+        if request_count >= 10:
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                "Too many requests from your IP. Please try again in a minute.",
+                remaining_seconds=60
+            )
+
+        # 2. Extract Phone/Username
+        raw_phone = request.data.get("phone", "").strip() or request.data.get("username", "").strip()
+        phone = self.normalize_phone(raw_phone)
+        password = str(request.data.get("password", "")).strip()
+
+        if not phone:
+            return self.handle_login_error(buschanges_count, request, "Phone number is required.")
+
+        # 3. Account-Based Lockout Check (ከሁሉ አስቀድሞ Lock መደረጉን ማረጋገጥ)
+        account_lockout_key = f"user_lockout_{phone}"
+        lockout_time_key = f"lockout_time_{phone}"
+
+        if cache.get(account_lockout_key):
+            lockout_time = cache.get(lockout_time_key)
+            remaining_seconds = 30
+            if lockout_time:
+                elapsed = int(timezone.now().timestamp() - lockout_time)
+                remaining_seconds = max(1, 30 - elapsed)
+            return self.handle_login_error(
+                buschanges_count,
+                request,
+                f"Too many failed login attempts! Please wait {remaining_seconds} seconds.",
+                remaining_seconds=remaining_seconds
+            )
+
+        # IP counter ን ይጨምራል
+        cache.set(rate_limit_key, request_count + 1, timeout=60)
+
+        # 4. Turnstile Verification Check
+        captcha_response = request.data.get("cf-turnstile-response")
+        if not captcha_response:
+            return self.handle_login_error(buschanges_count, request, "Security Verification Required: Missing token.")
+
+        verify_data = {
+            "secret": TURNSTILE_SECRET_KEY,
+            "response": captcha_response,
+            "remoteip": client_ip,
+        }
+        try:
+            captcha_verify = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data=verify_data,
+                timeout=2.0
+            )
+            result = captcha_verify.json()
+            if not result.get("success"):
+                return self.handle_login_error(buschanges_count, request, "Security Verification Failed.")
+        except requests.exceptions.RequestException:
+            return self.handle_login_error(buschanges_count, request, "Verification Gateway Timeout.")
+
+        # 5. PASSENGER CHECK
+        try:
+            passenger = Pasenger.objects.get(phone=phone)
+            if check_password(password, passenger.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["passenger_id"] = passenger.id
+                request.session["phone"] = passenger.phone
+                request.session["name"] = f"{passenger.first_name} {passenger.last_name}"
+                request.session.modified = True
+                return redirect("my_tickets")
+        except Pasenger.DoesNotExist:
+            pass
+
+        # 6. WORKER CHECK
+        try:
+            worker = Worker.objects.get(phone=phone)
+            if check_password(password, worker.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["worker_id"] = worker.id
+                request.session["phone"] = worker.phone
+                request.session.modified = True
+                return render(request, "users/rooteee.html", {"worker": worker, "buschanges_count": buschanges_count})
+        except Worker.DoesNotExist:
+            pass
+
+        # 7. SC CHECK
+        try:
+            sc_user = Sc.objects.get(phone=phone)
+            if check_password(password, sc_user.password):
+                self.clear_security_flags(account_lockout_key, phone)
+                request.session.cycle_key()
+                request.session["sc_id"] = sc_user.id
+                request.session["phone"] = sc_user.phone
+                request.session.modified = True
+                return render(request, "users/rooteeess.html", {"company": sc_user})
+        except Sc.DoesNotExist:
+            pass
+
+        # 8. CUSTOM USER CHECK
+        user_response = self.handle_user_login(phone, password, buschanges_count, request, account_lockout_key)
+        if user_response:
+            return user_response
+
+        # 9. FAILED ATTEMPT TRACKING (የተሳሳተ ስልክ/ይለፍ ቃል ሲገባ እዚህ ይደርሳል)
         is_now_locked = self.track_failed_attempt(account_lockout_key, phone)
         if is_now_locked:
             return self.handle_login_error(
@@ -2067,7 +3286,7 @@ class LoginView(APIView):
     def track_failed_attempt(self, lockout_key, phone):
         attempt_key = f"attempts_{lockout_key}"
         current_attempts = cache.get(attempt_key, 0) + 1
-        cache.set(attempt_key, current_attempts, timeout=60)
+        cache.set(attempt_key, current_attempts, timeout=300)  # የሙከራ ቁጥሩ ለ 5 ደቂቃ በካሽ ይቆያል
 
         if current_attempts >= 3:
             cache.set(lockout_key, True, timeout=30)
@@ -2092,8 +3311,6 @@ class LoginView(APIView):
             return render(request, "users/login.html", context, status=status.HTTP_400_BAD_REQUEST)
         return Response(context, status=status.HTTP_401_UNAUTHORIZED)
 """
-
-
 
 
 
@@ -4848,6 +6065,8 @@ class AgentBookingViews(APIView):
 
 
 
+
+"""
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5056,8 +6275,264 @@ class TicketBookingViews(APIView):
                 return Response({'message': 'Booking successful.', 'tickets': serializer.data}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+"""
 
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render
+from django.db import transaction
+from django.db.models import Q, Sum, FloatField
+from django.db.models.functions import Cast
+from django.utils import timezone
+from django.conf import settings
+from drf_spectacular.utils import extend_schema
+from .models import Ticket, City, Bus, Route, Worker, Sc
+from .serializers import TicketSerializer, RouteSerializer
 
+# 🔒 SECURITY: በአንድ ጊዜ የሚፈቀድ ከፍተኛው የወንበር/የመንገደኛ ብዛት
+MAX_BATCH_SEATS = 10
+
+@extend_schema(tags=['Booking & Tickets'])
+class TicketBookingViews(APIView):
+    serializer_class = TicketSerializer
+
+    def get_user_from_session(self, request):
+        user_id = request.session.get('worker_id')
+        if user_id:
+            try:
+                return Worker.objects.get(id=user_id)
+            except Worker.DoesNotExist:
+                return None
+        return None
+
+    def get_daily_total(self, username):
+        today = timezone.now().date()
+        total = Ticket.objects.filter(
+            username=username,
+            booked_time__date=today
+        ).annotate(
+            price_as_float=Cast('price', FloatField())
+        ).aggregate(total=Sum('price_as_float'))['total'] or 0
+        return total
+
+    def get(self, request):
+        des = City.objects.all()
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/ticket.html', {'des': des})
+        return Response({'cities': [city.depcity for city in des]})
+
+    def post(self, request):
+        # 1. Retrieve Data Lists
+        firstnames = request.data.getlist('firstname[]')
+        emails = request.data.getlist('email[]')
+        genders = request.data.getlist('gender[]')
+        passenger_types = request.data.getlist('passenger_type[]')
+        lastnames = request.data.getlist('lastname[]')
+        phones = request.data.getlist('phone[]')
+        side_nos = request.data.getlist('side_no[]')
+        plate_nos = request.data.getlist('plate_no[]')
+        usernames = request.data.getlist('username[]')
+        dates = request.data.getlist('date[]')
+        no_seats = request.data.getlist('no_seat[]')
+        depcitys = request.data.getlist('depcity[]')
+        descitys = request.data.getlist('descity[]')
+        prs = request.data.getlist('pr[]')
+        das = request.data.getlist('da[]')
+
+        min_length = min(
+            len(firstnames), len(lastnames), len(emails), len(genders),
+            len(phones), len(side_nos), len(plate_nos),
+            len(depcitys), len(descitys), len(dates), len(no_seats), len(passenger_types)
+        )
+
+        # 🔒 SECURITY MITIGATION 1: Batch Rate & Limit Checking
+        if min_length == 0:
+            return Response({'error': 'No passenger or seat details provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if min_length > MAX_BATCH_SEATS:
+            error_msg = f'Batch reservation limit exceeded. Maximum allowed is {MAX_BATCH_SEATS} seats per transaction.'
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                return render(request, 'users/ticket.html', {'error': error_msg, 'des': City.objects.all()}, status=400)
+            return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 🔒 SECURITY MITIGATION 2: Check for Duplicate Seats within the payload itself
+        if len(no_seats[:min_length]) != len(set(no_seats[:min_length])):
+            error_msg = 'Duplicate seat selection found in your request.'
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                return render(request, 'users/ticket.html', {'error': error_msg, 'des': City.objects.all()}, status=400)
+            return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        used_seats = set()
+        tickets = []
+        verified_prices = []
+        fname = ""
+        lname = ""
+        level = "Standard"
+        bus_name = "Operator Name"
+
+        try:
+            with transaction.atomic():
+                for i in range(min_length):
+                    current_seat = str(no_seats[i]).strip()
+                    current_date = dates[i]
+                    alt_date = das[i] if i < len(das) else None
+                    dep = depcitys[i]
+                    des = descitys[i]
+                    plate = plate_nos[i]
+                    current_user = usernames[i] if i < len(usernames) else ""
+
+                    # --- ROUTE & BUS VALIDATION ---
+                    routes = Route.objects.filter(depcity=dep, descity=des, date=current_date, plate_no=plate)
+                    bus = Bus.objects.filter(plate_no=plate).first()
+
+                    if not routes.exists():
+                        return Response({'error': f'Route not found for {plate}'}, status=404)
+                    if not bus:
+                        return Response({'error': f'Bus {plate} not found'}, status=404)
+
+                    selected_route = routes.first()
+                    current_price = float(selected_route.price)
+                    verified_prices.append(current_price)
+                    bus_name = bus.name if bus else "Operator Name"
+                    total_seats = int(bus.no_seats)
+
+                    # 🔒 SECURITY MITIGATION 3: Database Locking (select_for_update) to prevent Race Conditions
+                    booked_in_db = Ticket.objects.select_for_update().filter(
+                        depcity=dep, descity=des, date=current_date, plate_no=plate
+                    ).values_list('no_seat', flat=True)
+
+                    booked_seats_list = list(set(int(s) for s in booked_in_db if s))
+                    unbooked_seats = [s for s in range(1, total_seats + 1) if s not in booked_seats_list]
+
+                    error_context = {
+                        'des': City.objects.all(),
+                        'routes': RouteSerializer(routes, many=True).data,
+                        'levels': bus.level,
+                        'remaining_seats': total_seats - len(booked_seats_list),
+                        'unbooked_seats': unbooked_seats,
+                        'booked_seats': booked_seats_list,
+                        'all_seats': list(range(1, total_seats + 1)),
+                    }
+
+                    # --- VALIDATION: SEAT SELECTION ---
+                    seat_is_taken = current_seat in used_seats or int(current_seat) in booked_seats_list
+                    if seat_is_taken:
+                        error_msg = f'Seat {current_seat} is already selected or reserved.'
+                        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                            error_context['error'] = error_msg
+                            if current_user:
+                                error_context['username'] = current_user
+                                error_context['total_today'] = self.get_daily_total(current_user)
+                                return render(request, 'users/booker.html', error_context, status=400)
+                            else:
+                                return render(request, 'users/ticket.html', error_context, status=400)
+                        return Response({'error': error_msg}, status=400)
+
+                    passenger_query = Ticket.objects.filter(
+                        firstname=firstnames[i],
+                        lastname=lastnames[i],
+                        depcity=dep,
+                        descity=des
+                    )
+
+                    already_booked_both = passenger_query.filter(
+                        Q(date=current_date) & Q(date=alt_date)
+                    ).exists()
+
+                    already_booked_single = passenger_query.filter(
+                        Q(date=current_date)
+                    ).exists()
+
+                    if already_booked_both or already_booked_single:
+                        alt_date_str = f" and {alt_date}" if alt_date and alt_date != 'None' else ""
+                        error_msg = f"Person already booked: {firstnames[i]} {lastnames[i]} for {current_date}{alt_date_str}."
+                        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                            error_context['error'] = error_msg
+                            if current_user:
+                                error_context['username'] = current_user
+                                error_context['total_today'] = self.get_daily_total(current_user)
+                                return render(request, 'users/booker.html', error_context, status=400)
+                            else:
+                                return render(request, 'users/ticket.html', error_context, status=400)
+                        return Response({'error': error_msg}, status=400)
+
+                    used_seats.add(current_seat)
+                    level = bus.level if bus else "Standard"
+
+                    validated_data = {
+                        'firstname': firstnames[i],
+                        'lastname': lastnames[i],
+                        'phone': phones[i],
+                        'price': current_price,
+                        'side_no': side_nos[i],
+                        'plate_no': plate,
+                        'date': current_date,
+                        'email': emails[i],
+                        'gender': genders[i],
+                        'passenger_type': passenger_types[i],
+                        'depcity': dep,
+                        'descity': des,
+                        'username': current_user,
+                        'no_seat': current_seat,
+                    }
+
+                    ticket_instance = Ticket.objects.create(**validated_data)
+                    tickets.append(ticket_instance)
+
+                    if current_user:
+                        worker = Worker.objects.filter(username=current_user).first()
+                        if worker:
+                            fname = worker.fname
+                            lname = worker.lname
+
+                if prs:
+                    for i in range(min_length):
+                        if i < len(das):
+                            Ticket.objects.filter(
+                                firstname=firstnames[i],
+                                lastname=lastnames[i],
+                                date=das[i],
+                                depcity=depcitys[i],
+                                descity=descitys[i]
+                            ).delete()
+
+                # 2. Total Price Calculation
+                total_price_base = sum(verified_prices)
+                total_prs = sum(float(p) for p in prs if p) if prs else 0.0
+                if total_prs > total_price_base:
+                    total_price = total_prs - total_price_base
+                    is_recovery = True
+                else:
+                    total_price = total_price_base - total_prs
+                    is_recovery = False
+
+                if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                    sc_record = Sc.objects.filter(name=bus_name, level=level).first()
+                    company_logo = sc_record.logo.url if sc_record and sc_record.logo else None
+                    context = {
+                        'success': 'Ticket(s) processed successfully!',
+                        'tickets': tickets,
+                        'total_price': total_price,
+                        'level': level,
+                        'name': bus_name,
+                        'fname': fname,
+                        'company_logo': company_logo,
+                        'lname': lname
+                    }
+                    if is_recovery:
+                        return render(request, 'users/recover.html', context)
+                    if not usernames or not usernames[0]:
+                        return render(request, 'users/payment.html', context)
+                    else:
+                        return render(request, 'users/myticket.html', context)
+
+                serializer = TicketSerializer(tickets, many=True)
+                return Response({'message': 'Booking successful.', 'tickets': serializer.data}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -7928,7 +9403,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import City, Route, Bus, Ticket, Buschange
 from .serializers import RouteSerializer, SelectRequestSerializer, SelectResponseSerializer
-
 class SelectView(APIView):
     serializer_class = SelectRequestSerializer
 
@@ -7951,6 +9425,7 @@ class SelectView(APIView):
         depcity = request.data.get('depcity')
         descity = request.data.get('descity')
         date = request.data.get('date')
+        passengers = request.data.get('passengers')
 
         buschanges_count = Buschange.objects.count()
 
@@ -8007,6 +9482,7 @@ class SelectView(APIView):
             'remaining_seats': remaining_seats,
             'unbooked_seats': unbooked_seats,
             'booked_seats': booked_seats,
+            'passengers': passengers,
             'all_seats': list(range(1, total_seats + 1))
         }
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
@@ -8065,6 +9541,7 @@ class BookView(APIView):
         date = request.data.get('date')
         depcity = request.data.get('depcity')
         descity = request.data.get('descity')
+        passengers = request.data.get('passengers')
 
         try:
             incoming_date = datetime.strptime(date, '%Y-%m-%d').date()
@@ -8113,7 +9590,8 @@ class BookView(APIView):
         context = {
             'routes': routes_list,
             'levels': last_found_levels,
-            'buschanges_count': buschanges_count
+            'buschanges_count': buschanges_count,
+            'passengers': passengers
         }
         if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
             return render(request, 'users/roote.html', context)
