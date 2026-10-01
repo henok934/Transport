@@ -117,7 +117,7 @@
             <li><a href="{% url 'home' %}" class="nav-item-link">Home</a></li>
             <li><a href="{% url 'about' %}" class="nav-item-link">About Us</a></li>
 	     <li><a href="{% url 'book' %}" class="nav-item-link">Book</a></li>
-            <li><a href="{% url 'get_ticket' %}" class="nav-item-link" style="color: var(--ethiopian-red);">My Ticket</a></li>
+            <li><a href="{% url 'login' %}" class="nav-item-link" style="color: var(--ethiopian-red);">My Ticket</a></li>
             <li><a href="{% url 'comment' %}" class="nav-item-link">Feedback</a></li>
             
             <li class="notif-wrapper">
@@ -145,7 +145,7 @@
             <div class="ticket-card">
                 <h3 class="text-center mb-4" style="font-weight: 800; color: var(--brand-navy);">የጉዞ ትኬት ማግኛ (Retrieve Ticket)</h3>
                 
-                <form action="{% url 'get_ticket' %}" method="POST">
+                <form action="{% url 'login' %}" method="POST">
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-md-6">

@@ -84,7 +84,7 @@
 
 <ul style="list-style-type: none; padding: 0; margin: 0;">
     <li class="main_nav_item" style="margin-right: 20px; margin-left: 30px; display: inline; white-space: nowrap;">
-        <a href="{% url 'get_ticket' %}" style="color: blue; text-decoration: none;">Manage Ticket</a>
+        <a href="{% url 'login' %}" style="color: blue; text-decoration: none;">Manage Ticket</a>
     </li>
 </ul>
 <li class="main_nav_item" style="margin-right: 20px; margin-left:30px;">
@@ -142,7 +142,7 @@
 			<div class="logo menu_logo"><a href="#"><img src="../static/images/logo.png" alt=""></a></div>
 			<ul>
 			  <li class="main_nav_item"><a href="{% url 'about' %}">home</a></li>
-                          <li class="main_nav_item"><a href="{% url 'get_ticket' %}">show ticket</a></li>
+                          <li class="main_nav_item"><a href="{% url 'login' %}">show ticket</a></li>
                           <li class="main_nav_item"><a href="{% url 'book' %}">book</a></li>
 			   <li class="main_nav_item"><a href="{% url 'ticketinfo' %}">Selectbus</a></li>
                           <li class="main_nav_item"><a href="{% url 'logout' %}">logout</a></li>
@@ -627,7 +627,7 @@
 
 
 
-        <a href="{% url 'get_ticket' %}" style="color: blue; text-decoration: none;">Manage Ticket</a>
+        <a href="{% url 'login' %}" style="color: blue; text-decoration: none;">Manage Ticket</a>
 
 
 
@@ -988,7 +988,7 @@
         <div class="d-none d-lg-flex">
             <a href="{% url 'home' %}" class="nav-item-link">Homee</a>
             <a href="{% url 'about' %}" class="nav-item-link">About Us</a>
-            <a href="{% url 'get_ticket' %}" class="nav-item-link">My Ticket</a>
+            <a href="{% url 'login' %}" class="nav-item-link">My Ticket</a>
             <a href="{% url 'comment' %}" class="nav-item-link">Feedback</a>
         </div>
     </div>
