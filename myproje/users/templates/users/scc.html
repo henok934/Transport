@@ -446,15 +446,49 @@ function validateLoginForm(event) {
                     </div>
 
                     <div class="row">
+			<!--
                         <div class="col-md-6 form-group">
                             <label class="form-label">Official Phone <span class="text-danger">*</span></label>
                             <input type="text" name="phone" maxlength="10" required class="form-control form-control-modern" placeholder="09...">
                         </div>
+			-->
                         <div class="col-md-6 form-group">
                             <label class="form-label">Official Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" maxlength="50" required class="form-control form-control-modern" placeholder="corporate@domain.com">
                         </div>
-                    </div>
+
+<!--
+<div class="col-md-6 form-group">
+    <label class="form-label">Official Phone <span class="text-danger">*</span></label>
+    <input type="text"
+           name="phone"
+           id="phoneInput"
+           minlength="10"
+           maxlength="10"
+           required
+           class="form-control form-control-modern"
+           placeholder="09XXXXXXXX"
+           inputmode="numeric"
+           pattern="^(09|07)[0-9]{8}$"
+           title="ስልክ ቁጥር በ 09 ወይም በ 07 መጀመር አለበት እና 10 ዲጂት መሆን አለበት"
+           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
+</div>
+
+<div class="col-md-6 form-group">
+    <label class="form-label">Official Phone <span class="text-danger">*</span></label>
+    <input type="tel" name="phone" maxlength="10" pattern="^09[0-9]{8}$" required class="form-control form-control-modern" placeholder="0911223344" title="Must be a 10-digit number starting with 09">
+</div>
+
+<div class="col-md-6 form-group">
+    <label class="form-label">Official Phone <span class="text-danger">*</span></label>
+    <input type="tel" name="phone" maxlength="10" pattern="^09[0-9]{8}$" required class="form-control form-control-modern" placeholder="0911223344" title="Must be exactly 10 digits and start with 09" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+</div>
+-->
+<div class="col-md-6 form-group">
+    <label class="form-label">Official Phone <span class="text-danger">*</span></label>
+    <input type="tel" name="phone" value="09" maxlength="10" pattern="^09[0-9]{8}$" required class="form-control form-control-modern" placeholder="0911223344" title="Must be exactly 10 digits and start with 09" oninput="let val = this.value.replace(/[^0-9]/g, ''); if(!val.startsWith('09')) val = '09' + val; this.value = val.slice(0, 10);">
+</div>
+		    </div>
 	
  	               <div class="row">
                         <div class="col-md-6 form-group">

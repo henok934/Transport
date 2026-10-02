@@ -3372,13 +3372,16 @@ def passenger_register(request):
 """
 
 import json
+import re  # <-- 1. ስልክ ቁጥርን ለመፈተሽ ሪጉላር ኤክስፕሬሽን (Regex) ላይብረሪ ታክሏል
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from django.core.cache import cache  # <-- 1. ለሬት ሊሚቲንግ የሚያስፈልገው ካሽ ተጨምሯል
+from django.core.cache import cache
 from .models import Pasenger, Worker, Sc
+
 User = get_user_model()
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -3394,14 +3397,12 @@ def passenger_register(request):
             client_ip = get_client_ip(request)
             rate_limit_key = f"register_limit_{client_ip}"
             attempts = cache.get(rate_limit_key, 0)
-            
+
             if attempts >= 5:
                 return JsonResponse(
-                    {'detail': 'Too many registration attempts. Please try again after a few minutes.'}, 
+                    {'detail': 'Too many registration attempts. Please try again after a few minutes.'},
                     status=429
                 )
-            
-            # ሙከራውን በአንድ (1) እንጨምራለን (ለ 60 ሰከንድ ቆይታ ይኖረዋል)
             cache.set(rate_limit_key, attempts + 1, timeout=60)
 
             # ከ JavaScript በ JSON የመጣውን መረጃ ማንበብ
@@ -3416,6 +3417,97 @@ def passenger_register(request):
             password = data.get('password')
             confirm_password = data.get('confirm_password')
 
+            # 🛡️ 3. PHONE NUMBER VALIDATION (በ '09' የሚጀምር እና በትክክል 10 ዲጂት የሆነ)
+            if not phone or not re.match(r'^09\d{8}$', str(phone)):
+                return JsonResponse(
+                    {'detail': 'Invalid phone number. Must be a 10-digit number starting with 09.'},
+                    status=400
+                )
+
+            # የይለፍ ቃል ማረጋገጫ (Validation)
+            if password != confirm_password:
+                return JsonResponse({'detail': 'Passwords do not match. Please try again.'}, status=400)
+
+            # የስልክ ቁጥር መደጋገም ማረጋገጫ (Cross-Model Validation)
+            if phone and (
+                Pasenger.objects.filter(phone=phone).exists() or
+                Worker.objects.filter(phone=phone).exists() or
+                Sc.objects.filter(phone=phone).exists() or
+                User.objects.filter(phone=phone).exists()
+            ):
+                return JsonResponse({'detail': 'Registration failed. Please check your information or try logging in.'}, status=400)
+
+            # አዲስ Passenger መፍጠር
+            passenger = Pasenger(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                gender=gender,
+                age=age
+            )
+            # Password Encrypt አድርጎ ማስቀመጥ
+            passenger.set_password(password)
+            passenger.save()
+
+            # ለ JavaScript ስኬታማ መልስ መስጠት (Status 201)
+            return JsonResponse({'message': 'Registration successful! Please log in.'}, status=201)
+
+        except Exception as e:
+            return JsonResponse({'detail': 'An error occurred during registration. Please try again.'}, status=400)
+    # GET Request ከሆነ HTML ፔጁን ማሳየት
+    return render(request, 'users/passenger_register.html')
+
+
+
+
+
+
+
+
+
+
+"""
+import json
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+from django.core.cache import cache  # <-- 1. ለሬት ሊሚቲንግ የሚያስፈልገው ካሽ ተጨምሯል
+from .models import Pasenger, Worker, Sc
+User = get_user_model()
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+def passenger_register(request):
+    if request.method == 'POST':
+        try:
+            # 2. 🛡️ RATE LIMITING CHECK (በአንድ አይፒ አድራሻ በደቂቃ ከ 5 ጊዜ በላይ እንዳይሞከር መገደብ)
+            client_ip = get_client_ip(request)
+            rate_limit_key = f"register_limit_{client_ip}"
+            attempts = cache.get(rate_limit_key, 0)
+            
+            if attempts >= 5:
+                return JsonResponse(
+                    {'detail': 'Too many registration attempts. Please try again after a few minutes.'}, 
+                    status=429
+                )
+            # ሙከራውን በአንድ (1) እንጨምራለን (ለ 60 ሰከንድ ቆይታ ይኖረዋል)
+            cache.set(rate_limit_key, attempts + 1, timeout=60)
+            # ከ JavaScript በ JSON የመጣውን መረጃ ማንበብ
+            data = json.loads(request.body)
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            phone = data.get('phone')
+            gender = data.get('gender')
+            age = data.get('age')
+            password = data.get('password')
+            confirm_password = data.get('confirm_password')
             # የይለፍ ቃል ማረጋገጫ (Validation)
             if password != confirm_password:
                 return JsonResponse({'detail': 'Passwords do not match. Please try again.'}, status=400)
@@ -3442,17 +3534,14 @@ def passenger_register(request):
             # Password Encrypt አድርጎ ማስቀመጥ
             passenger.set_password(password)
             passenger.save()
-            
             # ለ JavaScript ስኬታማ መልስ መስጠት (Status 201)
             return JsonResponse({'message': 'Registration successful! Please log in.'}, status=201)
-            
         except Exception as e:
             # 🛡️ FIX: የሲስተሙን ውስጣዊ ስህተት (Internal Error) በግልጽ ላለማሳየት ጄኔሪክ መልእክት መጠቀም
-            return JsonResponse({'detail': 'An error occurred during registration. Please try again.'}, status=400)
-            
+            return JsonResponse({'detail': 'An error occurred during registration. Please try again.'}, status=400)            
     # GET Request ከሆነ HTML ፔጁን ማሳየት
     return render(request, 'users/passenger_register.html')
-
+"""
 
 
 
@@ -6277,6 +6366,9 @@ class TicketBookingViews(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 """
 
+
+
+"""
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6534,8 +6626,286 @@ class TicketBookingViews(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+"""
 
 
+from collections import Counter
+import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render
+from django.db import transaction
+from django.db.models import Q, Sum, FloatField
+from django.db.models.functions import Cast
+from django.utils import timezone
+from django.conf import settings
+from drf_spectacular.utils import extend_schema
+from .models import Ticket, City, Bus, Route, Worker, Sc
+from .serializers import TicketSerializer, RouteSerializer
+
+# 🔒 SECURITY: በአንድ ስልክ ቁጥር ሊኖረው የሚችለው ከፍተኛው የቲኬት ገደብ (ከ 10 መብለጥ የለበትም)
+MAX_BATCH_SEATS = 10
+
+@extend_schema(tags=['Booking & Tickets'])
+class TicketBookingViews(APIView):
+    serializer_class = TicketSerializer
+
+    def get_user_from_session(self, request):
+        user_id = request.session.get('worker_id')
+        if user_id:
+            try:
+                return Worker.objects.get(id=user_id)
+            except Worker.DoesNotExist:
+                return None
+        return None
+
+    def get_daily_total(self, username):
+        today = timezone.now().date()
+        total = Ticket.objects.filter(
+            username=username,
+            booked_time__date=today
+        ).annotate(
+            price_as_float=Cast('price', FloatField())
+        ).aggregate(total=Sum('price_as_float'))['total'] or 0
+        return total
+
+    def get(self, request):
+        des = City.objects.all()
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/ticket.html', {'des': des})
+        return Response({'cities': [city.depcity for city in des]})
+
+    def post(self, request):
+        # 1. Retrieve Data Lists
+        firstnames = request.data.getlist('firstname[]')
+        emails = request.data.getlist('email[]')
+        genders = request.data.getlist('gender[]')
+        passenger_types = request.data.getlist('passenger_type[]')
+        lastnames = request.data.getlist('lastname[]')
+        phones = request.data.getlist('phone[]')
+        side_nos = request.data.getlist('side_no[]')
+        plate_nos = request.data.getlist('plate_no[]')
+        usernames = request.data.getlist('username[]')
+        dates = request.data.getlist('date[]')
+        no_seats = request.data.getlist('no_seat[]')
+        depcitys = request.data.getlist('depcity[]')
+        descitys = request.data.getlist('descity[]')
+        prs = request.data.getlist('pr[]')
+        das = request.data.getlist('da[]')
+
+        min_length = min(
+            len(firstnames), len(lastnames), len(emails), len(genders),
+            len(phones), len(side_nos), len(plate_nos),
+            len(depcitys), len(descitys), len(dates), len(no_seats), len(passenger_types)
+        )
+
+        # 🔒 SECURITY MITIGATION 1: Batch Rate & Limit Checking
+        if min_length == 0:
+            return Response({'error': 'No passenger or seat details provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if min_length > MAX_BATCH_SEATS:
+            error_msg = f'Batch reservation limit exceeded. Maximum allowed is {MAX_BATCH_SEATS} seats per transaction.'
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                return render(request, 'users/ticket.html', {'error': error_msg, 'des': City.objects.all()}, status=400)
+            return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 🔒 SECURITY MITIGATION 2: Check per-phone number strict limits using Direct Database Verification
+        valid_phones = phones[:min_length]
+        phone_counts = Counter(valid_phones)
+        for phone, count in phone_counts.items():
+            if count > MAX_BATCH_SEATS:
+                error_msg = f'Phone number {phone} exceeds the maximum allowed batch limit of {MAX_BATCH_SEATS} tickets.'
+                if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                    return render(request, 'users/ticket.html', {'error': error_msg, 'des': City.objects.all()}, status=400)
+                return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+            # ቀጥታ ከዳታቤዝ (Database) በመጠየቅ በዚሁ ስልክ ቁጥር ቀደም ሲል የተያዙትን ቲኬቶች መቁጠር
+            existing_db_tickets_count = Ticket.objects.filter(phone=phone).count()
+
+            # አሁን ሊይዛቸው ካለው ጋር ሲደመር ከ 10 መብለጥ አለመብለጡን ማረጋገጥ
+            if existing_db_tickets_count + count > MAX_BATCH_SEATS:
+                error_msg = f'Phone number {phone} already has {existing_db_tickets_count} tickets registered. Maximum total limit is {MAX_BATCH_SEATS} tickets.'
+                if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                    return render(request, 'users/ticket.html', {'error': error_msg, 'des': City.objects.all()}, status=400)
+                return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 🔒 SECURITY MITIGATION 3: Check for Duplicate Seats within the payload itself
+        if len(no_seats[:min_length]) != len(set(no_seats[:min_length])):
+            error_msg = 'Duplicate seat selection found in your request.'
+            if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                return render(request, 'users/ticket.html', {'error': error_msg, 'des': City.objects.all()}, status=400)
+            return Response({'error': error_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        used_seats = set()
+        tickets = []
+        verified_prices = []
+        fname = ""
+        lname = ""
+        level = "Standard"
+        bus_name = "Operator Name"
+
+        try:
+            with transaction.atomic():
+                for i in range(min_length):
+                    current_seat = str(no_seats[i]).strip()
+                    current_date = dates[i]
+                    alt_date = das[i] if i < len(das) else None
+                    dep = depcitys[i]
+                    des = descitys[i]
+                    plate = plate_nos[i]
+                    current_user = usernames[i] if i < len(usernames) else ""
+                    current_phone = phones[i]
+
+                    # --- ROUTE & BUS VALIDATION ---
+                    routes = Route.objects.filter(depcity=dep, descity=des, date=current_date, plate_no=plate)
+                    bus = Bus.objects.filter(plate_no=plate).first()
+
+                    if not routes.exists():
+                        return Response({'error': f'Route not found for {plate}'}, status=404)
+                    if not bus:
+                        return Response({'error': f'Bus {plate} not found'}, status=404)
+
+                    selected_route = routes.first()
+                    current_price = float(selected_route.price)
+                    verified_prices.append(current_price)
+                    bus_name = bus.name if bus else "Operator Name"
+                    total_seats = int(bus.no_seats)
+
+                    booked_in_db = Ticket.objects.select_for_update().filter(
+                        depcity=dep, descity=des, date=current_date, plate_no=plate
+                    ).values_list('no_seat', flat=True)
+
+                    booked_seats_list = list(set(int(s) for s in booked_in_db if s))
+                    unbooked_seats = [s for s in range(1, total_seats + 1) if s not in booked_seats_list]
+
+                    error_context = {
+                        'des': City.objects.all(),
+                        'routes': RouteSerializer(routes, many=True).data,
+                        'levels': bus.level,
+                        'remaining_seats': total_seats - len(booked_seats_list),
+                        'unbooked_seats': unbooked_seats,
+                        'booked_seats': booked_seats_list,
+                        'all_seats': list(range(1, total_seats + 1)),
+                    }
+
+                    # --- VALIDATION: SEAT SELECTION ---
+                    seat_is_taken = current_seat in used_seats or int(current_seat) in booked_seats_list
+                    if seat_is_taken:
+                        error_msg = f'Seat {current_seat} is already selected or reserved.'
+                        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                            error_context['error'] = error_msg
+                            if current_user:
+                                error_context['username'] = current_user
+                                error_context['total_today'] = self.get_daily_total(current_user)
+                                return render(request, 'users/booker.html', error_context, status=400)
+                            else:
+                                return render(request, 'users/ticket.html', error_context, status=400)
+                        return Response({'error': error_msg}, status=400)
+
+                    passenger_query = Ticket.objects.filter(
+                        firstname=firstnames[i],
+                        lastname=lastnames[i],
+                        depcity=dep,
+                        descity=des
+                    )
+
+                    already_booked_both = passenger_query.filter(
+                        Q(date=current_date) & Q(date=alt_date)
+                    ).exists()
+
+                    already_booked_single = passenger_query.filter(
+                        Q(date=current_date)
+                    ).exists()
+
+                    if already_booked_both or already_booked_single:
+                        alt_date_str = f" and {alt_date}" if alt_date and alt_date != 'None' else ""
+                        error_msg = f"Person already booked: {firstnames[i]} {lastnames[i]} for {current_date}{alt_date_str}."
+                        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                            error_context['error'] = error_msg
+                            if current_user:
+                                error_context['username'] = current_user
+                                error_context['total_today'] = self.get_daily_total(current_user)
+                                return render(request, 'users/booker.html', error_context, status=400)
+                            else:
+                                return render(request, 'users/ticket.html', error_context, status=400)
+                        return Response({'error': error_msg}, status=400)
+
+                    used_seats.add(current_seat)
+                    level = bus.level if bus else "Standard"
+
+                    validated_data = {
+                        'firstname': firstnames[i],
+                        'lastname': lastnames[i],
+                        'phone': current_phone,
+                        'price': current_price,
+                        'side_no': side_nos[i],
+                        'plate_no': plate,
+                        'date': current_date,
+                        'email': emails[i],
+                        'gender': genders[i],
+                        'passenger_type': passenger_types[i],
+                        'depcity': dep,
+                        'descity': des,
+                        'username': current_user,
+                        'no_seat': current_seat,
+                    }
+
+                    ticket_instance = Ticket.objects.create(**validated_data)
+                    tickets.append(ticket_instance)
+
+                    if current_user:
+                        worker = Worker.objects.filter(username=current_user).first()
+                        if worker:
+                            fname = worker.fname
+                            lname = worker.lname
+
+                if prs:
+                    for i in range(min_length):
+                        if i < len(das):
+                            Ticket.objects.filter(
+                                firstname=firstnames[i],
+                                lastname=lastnames[i],
+                                date=das[i],
+                                depcity=depcitys[i],
+                                descity=descitys[i]
+                            ).delete()
+
+                # 2. Total Price Calculation
+                total_price_base = sum(verified_prices)
+                total_prs = sum(float(p) for p in prs if p) if prs else 0.0
+                if total_prs > total_price_base:
+                    total_price = total_prs - total_price_base
+                    is_recovery = True
+                else:
+                    total_price = total_price_base - total_prs
+                    is_recovery = False
+
+                if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+                    sc_record = Sc.objects.filter(name=bus_name, level=level).first()
+                    company_logo = sc_record.logo.url if sc_record and sc_record.logo else None
+                    context = {
+                        'success': 'Ticket(s) processed successfully!',
+                        'tickets': tickets,
+                        'total_price': total_price,
+                        'level': level,
+                        'name': bus_name,
+                        'fname': fname,
+                        'company_logo': company_logo,
+                        'lname': lname
+                    }
+                    if is_recovery:
+                        return render(request, 'users/recover.html', context)
+                    if not usernames or not usernames[0]:
+                        return render(request, 'users/payment.html', context)
+                    else:
+                        return render(request, 'users/myticket.html', context)
+
+                serializer = TicketSerializer(tickets, many=True)
+                return Response({'message': 'Booking successful.', 'tickets': serializer.data}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -9501,8 +9871,120 @@ class SelectView(APIView):
 
 
 
+from datetime import datetime
+from django.shortcuts import render
+from django.utils import timezone
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import City, Route, Bus, Ticket, Buschange
+from .serializers import BookRequestSerializer, BookResponseSerializer
 
+@extend_schema(tags=['Booking & Tickets'])
+class BookView(APIView):
+    serializer_class = BookRequestSerializer
 
+    @extend_schema(summary="Get available cities and bus changes")
+    def get(self, request):
+        buschanges_count = Buschange.objects.count()
+        des = City.objects.all()
+
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/cheeckroutee.html', {
+                'des': des,
+                'buschanges_count': buschanges_count
+            })
+
+        return Response({
+            'des': [city.name for city in des],
+            'buschanges_count': buschanges_count
+        }, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Search for available routes",
+        request=BookRequestSerializer,
+        responses={200: BookResponseSerializer}
+    )
+    def post(self, request):
+        date = request.data.get('date')
+        depcity = request.data.get('depcity')
+        descity = request.data.get('descity')
+        passengers = request.data.get('passengers')
+
+        # 🛡️ የሰዎች (Passengers) ብዛት ማረጋገጫ (Validation: Min 1, Max 10)
+        try:
+            passengers_int = int(passengers)
+        except (ValueError, TypeError):
+            return self.handle_error(request, "Invalid passengers count. Must be a number.", status.HTTP_400_BAD_REQUEST)
+
+        if passengers_int < 1 or passengers_int > 10:
+            return self.handle_error(request, "Error: You can book between 1 and 10 passengers only.", status.HTTP_400_BAD_REQUEST)
+
+        try:
+            incoming_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            return self.handle_error(request, "Invalid date format. Use YYYY-MM-DD.", status.HTTP_400_BAD_REQUEST)
+
+        if incoming_date < timezone.now().date():
+            return self.handle_error(request, "Error: Past dates are not allowed.", status.HTTP_400_BAD_REQUEST)
+
+        rout_qs = Route.objects.filter(depcity=depcity, descity=descity, date=date)
+        buschanges_count = Buschange.objects.count()
+        routes_list = []
+        last_found_levels = None
+
+        if rout_qs.exists():
+            for route in rout_qs:
+                buses = Bus.objects.filter(plate_no=route.plate_no)
+
+                # Dynamic field extraction based on plate_no identification
+                levels = buses.first().level if buses.exists() else "N/A"
+                bus_name = buses.first().name if buses.exists() else "Luxury Fleet"
+
+                last_found_levels = levels
+                total_seats = sum(int(bus.no_seats or 0) for bus in buses)
+
+                booked_tickets = Ticket.objects.filter(
+                    depcity=route.depcity,
+                    descity=route.descity,
+                    date=route.date,
+                    plate_no=route.plate_no
+                ).count()
+
+                remaining_seats = total_seats - booked_tickets
+
+                if remaining_seats > 0:
+                    routes_list.append({
+                        'route': route,            # Accessible via item.route
+                        'levels': levels,          # Accessible via item.levels
+                        'name': bus_name,          # Accessible via item.name (Dynamically mapped)
+                        'remaining_seats': remaining_seats
+                    })
+
+        if not routes_list:
+            return self.handle_error(request, "There is no Travel for this information!", status.HTTP_404_NOT_FOUND)
+
+        context = {
+            'routes': routes_list,
+            'levels': last_found_levels,
+            'buschanges_count': buschanges_count,
+            'passengers': passengers_int
+        }
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/roote.html', context)
+        return Response(context, status=status.HTTP_200_OK)
+
+    def handle_error(self, request, message, status_code):
+        if 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'users/cheeckroutee.html', {
+                'des': City.objects.all(),
+                'buschanges_count': Buschange.objects.count(),
+                'error': message
+            })
+        return Response({"error": message}, status=status_code)
+
+"""
 from datetime import datetime
 from django.shortcuts import render
 from django.utils import timezone
@@ -9605,7 +10087,7 @@ class BookView(APIView):
                 'error': message
             })
         return Response({"error": message}, status=status_code)
-
+"""
 
 
 
@@ -12684,14 +13166,13 @@ class ServicInsertView(generics.GenericAPIView):
 
 
 
-
+"""
 from django.shortcuts import render, redirect
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Sc, Buschange, CustomUser, Worker, Pasenger
 from .serializers import scSerializer
-
 class ScInsertViews(generics.GenericAPIView):
     queryset = Sc.objects.all()
     serializer_class = scSerializer
@@ -12814,6 +13295,144 @@ class ScInsertViews(generics.GenericAPIView):
         if is_html:
             return render(request, 'users/scc.html', context)
         return Response({'error': 'Registration failed. Please check your input data.'}, status=status.HTTP_400_BAD_REQUEST)
+"""
+import re
+from django.shortcuts import render, redirect
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Sc, Buschange, CustomUser, Worker, Pasenger
+from .serializers import scSerializer
+
+class ScInsertViews(generics.GenericAPIView):
+    queryset = Sc.objects.all()
+    serializer_class = scSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        # 1. INITIAL SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Unauthorized! Please login to access the Registry.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count,
+                        'error': 'Security Protocol: Master Admin clearance required to register new entities.'
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. AUTHORIZED: Render entry form
+        return render(request, 'users/scc.html', {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        })
+
+    def post(self, request, *args, **kwargs):
+        # 1. POST SECURITY GATE
+        user_id = request.session.get('user_id')
+        buschanges_count = Buschange.objects.count()
+        is_html = 'text/html' in request.META.get('HTTP_ACCEPT', '')
+
+        if not user_id:
+            request.session.flush()
+            if is_html:
+                return render(request, 'users/login.html', {
+                    'error': 'Session expired. Please login again.',
+                    'buschanges_count': buschanges_count
+                })
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. PRIVILEGE VERIFICATION
+        try:
+            current_user = CustomUser.objects.get(id=user_id)
+            if current_user.username != "henok":
+                if is_html:
+                    return render(request, 'users/profile.html', {
+                        'user': current_user,
+                        'buschanges_count': buschanges_count
+                    })
+                return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        except CustomUser.DoesNotExist:
+            request.session.flush()
+            return redirect('login')
+
+        # 3. DATA VALIDATION
+        serializer = self.get_serializer(data=request.data)
+        context = {
+            'buschanges_count': buschanges_count,
+            'username': current_user.username
+        }
+
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            side = serializer.validated_data.get('side', '')
+            username = serializer.validated_data.get('username')
+            email = serializer.validated_data.get('email')
+            phone = serializer.validated_data.get('phone')
+            level = serializer.validated_data.get('level')
+
+            # 🛡️ Phone Format Validation (Must start with 09 and be exactly 10 digits)
+            if phone and not re.match(r'^09\d{8}$', phone):
+                context['error'] = 'Invalid phone number. Must be a 10-digit number starting with 09.'
+            elif (
+                (level in ['1st', '2nd', '3rd'] and Sc.objects.filter(name__iexact=name, level__in=['1st', '2nd', '3rd']).exists()) or
+                (level == 'Special Bus' and Sc.objects.filter(name__iexact=name, level='Special Bus').exists()) or
+                (side and any(
+                    set(s.strip().lower() for s in side.split('/') if s.strip()) &
+                    set(es.strip().lower() for es in existing_side.split('/') if es.strip())
+                    for existing_side in Sc.objects.values_list('side', flat=True) if existing_side
+                )) or
+                Sc.objects.filter(username__iexact=username).exists() or
+                (email and Sc.objects.filter(email__iexact=email).exists()) or
+                (phone and (
+                    Sc.objects.filter(phone=phone).exists() or
+                    Worker.objects.filter(phone=phone).exists() or
+                    Pasenger.objects.filter(phone=phone).exists() or
+                    CustomUser.objects.filter(phone=phone).exists()
+                ))
+            ):
+                context['error'] = 'Registration failed. Please check your information and try again.'
+
+            if 'error' in context:
+                if is_html:
+                    return render(request, 'users/scc.html', context)
+                return Response({'error': context['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 4. SAVE & RESPONSE
+            serializer.save()
+            context['success'] = 'Share Company Registered successfully.'
+            if is_html:
+                return render(request, 'users/scc.html', context)
+            return Response({'success': context['success']}, status=status.HTTP_201_CREATED)
+
+        # 5. HANDLE SERIALIZER ERRORS
+        context['error'] = 'Registration failed. Please check your input data.'
+        if is_html:
+            return render(request, 'users/scc.html', context)
+        return Response({'error': context['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
 
 
 """
